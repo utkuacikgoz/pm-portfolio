@@ -3,6 +3,8 @@ import { CASE_STUDIES, CaseStudyId } from ".";
 
 let currentCase: CaseStudyId = "bilira";
 
+export type { CaseStudyId };
+
 export function useCaseStudy() {
   const [activeCase, setActiveCase] = useState<CaseStudyId>(currentCase);
 
