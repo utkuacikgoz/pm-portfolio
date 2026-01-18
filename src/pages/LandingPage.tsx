@@ -48,10 +48,9 @@ export default function LandingPage({ onCaseClick }: Props) {
             fontWeight: 900,
             color: '#fff',
             marginBottom: 16,
-            textTransform: 'uppercase',
-            letterSpacing: -2
+            letterSpacing: -0.5
           }}>
-            UTKU ACIKGOZ
+            Utku Acikgoz
           </h1>
           <p style={{
             fontSize: 24,
@@ -59,7 +58,7 @@ export default function LandingPage({ onCaseClick }: Props) {
             marginBottom: 8,
             fontWeight: 700
           }}>
-            SENIOR TECHNICAL PRODUCT MANAGER
+            Senior Technical Product Manager
           </p>
           <p style={{
             fontSize: 18,

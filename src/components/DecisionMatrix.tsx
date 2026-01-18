@@ -172,8 +172,7 @@ export default function DecisionMatrix({ decisions, sectionColor }: DecisionMatr
         fontSize: 14,
         fontWeight: 700,
         color: sectionColor,
-        textTransform: 'uppercase',
-        letterSpacing: 1,
+        letterSpacing: 0.5,
         marginBottom: 16
       }}>
         Strategic Decision Matrix

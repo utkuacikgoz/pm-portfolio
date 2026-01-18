@@ -134,8 +134,7 @@ export default function EffortImpactBubbles({ initiatives, sectionColor }: Effor
         fontSize: 14,
         fontWeight: 700,
         color: sectionColor,
-        textTransform: 'uppercase',
-        letterSpacing: 1,
+        letterSpacing: 0.5,
         marginBottom: 16
       }}>
         Effort vs. Impact Prioritization

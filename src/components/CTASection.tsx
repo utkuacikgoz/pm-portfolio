@@ -164,10 +164,9 @@ export default function CTASection({ color }: CTASectionProps) {
           fontWeight: 900,
           color: '#fff',
           marginBottom: 16,
-          textTransform: 'uppercase',
-          letterSpacing: -1
+          letterSpacing: -0.5
         }}>
-          LET'S WORK TOGETHER
+          Let's Work Together
         </h2>
 
         <p style={{

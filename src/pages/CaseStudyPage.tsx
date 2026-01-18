@@ -47,7 +47,7 @@ type Props = {
   onBack: () => void;
 };
 
-const SECTION_LABELS = ['PROBLEM', 'CONSTRAINTS', 'APPROACH', 'RESULTS', 'LEARNINGS'];
+const SECTION_LABELS = ['Problem', 'Constraints', 'Approach', 'Results', 'Learnings'];
 const COLORS = ['#FF0080', '#00FFFF', '#FFD700', '#FF6B35', '#00FF00'];
 
 export default function CaseStudyPage({ caseStudy, onBack }: Props) {
@@ -118,8 +118,8 @@ export default function CaseStudyPage({ caseStudy, onBack }: Props) {
         <h1 style={{
           fontSize: 48,
           fontWeight: 900,
-          textTransform: 'uppercase',
-          letterSpacing: -1
+          textTransform: 'none',
+          letterSpacing: -0.5
         }}>
           {caseStudy.title.split('—')[0].trim()}
         </h1>
@@ -251,8 +251,7 @@ export default function CaseStudyPage({ caseStudy, onBack }: Props) {
             fontWeight: 900,
             color: COLORS[activeSection],
             marginBottom: 32,
-            textTransform: 'uppercase',
-            letterSpacing: 1
+            letterSpacing: 0.5
           }}>
             {SECTION_LABELS[activeSection]}
           </h2>

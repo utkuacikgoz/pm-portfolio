@@ -193,8 +193,7 @@ export default function StakeholderNetwork({ stakeholders, sectionColor }: Stake
         fontSize: 14,
         fontWeight: 700,
         color: sectionColor,
-        textTransform: 'uppercase',
-        letterSpacing: 1,
+        letterSpacing: 0.5,
         marginBottom: 16
       }}>
         Cross-Functional Leadership
