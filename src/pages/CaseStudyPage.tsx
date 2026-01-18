@@ -335,7 +335,7 @@ export default function CaseStudyPage({ caseStudy, onBack }: Props) {
           color: '#666',
           marginBottom: 24
         }}>
-          © 2025 UTKU ACIKGOZ • SENIOR TECHNICAL PRODUCT MANAGER
+          © 2026 Utku Acikgoz • Senior Technical Product Manager
         </p>
         <div style={{
           display: 'flex',

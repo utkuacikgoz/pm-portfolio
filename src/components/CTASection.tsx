@@ -117,9 +117,9 @@ export default function CTASection({ color }: CTASectionProps) {
     return () => {
       window.removeEventListener('resize', handleResize);
       if (animationIdRef.current) cancelAnimationFrame(animationIdRef.current);
-      renderer.dispose();
       geometry.dispose();
       material.dispose();
+      renderer.dispose();
       if (containerRef.current?.contains(renderer.domElement)) {
         containerRef.current.removeChild(renderer.domElement);
       }

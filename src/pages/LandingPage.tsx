@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { CaseStudyId } from '../content/useCaseStudy';
+import CTASection from '../components/CTASection';
 
 type Props = {
   onCaseClick: (caseId: CaseStudyId) => void;
@@ -119,6 +120,9 @@ export default function LandingPage({ onCaseClick }: Props) {
           />
         </div>
       </div>
+
+      {/* CTA Section */}
+      <CTASection color="#FF0080" />
 
       {/* Grid overlay */}
       <GridOverlay />
