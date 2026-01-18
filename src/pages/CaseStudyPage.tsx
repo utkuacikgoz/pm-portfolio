@@ -53,6 +53,12 @@ const COLORS = ['#FF0080', '#00FFFF', '#FFD700', '#FF6B35', '#00FF00'];
 export default function CaseStudyPage({ caseStudy, onBack }: Props) {
   const [activeSection, setActiveSection] = useState(0);
 
+  const handleSectionChange = (newSection: number) => {
+    setActiveSection(newSection);
+    // Scroll to top smoothly
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   // Calculate sentiment scores dynamically based on visualization data
   const calculateSentimentScores = () => {
     return caseStudy.beats.map((beat, index) => {
@@ -145,7 +151,7 @@ export default function CaseStudyPage({ caseStudy, onBack }: Props) {
         {caseStudy.beats.map((_, index) => (
           <button
             key={index}
-            onClick={() => setActiveSection(index)}
+            onClick={() => handleSectionChange(index)}
             style={{
               background: 'transparent',
               border: 'none',
@@ -277,7 +283,7 @@ export default function CaseStudyPage({ caseStudy, onBack }: Props) {
           marginBottom: 80
         }}>
           <button
-            onClick={() => setActiveSection(Math.max(0, activeSection - 1))}
+            onClick={() => handleSectionChange(Math.max(0, activeSection - 1))}
             disabled={activeSection === 0}
             style={{
               padding: '12px 32px',
@@ -290,11 +296,11 @@ export default function CaseStudyPage({ caseStudy, onBack }: Props) {
               flex: 1
             }}
           >
-            ← PREVIOUS
+            ← PREVIOUS BEAT
           </button>
 
           <button
-            onClick={() => setActiveSection(Math.min(caseStudy.beats.length - 1, activeSection + 1))}
+            onClick={() => handleSectionChange(Math.min(caseStudy.beats.length - 1, activeSection + 1))}
             disabled={activeSection === caseStudy.beats.length - 1}
             style={{
               padding: '12px 32px',
@@ -307,7 +313,7 @@ export default function CaseStudyPage({ caseStudy, onBack }: Props) {
               flex: 1
             }}
           >
-            NEXT →
+            NEXT BEAT →
           </button>
         </div>
       </div>
