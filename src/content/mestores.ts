@@ -1,6 +1,7 @@
 export const mestores = {
   id: "mestores",
   title: "Mestores — 0→1 Digital Transformation",
+  sentimentScores: [12, 30, 55, 78, 98], // Steeper growth arc for transformation
   beats: [
     {
       id: "chaos",

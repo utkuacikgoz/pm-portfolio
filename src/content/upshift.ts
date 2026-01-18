@@ -1,6 +1,7 @@
 export const upshift = {
   id: "upshift",
   title: "Upshift — Builder PM",
+  sentimentScores: [20, 35, 50, 75, 92], // Different arc for this case
   beats: [
     {
       id: "chaos",

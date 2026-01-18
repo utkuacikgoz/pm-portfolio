@@ -11,6 +11,7 @@ import Logo from '../components/Logo';
 type CaseStudy = {
   id: string;
   title: string;
+  sentimentScores?: number[]; // Optional custom sentiment ratios per case study
   beats: Array<{
     id: string;
     body: string[];
@@ -62,6 +63,11 @@ export default function CaseStudyPage({ caseStudy, onBack }: Props) {
 
   // Calculate sentiment scores dynamically based on visualization data
   const calculateSentimentScores = () => {
+    // Use custom sentiment scores if provided, otherwise calculate
+    if (caseStudy.sentimentScores) {
+      return caseStudy.sentimentScores;
+    }
+
     return caseStudy.beats.map((beat, index) => {
       // Base sentiment increases through beats
       let sentiment = (index + 1) * 15;

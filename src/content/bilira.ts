@@ -1,6 +1,7 @@
 export const bilira = {
   id: "bilira",
   title: "BiLira — Technical Product Management",
+  sentimentScores: [15, 28, 45, 82, 95], // Problem → Constraints → Approach → Results → Learnings
   beats: [
     {
       id: "chaos",

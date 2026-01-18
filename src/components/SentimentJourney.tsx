@@ -8,15 +8,16 @@ interface SentimentJourneyProps {
   sentimentScores: number[];
 }
 
-// Map sentiment scores to emotional states with emojis
-function getEmotionalState(score: number): { emoji: string; emotion: string } {
-  if (score < 20) return { emoji: '😤', emotion: 'Frustrated' };
-  if (score < 35) return { emoji: '😕', emotion: 'Confused' };
-  if (score < 50) return { emoji: '😕', emotion: 'Concerned' };
-  if (score < 65) return { emoji: '🤔', emotion: 'Cautious' };
-  if (score < 80) return { emoji: '😊', emotion: 'Optimistic' };
-  if (score < 90) return { emoji: '😄', emotion: 'Happy' };
-  return { emoji: '🎉', emotion: 'Satisfied' };
+// Map beat index to journey-specific emojis
+function getBeatEmoji(beatIndex: number): { emoji: string; label: string } {
+  const beatEmojis = [
+    { emoji: '🚨', label: 'Problem Identified' },
+    { emoji: '🧱', label: 'Constraints Found' },
+    { emoji: '🛠️', label: 'Solution Built' },
+    { emoji: '📈', label: 'Results Delivered' },
+    { emoji: '💡', label: 'Insights Gained' }
+  ];
+  return beatEmojis[beatIndex] || beatEmojis[0];
 }
 
 export default function SentimentJourney({ currentSection, sectionColor, sectionLabels, sentimentScores }: SentimentJourneyProps) {
@@ -252,7 +253,7 @@ export default function SentimentJourney({ currentSection, sectionColor, section
       }}>
         {sectionLabels.map((label, idx) => {
           const score = sentimentScores[idx];
-          const { emoji, emotion } = getEmotionalState(score);
+          const { emoji, label: beatLabel } = getBeatEmoji(idx);
           return (
             <div key={idx} style={{
               textAlign: 'center',
@@ -286,7 +287,7 @@ export default function SentimentJourney({ currentSection, sectionColor, section
                 transition: 'color 0.3s',
                 marginBottom: 4
               }}>
-                {emotion}
+                {beatLabel}
               </div>
               <div style={{
                 fontSize: 9,
@@ -310,7 +311,7 @@ export default function SentimentJourney({ currentSection, sectionColor, section
         fontSize: 12,
         color: '#999'
       }}>
-        <strong style={{ color: sectionColor }}>Emotional Arc:</strong> Tracks how customer sentiment evolved through each stage. From initial frustration with the problem, through understanding and caution, to optimism, happiness, and ultimate satisfaction with the solution.
+        <strong style={{ color: sectionColor }}>Journey Arc:</strong> Maps the product journey from identifying problems through delivering results and extracting learnings. Each stage represents critical milestones in the solution development.
       </div>
     </div>
   );
