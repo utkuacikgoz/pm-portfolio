@@ -8,6 +8,17 @@ interface SentimentJourneyProps {
   sentimentScores: number[];
 }
 
+// Map sentiment scores to emotional states with emojis
+function getEmotionalState(score: number): { emoji: string; emotion: string } {
+  if (score < 20) return { emoji: '😤', emotion: 'Frustrated' };
+  if (score < 35) return { emoji: '😕', emotion: 'Confused' };
+  if (score < 50) return { emoji: '😕', emotion: 'Concerned' };
+  if (score < 65) return { emoji: '🤔', emotion: 'Cautious' };
+  if (score < 80) return { emoji: '😊', emotion: 'Optimistic' };
+  if (score < 90) return { emoji: '😄', emotion: 'Happy' };
+  return { emoji: '🎉', emotion: 'Satisfied' };
+}
+
 export default function SentimentJourney({ currentSection, sectionColor, sectionLabels, sentimentScores }: SentimentJourneyProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
@@ -231,7 +242,7 @@ export default function SentimentJourney({ currentSection, sectionColor, section
         }}
       />
       
-      {/* Legend */}
+      {/* Legend with Emojis */}
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(5, 1fr)',
@@ -239,30 +250,54 @@ export default function SentimentJourney({ currentSection, sectionColor, section
         marginTop: 20,
         padding: '0 16px'
       }}>
-        {sectionLabels.map((label, idx) => (
-          <div key={idx} style={{
-            textAlign: 'center',
-            fontSize: 11,
-            color: '#666'
-          }}>
-            <div style={{
-              color: idx === currentSection ? sectionColor : '#999',
-              fontWeight: 700,
-              fontSize: 16,
-              marginBottom: 4,
-              transition: 'color 0.3s'
+        {sectionLabels.map((label, idx) => {
+          const score = sentimentScores[idx];
+          const { emoji, emotion } = getEmotionalState(score);
+          return (
+            <div key={idx} style={{
+              textAlign: 'center',
+              fontSize: 11,
+              color: '#666',
+              padding: '12px',
+              borderRadius: 4,
+              background: idx === currentSection ? `${sectionColor}15` : 'transparent',
+              border: idx === currentSection ? `1px solid ${sectionColor}40` : 'none',
+              transition: 'all 0.3s'
             }}>
-              {Math.round([15, 30, 50, 85, 95][idx])}%
+              <div style={{
+                fontSize: 32,
+                marginBottom: 6,
+                lineHeight: 1
+              }}>
+                {emoji}
+              </div>
+              <div style={{
+                color: idx === currentSection ? sectionColor : '#999',
+                fontWeight: 700,
+                fontSize: 12,
+                marginBottom: 4,
+                transition: 'color 0.3s'
+              }}>
+                {Math.round(score)}%
+              </div>
+              <div style={{
+                fontSize: 10,
+                color: idx === currentSection ? sectionColor : '#666',
+                transition: 'color 0.3s',
+                marginBottom: 4
+              }}>
+                {emotion}
+              </div>
+              <div style={{
+                fontSize: 9,
+                color: '#666',
+                fontWeight: 600
+              }}>
+                {label}
+              </div>
             </div>
-            <div style={{
-              fontSize: 10,
-              color: idx === currentSection ? sectionColor : '#666',
-              transition: 'color 0.3s'
-            }}>
-              {label}
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Interpretation */}
@@ -275,7 +310,7 @@ export default function SentimentJourney({ currentSection, sectionColor, section
         fontSize: 12,
         color: '#999'
       }}>
-        <strong style={{ color: sectionColor }}>Sentiment Arc:</strong> Shows how customer happiness evolved from identifying the problem through full resolution. The thermometer visualizes the emotional temperature at each stage of the journey.
+        <strong style={{ color: sectionColor }}>Emotional Arc:</strong> Tracks how customer sentiment evolved through each stage. From initial frustration with the problem, through understanding and caution, to optimism, happiness, and ultimate satisfaction with the solution.
       </div>
     </div>
   );
