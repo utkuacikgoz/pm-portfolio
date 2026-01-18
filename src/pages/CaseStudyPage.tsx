@@ -6,6 +6,7 @@ import DecisionMatrix from '../components/DecisionMatrix';
 import EffortImpactBubbles from '../components/EffortImpactBubbles';
 import StakeholderNetwork from '../components/StakeholderNetwork';
 import CTASection from '../components/CTASection';
+import Logo from '../components/Logo';
 
 type CaseStudy = {
   id: string;
@@ -84,6 +85,9 @@ export default function CaseStudyPage({ caseStudy, onBack }: Props) {
       color: '#fff',
       position: 'relative'
     }}>
+      {/* Logo */}
+      <Logo onClick={onBack} />
+
       {/* Back button */}
       <button
         onClick={onBack}

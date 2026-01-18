@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { CaseStudyId } from '../content/useCaseStudy';
 import CTASection from '../components/CTASection';
+import Logo from '../components/Logo';
 
 type Props = {
   onCaseClick: (caseId: CaseStudyId) => void;
@@ -27,6 +28,9 @@ export default function LandingPage({ onCaseClick }: Props) {
       position: 'relative',
       overflow: 'hidden'
     }}>
+      {/* Logo */}
+      <Logo />
+
       {/* Vortex animation */}
       {!vortexComplete && <VortexAnimation />}
 
