@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 
 interface Decision {
@@ -15,6 +15,7 @@ interface DecisionMatrixProps {
 }
 
 export default function DecisionMatrix({ decisions, sectionColor }: DecisionMatrixProps) {
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
@@ -127,16 +128,25 @@ export default function DecisionMatrix({ decisions, sectionColor }: DecisionMatr
       time += 0.01;
 
       bubblesRef.current.forEach((mesh) => {
+        const index = mesh.userData.index;
+        const isHovered = hoveredIndex === index;
+        const baseEmissiveIntensity = mesh.userData.isChosen ? 0.4 : 0.1;
+        
         if (mesh.userData.isChosen) {
-          mesh.scale.set(1, 1, 1);
+          mesh.scale.set(isHovered ? 1.2 : 1, isHovered ? 1.2 : 1, isHovered ? 1.2 : 1);
           mesh.rotation.x += 0.005;
           mesh.rotation.y += 0.008;
           mesh.position.z = Math.sin(time) * 0.3;
         } else {
-          const scale = 0.8 + Math.sin(time * 2 + mesh.userData.index) * 0.15;
-          mesh.scale.set(scale, scale, scale);
+          const scale = 0.8 + Math.sin(time * 2 + index) * 0.15;
+          mesh.scale.set(isHovered ? scale * 1.15 : scale, isHovered ? scale * 1.15 : scale, isHovered ? scale * 1.15 : scale);
           mesh.rotation.x += 0.002;
           mesh.rotation.y += 0.003;
+        }
+        
+        // Update emissive intensity on hover
+        if (mesh.material instanceof THREE.MeshStandardMaterial) {
+          mesh.material.emissiveIntensity = isHovered ? 0.6 : baseEmissiveIntensity;
         }
       });
 
@@ -164,7 +174,7 @@ export default function DecisionMatrix({ decisions, sectionColor }: DecisionMatr
         containerRef.current.removeChild(renderer.domElement);
       }
     };
-  }, [decisions, sectionColor]);
+  }, [decisions, sectionColor, hoveredIndex]);
 
   return (
     <div style={{ marginBottom: 40 }}>
@@ -197,22 +207,77 @@ export default function DecisionMatrix({ decisions, sectionColor }: DecisionMatr
         padding: '0 16px'
       }}>
         {decisions.map((d, idx) => (
-          <div key={idx} style={{
-            padding: '12px',
-            background: d.isChosen ? `${d.color}20` : '#0a0a0a',
-            border: `1px solid ${d.color}`,
-            borderRadius: 4,
-            fontSize: 12,
-            color: '#ccc'
-          }}>
-            <div style={{ fontWeight: 700, color: d.color, marginBottom: 4 }}>
+          <div
+            key={idx}
+            onMouseEnter={() => setHoveredIndex(idx)}
+            onMouseLeave={() => setHoveredIndex(null)}
+            style={{
+              padding: '12px',
+              background: hoveredIndex === idx ? `${d.color}30` : d.isChosen ? `${d.color}20` : '#0a0a0a',
+              border: `2px solid ${hoveredIndex === idx ? d.color : d.color}`,
+              borderRadius: 4,
+              fontSize: 12,
+              color: '#ccc',
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+              transform: hoveredIndex === idx ? 'translateY(-4px)' : 'translateY(0)',
+              boxShadow: hoveredIndex === idx ? `0 4px 16px ${d.color}40` : 'none'
+            }}
+          >
+            <div style={{ fontWeight: 700, color: d.color, marginBottom: 8 }}>
               {d.isChosen && '✓ '}{d.label}
             </div>
-            <div>Speed: {d.speed}</div>
-            <div>Risk: {d.risk}</div>
+            <div style={{ marginBottom: 4, color: '#999' }}>
+              <span style={{ color: d.color, fontWeight: 600 }}>Speed:</span> {d.speed}
+            </div>
+            <div style={{ color: '#999' }}>
+              <span style={{ color: d.color, fontWeight: 600 }}>Risk:</span> {d.risk}
+            </div>
+            {d.isChosen && (
+              <div style={{
+                marginTop: 8,
+                paddingTop: 8,
+                borderTop: `1px solid ${d.color}40`,
+                fontSize: 10,
+                color: d.color,
+                fontWeight: 600
+              }}>
+                CHOSEN DECISION
+              </div>
+            )}
           </div>
         ))}
       </div>
+      
+      {/* Interactive Legend */}
+      {hoveredIndex !== null && (
+        <div style={{
+          marginTop: 16,
+          padding: '12px 16px',
+          background: '#0a0a0a',
+          border: `1px solid ${decisions[hoveredIndex].color}40`,
+          borderRadius: 4,
+          fontSize: 12,
+          color: '#ccc'
+        }}>
+          <div style={{
+            color: decisions[hoveredIndex].color,
+            fontWeight: 700,
+            marginBottom: 6
+          }}>
+            {decisions[hoveredIndex].label}
+          </div>
+          <div style={{ color: '#999', fontSize: 11, lineHeight: 1.6 }}>
+            <div>Speed Index: <span style={{ color: sectionColor, fontWeight: 600 }}>{decisions[hoveredIndex].speed}/100</span> - How quickly this decision can be executed</div>
+            <div style={{ marginTop: 4 }}>Risk Level: <span style={{ color: sectionColor, fontWeight: 600 }}>{decisions[hoveredIndex].risk}/100</span> - Potential downside or uncertainty</div>
+            {decisions[hoveredIndex].isChosen && (
+              <div style={{ marginTop: 6, paddingTop: 6, borderTop: `1px solid ${decisions[hoveredIndex].color}40`, color: decisions[hoveredIndex].color }}>
+                This decision was selected for execution.
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
