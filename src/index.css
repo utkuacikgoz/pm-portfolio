@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Nimbus+Sans:wght@400;600;700;900&display=swap');
+
 * {
   margin: 0;
   padding: 0;
@@ -5,7 +7,7 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'Arial', sans-serif;
+  font-family: 'Nimbus Sans', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'Arial', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background: #000;
