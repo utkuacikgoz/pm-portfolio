@@ -6,7 +6,7 @@ export const mestores = {
     {
       id: "chaos",
       body: [
-        "Mestores was a $12M ARR operation across KSA, UAE, and Egypt, operating four separate business units: hospital digitization (PACS systems), last-mile delivery, headless commerce, and gaming infrastructure. But every unit was running on legacy manual systems with zero integration. Inventory was tracked in Excel; distribution happened via phone calls; customer experience was chaos.",
+        "Mestores was a $20M ARR operation across KSA operating two separate business units: last-mile delivery, headless commerce, and gaming infrastructure. But every unit was running on legacy manual systems with zero integration. Inventory was tracked in Excel; distribution happened via phone calls; customer experience was chaos.",
         "The core problem: we were growing despite our systems, not because of them. We had 8-hour turnarounds for customer requests; hospitals had patient data stuck in silos; the delivery business couldn't track packages in real-time. Growth came from market expansion, not operational excellence. The CFO said, 'We're leaking 22% margin just from operational inefficiency. If we don't fix this, competitors will eat us alive at higher volumes.'",
         "The turning point: we landed a $3M government contract (Saudi healthcare modernization). But the contract included a clause: 'System must achieve 95% uptime and real-time data visibility.' Our legacy systems couldn't deliver. We had 16 weeks to build a platform that tied together four business units or lose the largest deal in company history. This was the catalyst: we finally had permission to completely rebuild."
       ],
