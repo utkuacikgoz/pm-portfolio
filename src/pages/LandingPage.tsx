@@ -70,7 +70,7 @@ export default function LandingPage({ onCaseClick }: Props) {
             color: '#00FFFF',
             fontWeight: 500
           }}>
-            FINTECH • COMPLIANCE • AI-DRIVEN GROWTH
+            Product • Growth • Culture
           </p>
 
           {/* Contact links */}
@@ -121,6 +121,33 @@ export default function LandingPage({ onCaseClick }: Props) {
             onClick={() => handleCardClick('mestores')}
             isSelected={selectedCard === 'mestores'}
             delay={2}
+          />
+          <CaseCard
+            title="APOLLO"
+            subtitle="Healthcare Digital Transformation"
+            color="#FF6B35"
+            shape="pentagon"
+            onClick={() => handleCardClick('apollo')}
+            isSelected={selectedCard === 'apollo'}
+            delay={3}
+          />
+          <CaseCard
+            title="MONA"
+            subtitle="HR Platform"
+            color="#00FF00"
+            shape="hexagon"
+            onClick={() => handleCardClick('mona')}
+            isSelected={selectedCard === 'mona'}
+            delay={4}
+          />
+          <CaseCard
+            title="LA3EB"
+            subtitle="Gaming Super-App"
+            color="#FF0080"
+            shape="star"
+            onClick={() => handleCardClick('la3eb')}
+            isSelected={selectedCard === 'la3eb'}
+            delay={5}
           />
         </div>
       </div>
@@ -272,7 +299,7 @@ function CaseCard({ title, subtitle, color, shape, onClick, isSelected, delay }:
   title: string;
   subtitle: string;
   color: string;
-  shape: 'circle' | 'triangle' | 'square';
+  shape: 'circle' | 'triangle' | 'square' | 'pentagon' | 'hexagon' | 'star';
   onClick: () => void;
   isSelected: boolean;
   delay: number;
@@ -325,7 +352,7 @@ function CaseCard({ title, subtitle, color, shape, onClick, isSelected, delay }:
   );
 }
 
-function Shape({ type, color }: { type: 'circle' | 'triangle' | 'square'; color: string }) {
+function Shape({ type, color }: { type: 'circle' | 'triangle' | 'square' | 'pentagon' | 'hexagon' | 'star'; color: string }) {
   const size = 60;
 
   if (type === 'circle') {
@@ -353,13 +380,38 @@ function Shape({ type, color }: { type: 'circle' | 'triangle' | 'square'; color:
     );
   }
 
+  if (type === 'square') {
+    return (
+      <div style={{
+        width: size,
+        height: size,
+        background: color,
+        margin: '0 auto'
+      }} />
+    );
+  }
+
+  if (type === 'pentagon') {
+    return (
+      <svg width={size} height={size} viewBox="0 0 60 60" style={{ margin: '0 auto', display: 'block' }}>
+        <polygon points="30,5 55,25 45,55 15,55 5,25" fill={color} />
+      </svg>
+    );
+  }
+
+  if (type === 'hexagon') {
+    return (
+      <svg width={size} height={size} viewBox="0 0 60 60" style={{ margin: '0 auto', display: 'block' }}>
+        <polygon points="30,5 50,15 50,40 30,55 10,40 10,15" fill={color} />
+      </svg>
+    );
+  }
+
+  // star
   return (
-    <div style={{
-      width: size,
-      height: size,
-      background: color,
-      margin: '0 auto'
-    }} />
+    <svg width={size} height={size} viewBox="0 0 60 60" style={{ margin: '0 auto', display: 'block' }}>
+      <polygon points="30,5 37,20 53,20 42,30 47,45 30,35 13,45 18,30 7,20 23,20" fill={color} />
+    </svg>
   );
 }
 
