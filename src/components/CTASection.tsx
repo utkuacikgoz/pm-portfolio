@@ -180,7 +180,7 @@ export default function CTASection({ color }: CTASectionProps) {
         </p>
 
         <a
-          href="https://calendly.com/utkuacikgoz"
+          href="https://calendly.com/utkuacikgoz/30min"
           target="_blank"
           rel="noopener noreferrer"
           style={{
