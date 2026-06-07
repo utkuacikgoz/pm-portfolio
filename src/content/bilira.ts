@@ -1,10 +1,12 @@
-export const bilira = {
+import type { CaseStudy } from "./types";
+
+export const bilira: CaseStudy = {
   id: "bilira",
   title: "BiLira — Technical Product Management",
   sentimentScores: [15, 28, 45, 82, 95], // Problem → Constraints → Approach → Results → Learnings
   beats: [
     {
-      id: "chaos",
+      id: "problem",
       body: [
         "BiLira had scaled to 100K+ verified users and was processing 1000+ daily trades across 100+ digital assets on 5+ blockchains but compliance was becoming a growth killer. Every transaction required manual AML/KYC review under Turkey's strict regulatory oversight, creating a severe bottleneck: compliance reviews were taking 2-3 hours, directly blocking users from executing time-sensitive trades.",
         "The core problem: our team was excellent at building crypto infrastructure, but we were applying traditional compliance workflows to a 24/7 trading environment. We had a 20-person engineering team, 5 compliance officers working around the clock, and a CTO who was stretched managing infrastructure while firefighting compliance exceptions. Trading desk leads were literally requesting faster manual reviews, which created risk.",
@@ -50,7 +52,7 @@ export const bilira = {
       ]
     },
     {
-      id: "decisions",
+      id: "approach",
       body: [
         "We chose the 'Hybrid Pipeline' approach: automated first-pass AML/KYC screening (flagging 90% of compliant transactions instantly), with human review reserved for edge cases and high-risk patterns. Machine learning handled routine cases while compliance officers focused on strategic exceptions. We reduced manual review time from 2.4 hours → 12 minutes (93% faster) while increasing detection accuracy by 18%.",
         "I personally led the 20-person cross-functional team: 15 engineers, 3 QAs, 2 designers. First leadership challenge : CTO and Compliance Officer had fundamentally different risk models. I ran weekly 'decision sessions' where we simulated failure scenarios, tested edge cases, and built shared confidence. By week 6, they were co-champions of the hybrid approach instead of skeptics.",
@@ -63,13 +65,7 @@ export const bilira = {
           impact: 88,
           timeToValue: 45,
           color: "#FF0080"
-       ,
-      metrics: [
-        { label: "Manual Review Time", before: 180, after: 117, unit: "min", color: "#FF0080" },
-        { label: "OTC Throughput", before: 100, after: 145, unit: "trades/hr", color: "#00FFFF" },
-        { label: "Compliance Score", before: 92, after: 99, unit: "%", color: "#FFD700" },
-        { label: "Trade Execution", before: 45, after: 12, unit: "sec", color: "#FF6B35" }
-      ] },
+        },
         {
           label: "OTC System Redesign",
           effort: 80,
@@ -94,16 +90,22 @@ export const bilira = {
       ]
     },
     {
-      id: "deterministic",
+      id: "results",
       body: [
         "Compliance review time: 2.4 hours → 12 minutes (92% reduction). This unlocked institutional trading—competitors took 6-12 hours.",
         "Revenue impact: Institutional OTC volume grew from $500K/day → $2.2M/day (+340% growth). Annual trading volume added $18M in new revenue. With 12 bps take rate, the compliance automation project generated $216K additional annual revenue. ROI: ~8x within 6 months.",
         "Regulatory moat: Maintained zero violations while regulators audited us twice. We became a reference case for Turkish regulators. Regulators' trust was harder for competitors to replicate than our technical throughput.",
         "Team impact: Reduced burnout (60-hr → 40-hr weeks). Scaled from 1,000 to 5,000 trades/day without adding compliance headcount."
+      ],
+      metrics: [
+        { label: "Manual Review Time", before: 180, after: 12, unit: "min", color: "#FF0080" },
+        { label: "OTC Throughput", before: 100, after: 145, unit: "trades/hr", color: "#00FFFF" },
+        { label: "Compliance Score", before: 92, after: 99, unit: "%", color: "#FFD700" },
+        { label: "Trade Execution", before: 45, after: 12, unit: "sec", color: "#FF6B35" }
       ]
     },
     {
-      id: "proof",
+      id: "learnings",
       body: [
         "Turning Point Insight: When two experts (CTO & Compliance Officer) fundamentally disagree on approach, it usually means both are partly right. We didn't hire another opinion; we co-designed a solution that incorporated their legitimate concerns. The hybrid model worked because it was built on shared problem-solving, not compromise.",
         "Strategic Principle: In regulated fintech, automation accelerates business, but regulation-friendly automation builds moats. Competitors could copy our throughput, but regulators' trust in our governance was harder to replicate. By the time competitors caught up technically, we had 18 months of regulatory goodwill and reference cases.",

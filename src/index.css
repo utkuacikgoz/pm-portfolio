@@ -28,3 +28,53 @@ a {
 h1, h2, h3, h4, h5, h6 {
   font-weight: 900;
 }
+
+/* Visually hidden but available to screen readers / keyboard focus. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Skip link: hidden until focused, then pinned top-left. First focusable el. */
+.skip-link {
+  position: fixed;
+  top: -200px;
+  left: 16px;
+  z-index: 200;
+  padding: 12px 20px;
+  background: #fff;
+  color: #000;
+  font-weight: 800;
+  font-size: 14px;
+  transition: top 0.15s ease;
+}
+.skip-link:focus {
+  top: 16px;
+}
+
+:focus-visible {
+  outline: 2px solid #00FFFF;
+  outline-offset: 2px;
+}
+
+@keyframes panelIn {
+  from { transform: translateX(24px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+/* Respect reduced-motion: the app already falls back to the flat map, but kill
+   any residual transitions/animations for users who ask for it. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
