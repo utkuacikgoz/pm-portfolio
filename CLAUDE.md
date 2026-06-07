@@ -60,6 +60,20 @@ Single source of truth → single Canvas → one draw path.
 - Routing (`react-router-dom`): `/`, `/p/:id` (deep-linkable), `/resume`. URL is the
   source of truth for the open panel.
 
+## Content truth (IMPORTANT)
+The real CV is the source of truth (Senior PM, 8+ yrs; roles: **BiLira, Upshift, Lean
+Scale, Technolera**). The portfolio's `apollo / la3eb / mestores / mona` are NOT separate
+CV roles — likely Lean Scale/Technolera client work or embellished — and several studies
+had numbers **bolder than the CV** (e.g. BiLira "92%" vs CV "35%"). The CV is linked from
+the site, so inconsistencies are a credibility risk. **BiLira has been rewritten to CV
+numbers + the user's voice; the other 4 still need reconciliation.** Real BiLira facts:
+100K+ users, 150+ assets, 5+ chains, 25-person team, −35% review time, 99.7% accuracy,
+−40% false positives, Chainalysis/Notabene, OTC 500→275ms / +45%, Trade API 50M calls/mo /
+99.9% uptime, releases quarterly→bi-weekly, 0 breaches.
+
+Indie products (shown as light "glimpse" panels, `published:true`, no full case study):
+**Buyback Signal** (trading-signal bot), **PassATS**, **Cofoundr** (co-founder matching).
+
 ## Content model
 `src/content/*.ts` (one per project) → typed by `src/content/types.ts` (`CaseStudy`,
 `Beat`, `Metric`, `Decision`, `Initiative`, `Stakeholder`). Beats follow the canonical
