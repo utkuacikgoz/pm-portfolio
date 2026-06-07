@@ -1,28 +1,16 @@
-import { useState } from "react";
-import { useCaseStudy, CaseStudyId } from "./content/useCaseStudy";
-import LandingPage from "./pages/LandingPage";
-import CaseStudyPage from "./pages/CaseStudyPage";
+import { Routes, Route, Navigate } from "react-router-dom";
+import WorldExperience from "./pages/WorldExperience";
+import Resume from "./pages/Resume";
 
 export default function App() {
-  const { caseStudy, setCase } = useCaseStudy();
-  const [viewingCase, setViewingCase] = useState(false);
-
-  const handleCaseClick = (caseId: CaseStudyId) => {
-    setCase(caseId);
-    setViewingCase(true);
-  };
-
-  const handleBack = () => {
-    setViewingCase(false);
-  };
-
   return (
-    <>
-      {!viewingCase ? (
-        <LandingPage onCaseClick={handleCaseClick} />
-      ) : (
-        <CaseStudyPage caseStudy={caseStudy} onBack={handleBack} />
-      )}
-    </>
+    <Routes>
+      {/* World + deep-linkable open panel share one element (URL = source of truth). */}
+      <Route path="/" element={<WorldExperience />} />
+      <Route path="/p/:id" element={<WorldExperience />} />
+      {/* Persistent escape hatch: fast, plain résumé. */}
+      <Route path="/resume" element={<Resume />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }
