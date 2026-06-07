@@ -46,8 +46,18 @@ function rng(seed: number): () => number {
 const TERRAIN_DARK = "#0e1019";
 const TERRAIN_MID = "#161a27";
 
-// Rounded floating-island base: a few discs of cubes tapering downward.
-function buildTerrain(cx: number, accent: string, seed: number): Cube[] {
+// Islands weave gently along Z so the rail isn't a dead-straight line.
+export function islandBaseZ(i: number): number {
+  return Math.sin(i * 0.9) * 2.4;
+}
+export function islandPosition(i: number): [number, number, number] {
+  return [i * SPACING, 0, islandBaseZ(i)];
+}
+
+// All builders below produce cubes relative to an island's origin (0,0,0);
+// buildWorld() translates them into place. Keeps layout math in one spot.
+
+function buildTerrain(accent: string, seed: number): Cube[] {
   const cubes: Cube[] = [];
   const rand = rng(seed);
   const layers = [
@@ -61,92 +71,101 @@ function buildTerrain(cx: number, accent: string, seed: number): Cube[] {
     for (let dx = -ri; dx <= ri; dx++) {
       for (let dz = -ri; dz <= ri; dz++) {
         if (dx * dx + dz * dz > layer.r * layer.r) continue;
-        // gentle height jitter only on the visible top layer
         const jitter = layer.y === 0 && rand() > 0.82 ? 0.18 : 0;
         cubes.push({
-          position: [cx + dx, layer.y + jitter / 2, dz],
+          position: [dx, layer.y + jitter / 2, dz],
           scale: [1, 1 + jitter, 1],
           color: layer.color,
         });
       }
     }
   }
+  // A few low "foliage" nubs scattered on the rim for texture.
+  const foliage = mix(accent, "#0a3a2a", 0.5);
+  for (let n = 0; n < 5; n++) {
+    const ang = rand() * Math.PI * 2;
+    const rad = 2.4 + rand() * 1.4;
+    cubes.push({
+      position: [Math.cos(ang) * rad, 0.7, Math.sin(ang) * rad],
+      scale: [0.6, 0.6 + rand() * 0.5, 0.6],
+      color: foliage,
+    });
+  }
   return cubes;
 }
 
-// Stack helper.
 function block(
-  cx: number,
   x: number,
   y: number,
   z: number,
   color: string,
   scale: [number, number, number] = [1, 1, 1]
 ): Cube {
-  return { position: [cx + x, y + scale[1] / 2 - 0.5, z], scale, color };
+  return { position: [x, y + scale[1] / 2 - 0.5, z], scale, color };
 }
 
-function buildStructure(cx: number, type: StructureType, accent: string): Cube[] {
-  const bright = mix(accent, "#ffffff", 0.35);
+function buildStructure(type: StructureType, accent: string): Cube[] {
+  const bright = mix(accent, "#ffffff", 0.4);
+  const deep = mix(accent, "#000000", 0.35);
   const out: Cube[] = [];
   switch (type) {
     case "tower": {
-      // exchange / vault — a tapering stack with a bright cap
-      const h = 7;
+      // exchange / vault — a tapering stack with a glowing cap
+      const h = 8;
       for (let y = 1; y <= h; y++) {
-        const s = y < h - 1 ? 2 : 1;
-        out.push(block(cx, 0, y, 0, y === h ? bright : accent, [s, 1, s]));
+        const s = y < h - 2 ? 2 : 1;
+        out.push(block(0, y, 0, y >= h - 1 ? bright : y % 2 ? accent : deep, [s, 1, s]));
       }
-      out.push(block(cx, 2, 1, 1, accent), block(cx, -2, 1, -1, accent));
+      out.push(block(2, 1, 1, deep), block(-2, 1, -1, deep), block(0, h + 1, 0, bright, [0.4, 0.6, 0.4]));
       break;
     }
     case "market": {
-      // stalls with peaked caps
       const spots: [number, number][] = [
-        [-2, -1],
-        [1, -2],
-        [2, 1],
-        [-1, 2],
+        [-2.2, -1],
+        [1.4, -2.2],
+        [2.2, 1.2],
+        [-1, 2.2],
       ];
       spots.forEach(([x, z], i) => {
-        out.push(block(cx, x, 1, z, accent, [2, 1, 2]));
-        out.push(block(cx, x, 2, z, i % 2 ? bright : accent));
+        out.push(block(x, 1, z, i % 2 ? accent : deep, [2, 1, 2]));
+        out.push(block(x, 2, z, bright)); // peaked cap
       });
       break;
     }
     case "campus": {
-      // low connected pavilions
-      out.push(block(cx, -2, 1, 0, accent, [2, 1, 3]));
-      out.push(block(cx, 1, 1, 0, accent, [2, 1, 4]));
-      out.push(block(cx, 0, 1, 0, bright, [1, 1, 1])); // connector
-      out.push(block(cx, -2, 2, 0, bright));
-      out.push(block(cx, 1, 2, 1, bright));
+      out.push(block(-2, 1, 0, accent, [2, 1, 3]));
+      out.push(block(1.5, 1, 0, deep, [2, 1, 4]));
+      out.push(block(-0.2, 1, 0, bright, [1, 1, 1])); // connector
+      out.push(block(-2, 2, 0, bright));
+      out.push(block(1.5, 2, 1, bright));
+      out.push(block(1.5, 2, -1, accent));
       break;
     }
     case "arcade": {
-      // central block ringed by pillars (community plaza)
-      out.push(block(cx, 0, 1, 0, accent, [2, 3, 2]));
-      out.push(block(cx, 0, 4, 0, bright));
+      out.push(block(0, 1, 0, accent, [2, 3, 2]));
+      out.push(block(0, 4, 0, bright, [1, 1, 1]));
+      out.push(block(0, 5, 0, bright, [0.4, 0.6, 0.4]));
       const ring: [number, number][] = [
         [-2.5, -2.5],
         [2.5, -2.5],
         [2.5, 2.5],
         [-2.5, 2.5],
       ];
-      ring.forEach(([x, z]) => out.push(block(cx, x, 1, z, accent, [1, 2, 1])));
+      ring.forEach(([x, z], i) => out.push(block(x, 1, z, i % 2 ? accent : deep, [1, 2, 1])));
       break;
     }
     case "bridge": {
-      // two platforms joined by a span (two-sided marketplace)
-      out.push(block(cx, -2.5, 1, 0, accent, [2, 2, 2]));
-      out.push(block(cx, 2.5, 1, 0, accent, [2, 2, 2]));
-      for (let x = -1.5; x <= 1.5; x++) out.push(block(cx, x, 2, 0, bright));
+      out.push(block(-2.6, 1, 0, accent, [2, 2, 2]));
+      out.push(block(2.6, 1, 0, deep, [2, 2, 2]));
+      for (let x = -1.5; x <= 1.5; x++) out.push(block(x, 2, 0, bright));
+      out.push(block(-2.6, 3, 0, bright, [0.5, 0.6, 0.5]));
+      out.push(block(2.6, 3, 0, bright, [0.5, 0.6, 0.5]));
       break;
     }
     case "beacon":
     default: {
-      out.push(block(cx, 0, 1, 0, accent, [1, 4, 1]));
-      out.push(block(cx, 0, 5, 0, bright));
+      out.push(block(0, 1, 0, accent, [1, 4, 1]));
+      out.push(block(0, 5, 0, bright, [0.5, 0.7, 0.5]));
       break;
     }
   }
@@ -157,9 +176,15 @@ function buildStructure(cx: number, type: StructureType, accent: string): Cube[]
 export function buildWorld(projects: Project[]): Cube[] {
   const cubes: Cube[] = [];
   projects.forEach((p, i) => {
-    const cx = i * SPACING;
-    cubes.push(...buildTerrain(cx, p.accent, i * 7919 + 13));
-    cubes.push(...buildStructure(cx, p.structure, p.accent));
+    const [ox, , oz] = islandPosition(i);
+    const local = [...buildTerrain(p.accent, i * 7919 + 13), ...buildStructure(p.structure, p.accent)];
+    for (const c of local) {
+      cubes.push({
+        position: [c.position[0] + ox, c.position[1], c.position[2] + oz],
+        scale: c.scale,
+        color: c.color,
+      });
+    }
   });
   return cubes;
 }

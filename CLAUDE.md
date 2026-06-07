@@ -66,9 +66,16 @@ Single source of truth → single Canvas → one draw path.
 arc: **Problem → Constraints → Approach → Results → Learnings**. Keep copy verbatim —
 the quantified outcomes are the gold.
 
-## Conventions
-- React 18 + Vite + TS **strict** + `verbatimModuleSyntax` → **use `import type` for
-  type-only imports** (this bites otherwise).
+## Stack / conventions
+- **React 19 + Vite 6 + @react-three/fiber 9 + drei 10 + three 0.184 + react-router 7 +
+  TS 6.** TS **strict** + `verbatimModuleSyntax` → **use `import type` for type-only
+  imports** (this bites otherwise).
+- **Toolchain pin:** machine is on **Node 22.11** (<22.12), so `@vitejs/plugin-react` is
+  held at **v4** and Vite at **6** (plugin-react 5/6 + Vite 7 require Node ≥22.12, and
+  import `vite/internal` which Vite 6 lacks). Bump Node to ≥22.12 to unlock Vite 7.
+- **Lighting is physically-based** (r3f v9): light intensities are intentionally large
+  (point light ~240 with inverse-square decay; ambient/hemisphere carry base visibility).
+  Don't "fix" them down to old 0.5–2 values or the scene goes black.
 - Styling: **inline styles**, neon-on-black. Palette: `#FF0080` magenta, `#00FFFF` cyan,
   `#FFD700` gold, `#FF6B35` orange, `#00FF88`/`#00FF00` green. Font: Plus Jakarta Sans,
   headings weight 900.
@@ -93,8 +100,12 @@ the quantified outcomes are the gold.
   `pages/CaseStudyPage`, all of `src/components/*`, `content/useCaseStudy`, the
   `*-with-viz`/`bilira-enhanced` drafts, `cases.json`, `assets/react.svg`,
   `public/vite.svg`, empty `App.css`. Whole repo now type-checks clean (`tsc` 0 errors).
+- **Done (dep upgrade + Increment 2):** upgraded to React 19 / r3f 9 / drei 10 / three
+  0.184 / router 7 / Vite 6 / TS 6 (0 vulns); retuned lighting for PBR; spline-rail camera
+  with weaving island path + idle drift; richer per-domain structures + foliage. Staging on
+  branch `voxel-world`.
 - **Known gaps / TODO (see audits):**
   - No résumé PDF, no analytics, thin "about/positioning", no social proof — business gaps.
   - Real 1200×630 PNG OG image (currently the SVG logo, renders inconsistently on socials).
   - Indie products (PassATS, Stats XI) still hidden — flip `published` + add content when ready.
-  - React 19 + r3f 9 / drei 10 upgrade — deliberate task, not a casual bump.
+  - Visual tuning of lighting/structures is unverified by Claude (no browser) — eyeball on staging.

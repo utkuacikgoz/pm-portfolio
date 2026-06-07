@@ -30,9 +30,11 @@ export default function World({ activeIndex }: Props) {
       <color attach="background" args={["#05060a"]} />
       <fog attach="fog" args={["#05060a", 20, 70]} />
 
-      <ambientLight intensity={0.5} />
-      <hemisphereLight args={["#9fb4ff", "#0a0c12", 0.5]} />
-      <directionalLight position={[8, 14, 6]} intensity={1.1} />
+      {/* Physically-based intensities (r3f v9 / three r155+). Ambient + hemisphere
+          carry base visibility (distance-independent); directional adds form. */}
+      <ambientLight intensity={1.3} />
+      <hemisphereLight args={["#9fb4ff", "#0a0c12", 1.6]} />
+      <directionalLight position={[8, 14, 6]} intensity={2.6} />
 
       <PerformanceMonitor
         onDecline={() => setDpr(1)}

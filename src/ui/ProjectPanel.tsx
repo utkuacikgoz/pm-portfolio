@@ -110,7 +110,7 @@ function Drawer({
   tagline,
   children,
 }: {
-  panelRef: React.RefObject<HTMLDivElement>;
+  panelRef: React.RefObject<HTMLDivElement | null>;
   accent: string;
   onClose: () => void;
   title: string;
