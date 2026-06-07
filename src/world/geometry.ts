@@ -80,15 +80,21 @@ function buildTerrain(accent: string, seed: number): Cube[] {
       }
     }
   }
-  // A few low "foliage" nubs scattered on the rim for texture.
-  const foliage = mix(accent, "#0a3a2a", 0.5);
-  for (let n = 0; n < 5; n++) {
-    const ang = rand() * Math.PI * 2;
-    const rad = 2.4 + rand() * 1.4;
+  return cubes;
+}
+
+// A glowing "stepping-stone" path linking consecutive islands → journey feel.
+function buildPath(i: number): Cube[] {
+  const [ax, , az] = islandPosition(i);
+  const [bx, , bz] = islandPosition(i + 1);
+  const cubes: Cube[] = [];
+  const steps = 9;
+  for (let s = 1; s < steps; s++) {
+    const t = s / steps;
     cubes.push({
-      position: [Math.cos(ang) * rad, 0.7, Math.sin(ang) * rad],
-      scale: [0.6, 0.6 + rand() * 0.5, 0.6],
-      color: foliage,
+      position: [ax + (bx - ax) * t, -0.6, az + (bz - az) * t],
+      scale: [0.7, 0.25, 0.7],
+      color: "#26304a",
     });
   }
   return cubes;
@@ -185,6 +191,7 @@ export function buildWorld(projects: Project[]): Cube[] {
         color: c.color,
       });
     }
+    if (i < projects.length - 1) cubes.push(...buildPath(i));
   });
   return cubes;
 }

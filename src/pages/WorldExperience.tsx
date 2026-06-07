@@ -5,6 +5,7 @@ import { useExperienceMode } from "../state/useExperienceMode";
 import WorldNav from "../ui/WorldNav";
 import EscapeHatch from "../ui/EscapeHatch";
 import ProjectPanel from "../ui/ProjectPanel";
+import HeroIntro from "../ui/HeroIntro";
 import FlatMap from "./FlatMap";
 
 // Lazy so three.js / r3f / drei only download on the interactive world path.
@@ -19,10 +20,15 @@ export default function WorldExperience() {
   const openIndex = projectIndexById(id);
   const panelOpen = openIndex >= 0;
   const [active, setActive] = useState(() => Math.max(0, openIndex));
+  // Intro shows first in world mode; deep-linking a project skips it.
+  const [entered, setEntered] = useState(() => openIndex >= 0);
   const opener = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
-    if (openIndex >= 0) setActive(openIndex);
+    if (openIndex >= 0) {
+      setActive(openIndex);
+      setEntered(true);
+    }
   }, [openIndex]);
 
   const open = useCallback(
@@ -41,7 +47,7 @@ export default function WorldExperience() {
   // Arrow-key travel + Enter to open, for mouse users focused on the canvas/body.
   // Skipped when focus is on an interactive element (WorldNav handles its own keys).
   useEffect(() => {
-    if (panelOpen) return;
+    if (panelOpen || !entered) return;
     const onKey = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement | null;
       if (t && ["BUTTON", "A", "INPUT", "TEXTAREA"].includes(t.tagName)) return;
@@ -51,7 +57,7 @@ export default function WorldExperience() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [panelOpen, active, open, projects.length]);
+  }, [panelOpen, entered, active, open, projects.length]);
 
   return (
     <div style={{ minHeight: "100vh", background: "#05060a" }}>
@@ -63,13 +69,17 @@ export default function WorldExperience() {
 
       {mode === "world" ? (
         <Suspense fallback={<WorldLoading />}>
-          <World activeIndex={active} />
+          <World activeIndex={active} entered={entered} />
         </Suspense>
       ) : (
         <FlatMap projects={projects} onOpen={open} />
       )}
 
-      {mode === "world" && !panelOpen && (
+      {mode === "world" && !entered && !panelOpen && (
+        <HeroIntro onBegin={() => setEntered(true)} />
+      )}
+
+      {mode === "world" && entered && !panelOpen && (
         <TitleCard
           project={projects[active]}
           index={active}

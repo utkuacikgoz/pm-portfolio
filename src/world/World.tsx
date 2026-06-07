@@ -4,9 +4,11 @@ import { Instances, Instance, AdaptiveDpr, PerformanceMonitor } from "@react-thr
 import { PUBLISHED_PROJECTS } from "../projects/projects";
 import { buildWorld } from "./geometry";
 import CameraRig from "./CameraRig";
+import Emblems from "./Emblems";
 
 interface Props {
   activeIndex: number;
+  entered: boolean;
 }
 
 /**
@@ -14,7 +16,7 @@ interface Props {
  * across every island lives in a single <Instances> (one draw call, per-instance
  * color) — no per-cube draw calls. Lazy-loaded so three.js only ships here.
  */
-export default function World({ activeIndex }: Props) {
+export default function World({ activeIndex, entered }: Props) {
   const cubes = useMemo(() => buildWorld(PUBLISHED_PROJECTS), []);
   const accent = PUBLISHED_PROJECTS[activeIndex]?.accent ?? "#FF0080";
   const [dpr, setDpr] = useState(1.5);
@@ -50,7 +52,8 @@ export default function World({ activeIndex }: Props) {
         ))}
       </Instances>
 
-      <CameraRig activeIndex={activeIndex} accent={accent} />
+      <Emblems active={activeIndex} />
+      <CameraRig activeIndex={activeIndex} accent={accent} entered={entered} />
     </Canvas>
   );
 }
