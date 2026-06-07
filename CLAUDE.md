@@ -65,8 +65,10 @@ The real CV is the source of truth (Senior PM, 8+ yrs; roles: **BiLira, Upshift,
 Scale, Technolera**). The portfolio's `apollo / la3eb / mestores / mona` are NOT separate
 CV roles — likely Lean Scale/Technolera client work or embellished — and several studies
 had numbers **bolder than the CV** (e.g. BiLira "92%" vs CV "35%"). The CV is linked from
-the site, so inconsistencies are a credibility risk. **BiLira has been rewritten to CV
-numbers + the user's voice; the other 4 still need reconciliation.** Real BiLira facts:
+the site, so inconsistencies are a credibility risk. **All 5 visible studies are now
+voice-rewritten with insight callouts. BiLira uses CV-accurate numbers; the other 4 KEEP
+their original (bolder-than-CV) numbers — the user explicitly said "do not touch" the
+facts. Mona (hidden) is still original AI-ish copy.** Real BiLira facts:
 100K+ users, 150+ assets, 5+ chains, 25-person team, −35% review time, 99.7% accuracy,
 −40% false positives, Chainalysis/Notabene, OTC 500→275ms / +45%, Trade API 50M calls/mo /
 99.9% uptime, releases quarterly→bi-weekly, 0 breaches.
@@ -81,12 +83,14 @@ arc: **Problem → Constraints → Approach → Results → Learnings**. Keep co
 the quantified outcomes are the gold.
 
 ## Stack / conventions
-- **React 19 + Vite 6 + @react-three/fiber 9 + drei 10 + three 0.184 + react-router 7 +
-  TS 6.** TS **strict** + `verbatimModuleSyntax` → **use `import type` for type-only
-  imports** (this bites otherwise).
-- **Toolchain pin:** machine is on **Node 22.11** (<22.12), so `@vitejs/plugin-react` is
-  held at **v4** and Vite at **6** (plugin-react 5/6 + Vite 7 require Node ≥22.12, and
-  import `vite/internal` which Vite 6 lacks). Bump Node to ≥22.12 to unlock Vite 7.
+- **React 19 + Vite 7 + @vitejs/plugin-react 5 + @react-three/fiber 9 + drei 10 +
+  three 0.184 + react-router 7 + TS 6.** TS **strict** + `verbatimModuleSyntax` → **use
+  `import type` for type-only imports** (this bites otherwise).
+- **Node ≥20.19 required** (Vite 7). The machine's default `node` is **22.11**, which is
+  BELOW the floor — local `npm run build`/`dev` must use a compatible Node:
+  `source ~/.nvm/nvm.sh && nvm use 20.19.6` (installed) before building. Vercel honors
+  `engines` and builds fine. NOTE `@vitejs/plugin-react` is pinned to **5**, not 6 —
+  plugin-react 6 targets the unreleased Vite 8 (rolldown) and imports `vite/internal`.
 - **Lighting is physically-based** (r3f v9): light intensities are intentionally large
   (point light ~240 with inverse-square decay; ambient/hemisphere carry base visibility).
   Don't "fix" them down to old 0.5–2 values or the scene goes black.
