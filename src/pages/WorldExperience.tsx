@@ -211,7 +211,7 @@ function IndieOverlay({ onBack }: { onBack: () => void }) {
         🏄 WHAT I'M BUILDING
       </div>
       <p style={{ fontSize: 13.5, color: "#c4c8d2", lineHeight: 1.55, marginBottom: 16 }}>
-        53 countries surfed so far — here's what I'm building next. No case studies yet, just bets.
+        53 countries travelled so far — here's what I'm building next. No case studies yet, just bets.
       </p>
       <div style={{ display: "grid", gap: 8, marginBottom: 16 }}>
         {INDIE_PROJECTS.map((p) => (
