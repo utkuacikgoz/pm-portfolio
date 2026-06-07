@@ -31,7 +31,7 @@ export default function Resume() {
       </Link>
 
       <header style={{ marginTop: 24, marginBottom: 12 }}>
-        <h1 style={{ fontSize: 48, fontWeight: 900 }}>Utku Acikgoz</h1>
+        <h1 style={{ fontSize: "clamp(34px, 8vw, 48px)", fontWeight: 900 }}>Utku Acikgoz</h1>
         <p style={{ color: "#FF0080", fontSize: 18, fontWeight: 700, marginTop: 6 }}>
           Senior Technical Product Manager
         </p>

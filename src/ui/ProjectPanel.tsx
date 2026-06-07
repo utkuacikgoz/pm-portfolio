@@ -22,17 +22,39 @@ export default function ProjectPanel({ project, onClose }: Props) {
 
   useEffect(() => setBeat(0), [project.id]);
 
-  // Scroll the panel back to the top whenever the beat changes.
+  // Scroll the panel back to the top whenever the beat changes (respecting motion prefs).
   useEffect(() => {
-    scrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    scrollRef.current?.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
   }, [beat]);
 
+  // Esc to close + trap Tab focus inside the dialog.
   useEffect(() => {
     scrollRef.current?.focus();
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         e.stopPropagation();
         onClose();
+        return;
+      }
+      if (e.key === "Tab" && scrollRef.current) {
+        const f = scrollRef.current.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        );
+        if (f.length === 0) return;
+        const first = f[0];
+        const last = f[f.length - 1];
+        const el = document.activeElement;
+        if (!scrollRef.current.contains(el)) {
+          e.preventDefault();
+          first.focus();
+        } else if (e.shiftKey && el === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && el === last) {
+          e.preventDefault();
+          first.focus();
+        }
       }
     };
     document.addEventListener("keydown", onKey);

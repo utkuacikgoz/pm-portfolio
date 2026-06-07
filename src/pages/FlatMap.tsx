@@ -14,7 +14,7 @@ export default function FlatMap({ projects, onOpen }: Props) {
   return (
     <div style={{ minHeight: "100vh", padding: "88px 20px 64px", maxWidth: 920, margin: "0 auto" }}>
       <header style={{ textAlign: "center", marginBottom: 40 }}>
-        <h1 style={{ fontSize: 40, fontWeight: 900 }}>Utku Acikgoz</h1>
+        <h1 style={{ fontSize: "clamp(30px, 7vw, 40px)", fontWeight: 900 }}>Utku Acikgoz</h1>
         <p style={{ color: "#FF0080", fontSize: 16, fontWeight: 700, marginTop: 6 }}>
           Senior Technical Product Manager
         </p>

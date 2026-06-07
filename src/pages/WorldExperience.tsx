@@ -23,6 +23,7 @@ export default function WorldExperience() {
   const [active, setActive] = useState(() => Math.max(0, openIndex));
   // Intro shows first in world mode; deep-linking a project skips it.
   const [entered, setEntered] = useState(() => openIndex >= 0);
+  const [showHint, setShowHint] = useState(false);
   const opener = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
@@ -31,6 +32,24 @@ export default function WorldExperience() {
       setEntered(true);
     }
   }, [openIndex]);
+
+  // Per-route document title (helps shared links + crawlers that run JS).
+  useEffect(() => {
+    const base = "Utku Acikgoz — Senior Technical Product Manager";
+    document.title = openIndex >= 0 ? `${projects[openIndex].title} — ${base}` : base;
+  }, [openIndex, projects]);
+
+  // One-time "how to interact" hint once you enter the world.
+  useEffect(() => {
+    if (mode !== "world" || !entered || panelOpen) return;
+    if (sessionStorage.getItem("worldHint") === "1") return;
+    setShowHint(true);
+    const t = setTimeout(() => {
+      setShowHint(false);
+      sessionStorage.setItem("worldHint", "1");
+    }, 6000);
+    return () => clearTimeout(t);
+  }, [mode, entered, panelOpen]);
 
   const open = useCallback(
     (i: number) => {
@@ -80,6 +99,30 @@ export default function WorldExperience() {
 
       {mode === "world" && !entered && !panelOpen && (
         <HeroIntro onBegin={() => setEntered(true)} />
+      )}
+
+      {showHint && (
+        <div
+          style={{
+            position: "fixed",
+            top: 76,
+            left: "50%",
+            transform: "translateX(-50%)",
+            zIndex: 45,
+            padding: "8px 16px",
+            background: "rgba(7,8,12,0.8)",
+            border: "1px solid #23283a",
+            borderRadius: 999,
+            fontSize: 12.5,
+            fontWeight: 600,
+            color: "#c4c8d2",
+            whiteSpace: "nowrap",
+            pointerEvents: "none",
+            animation: "panelIn .4s ease",
+          }}
+        >
+          Drag to spin · ← → to travel · click a structure to open
+        </div>
       )}
 
       {mode === "world" && entered && !panelOpen && (

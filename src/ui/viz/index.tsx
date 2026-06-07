@@ -56,7 +56,7 @@ export function Metrics({ metrics }: { metrics: Metric[] }) {
                 {m.after}
                 <span style={{ fontSize: 15, fontWeight: 700 }}>{m.unit}</span>
               </div>
-              <div style={{ fontSize: 12, color: "#6b7280", marginTop: 8 }}>
+              <div style={{ fontSize: 12, color: "#8b93a3", marginTop: 8 }}>
                 from {m.before}
                 {m.unit}{" "}
                 <span style={{ color: m.color, fontWeight: 800 }}>
@@ -108,7 +108,7 @@ export function Decisions({ decisions, accent }: { decisions: Decision[]; accent
             </div>
             <div style={{ display: "flex", gap: 18 }}>
               <MiniBar value={d.speed} color={d.color} label="Speed" />
-              <MiniBar value={d.risk} color="#6b7280" label="Risk" />
+              <MiniBar value={d.risk} color="#8b93a3" label="Risk" />
             </div>
           </div>
         ))}
@@ -130,8 +130,8 @@ export function Initiatives({ initiatives }: { initiatives: Initiative[]; accent
             </div>
             <div style={{ display: "flex", gap: 18 }}>
               <MiniBar value={it.impact} color={it.color} label="Impact" />
-              <MiniBar value={it.effort} color="#6b7280" label="Effort" />
-              <MiniBar value={it.timeToValue} color="#6b7280" label="Speed to value" />
+              <MiniBar value={it.effort} color="#8b93a3" label="Effort" />
+              <MiniBar value={it.timeToValue} color="#8b93a3" label="Speed to value" />
             </div>
           </div>
         ))}
