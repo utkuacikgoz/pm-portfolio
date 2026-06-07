@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { Project } from "../projects/projects";
-import { MetricsBars, DecisionMatrix, EffortImpact, Stakeholders } from "./viz";
+import { Metrics, Decisions, Initiatives, Stakeholders } from "./viz";
+import { CONTACT } from "../content/contact";
 
 const SECTION_LABELS = ["Problem", "Constraints", "Approach", "Results", "Learnings"];
 
@@ -10,21 +11,24 @@ interface Props {
 }
 
 /**
- * DOM overlay carrying a project's narrative beats + SVG viz. Shared by the
- * 3D world and the flat fallback → content parity for free. Right-side drawer
- * on desktop, full-width on narrow viewports. Focus-trapped, Esc to close.
+ * DOM overlay carrying a project's narrative beats + readable viz. Right-side
+ * drawer on desktop, full-width on narrow viewports. Focus-trapped, Esc to close.
+ * Scrolls back to top on every beat change for readability; final beat shows a CTA.
  */
 export default function ProjectPanel({ project, onClose }: Props) {
   const [beat, setBeat] = useState(0);
-  const panelRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
   const content = project.content;
 
-  // Reset to first beat whenever the project changes.
   useEffect(() => setBeat(0), [project.id]);
 
-  // Esc to close + focus trap; focus the panel on open.
+  // Scroll the panel back to the top whenever the beat changes.
   useEffect(() => {
-    panelRef.current?.focus();
+    scrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+  }, [beat]);
+
+  useEffect(() => {
+    scrollRef.current?.focus();
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         e.stopPropagation();
@@ -37,7 +41,7 @@ export default function ProjectPanel({ project, onClose }: Props) {
 
   if (!content) {
     return (
-      <Drawer panelRef={panelRef} accent={project.accent} onClose={onClose} title={project.title}>
+      <Drawer scrollRef={scrollRef} accent={project.accent} onClose={onClose} title={project.title}>
         <p style={{ color: "#9aa0ac", fontSize: 16 }}>{project.tagline}</p>
         <p style={{ color: "#7f8694", marginTop: 16 }}>Case study coming soon.</p>
       </Drawer>
@@ -47,54 +51,63 @@ export default function ProjectPanel({ project, onClose }: Props) {
   const beats = content.beats;
   const current = beats[beat];
   const label = SECTION_LABELS[beat] ?? current.id;
+  const isLast = beat === beats.length - 1;
 
   return (
-    <Drawer panelRef={panelRef} accent={project.accent} onClose={onClose} title={project.title} tagline={project.tagline}>
-      {/* Beat stepper */}
-      <div role="tablist" aria-label="Case study sections" style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 22 }}>
+    <Drawer scrollRef={scrollRef} accent={project.accent} onClose={onClose} title={project.title} tagline={project.tagline}>
+      {/* Progress */}
+      <div role="tablist" aria-label="Case study sections" style={{ display: "flex", gap: 6, marginBottom: 8 }}>
         {beats.map((_, i) => (
           <button
             key={i}
             role="tab"
             aria-selected={i === beat}
+            aria-label={SECTION_LABELS[i] ?? `Beat ${i + 1}`}
             onClick={() => setBeat(i)}
             style={{
-              padding: "6px 12px",
-              fontSize: 11,
-              fontWeight: 700,
-              letterSpacing: 0.5,
+              flex: 1,
+              height: 4,
+              padding: 0,
+              border: "none",
               cursor: "pointer",
-              color: i === beat ? "#000" : project.accent,
-              background: i === beat ? project.accent : "transparent",
-              border: `1.5px solid ${project.accent}`,
+              background: i <= beat ? project.accent : "#23283a",
             }}
-          >
-            {SECTION_LABELS[i] ?? `Beat ${i + 1}`}
-          </button>
+          />
         ))}
       </div>
+      <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1, color: "#7f8694", marginBottom: 22 }}>
+        {String(beat + 1).padStart(2, "0")} / {String(beats.length).padStart(2, "0")} · {label.toUpperCase()}
+      </div>
 
-      <h3 style={{ color: project.accent, fontSize: 24, fontWeight: 900, marginBottom: 18 }}>{label}</h3>
+      <h3 style={{ color: project.accent, fontSize: 27, fontWeight: 900, lineHeight: 1.15, marginBottom: 20 }}>{label}</h3>
 
       {current.body.map((p, i) => (
-        <p key={i} style={{ fontSize: 15, lineHeight: 1.75, color: "#d4d7de", marginBottom: 16 }}>
+        <p
+          key={i}
+          style={{
+            fontSize: 16,
+            lineHeight: 1.85,
+            color: i === 0 ? "#eceef2" : "#c4c8d2",
+            marginBottom: 18,
+          }}
+        >
           {p}
         </p>
       ))}
 
-      <div style={{ marginTop: 24 }}>
-        {current.metrics && <MetricsBars metrics={current.metrics} />}
-        {current.decisions && <DecisionMatrix decisions={current.decisions} accent={project.accent} />}
-        {current.initiatives && <EffortImpact initiatives={current.initiatives} accent={project.accent} />}
-        {current.stakeholders && <Stakeholders stakeholders={current.stakeholders} accent={project.accent} />}
-      </div>
+      {current.metrics && <Metrics metrics={current.metrics} />}
+      {current.decisions && <Decisions decisions={current.decisions} accent={project.accent} />}
+      {current.initiatives && <Initiatives initiatives={current.initiatives} accent={project.accent} />}
+      {current.stakeholders && <Stakeholders stakeholders={current.stakeholders} accent={project.accent} />}
+
+      {isLast && <CTA accent={project.accent} />}
 
       {/* Beat nav */}
-      <div style={{ display: "flex", gap: 12, marginTop: 28 }}>
+      <div style={{ display: "flex", gap: 12, marginTop: 32 }}>
         <NavBtn accent={project.accent} disabled={beat === 0} onClick={() => setBeat((b) => Math.max(0, b - 1))}>
           ← Prev
         </NavBtn>
-        <NavBtn accent={project.accent} disabled={beat === beats.length - 1} onClick={() => setBeat((b) => Math.min(beats.length - 1, b + 1))}>
+        <NavBtn accent={project.accent} disabled={isLast} onClick={() => setBeat((b) => Math.min(beats.length - 1, b + 1))}>
           Next →
         </NavBtn>
       </div>
@@ -102,15 +115,57 @@ export default function ProjectPanel({ project, onClose }: Props) {
   );
 }
 
+function CTA({ accent }: { accent: string }) {
+  return (
+    <div
+      style={{
+        marginTop: 36,
+        padding: "26px 24px",
+        background: `${accent}12`,
+        border: `1.5px solid ${accent}`,
+        borderRadius: 12,
+      }}
+    >
+      <h3 style={{ fontSize: 22, fontWeight: 900, marginBottom: 8 }}>Like the way I think?</h3>
+      <p style={{ fontSize: 14.5, color: "#c4c8d2", lineHeight: 1.6, marginBottom: 20 }}>
+        I'm open to senior product roles and building my own products. If this resonated, let's talk.
+      </p>
+      <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+        <a
+          href={CONTACT.calendar}
+          target="_blank"
+          rel="noopener"
+          style={{
+            padding: "12px 22px",
+            background: accent,
+            color: "#000",
+            fontSize: 14,
+            fontWeight: 800,
+            letterSpacing: 0.3,
+          }}
+        >
+          Book a 20-min call →
+        </a>
+        <a
+          href={`mailto:${CONTACT.email}`}
+          style={{ padding: "12px 22px", border: `2px solid ${accent}`, color: accent, fontSize: 14, fontWeight: 800 }}
+        >
+          Email me
+        </a>
+      </div>
+    </div>
+  );
+}
+
 function Drawer({
-  panelRef,
+  scrollRef,
   accent,
   onClose,
   title,
   tagline,
   children,
 }: {
-  panelRef: React.RefObject<HTMLDivElement | null>;
+  scrollRef: React.RefObject<HTMLDivElement | null>;
   accent: string;
   onClose: () => void;
   title: string;
@@ -119,7 +174,7 @@ function Drawer({
 }) {
   return (
     <div
-      ref={panelRef}
+      ref={scrollRef}
       role="dialog"
       aria-modal="true"
       aria-label={`${title} case study`}
@@ -129,12 +184,12 @@ function Drawer({
         top: 0,
         right: 0,
         height: "100vh",
-        width: "min(560px, 100vw)",
-        background: "rgba(7,8,12,0.96)",
-        backdropFilter: "blur(8px)",
+        width: "min(580px, 100vw)",
+        background: "rgba(7,8,12,0.97)",
+        backdropFilter: "blur(10px)",
         borderLeft: `3px solid ${accent}`,
         boxShadow: "-20px 0 60px rgba(0,0,0,0.6)",
-        padding: "72px 36px 48px",
+        padding: "72px 40px 56px",
         overflowY: "auto",
         zIndex: 60,
         outline: "none",
@@ -161,8 +216,8 @@ function Drawer({
       >
         ✕
       </button>
-      <h2 style={{ fontSize: 34, fontWeight: 900, marginBottom: tagline ? 6 : 22 }}>{title}</h2>
-      {tagline && <p style={{ color: accent, fontSize: 14, fontWeight: 600, marginBottom: 26 }}>{tagline}</p>}
+      <h2 style={{ fontSize: 36, fontWeight: 900, marginBottom: tagline ? 8 : 24, letterSpacing: -0.5 }}>{title}</h2>
+      {tagline && <p style={{ color: accent, fontSize: 14, fontWeight: 600, marginBottom: 28, lineHeight: 1.5 }}>{tagline}</p>}
       {children}
     </div>
   );
@@ -185,13 +240,13 @@ function NavBtn({
       disabled={disabled}
       style={{
         flex: 1,
-        padding: "10px 16px",
+        padding: "12px 16px",
         fontSize: 13,
-        fontWeight: 700,
+        fontWeight: 800,
         cursor: disabled ? "not-allowed" : "pointer",
         background: "transparent",
-        border: `2px solid ${disabled ? "#2a2e3a" : accent}`,
-        color: disabled ? "#2a2e3a" : accent,
+        border: `2px solid ${disabled ? "#23283a" : accent}`,
+        color: disabled ? "#23283a" : accent,
       }}
     >
       {children}

@@ -5,184 +5,153 @@ import type {
   Stakeholder,
 } from "../../content/types";
 
-// Lightweight SVG/DOM replacements for the old per-chart WebGL contexts.
-// Crisp, accessible, zero extra GL contexts. Each is keyboard/SR friendly.
+// Readable DOM/SVG presentation of the PM data. Replaces the old scatter charts
+// (which read as random dots) with labeled, scannable comparison cards.
 
-const card = (accent: string): React.CSSProperties => ({
-  border: `2px solid ${accent}33`,
-  background: "#0a0c12",
-  padding: "20px 22px",
-  marginBottom: 20,
-});
-
-const heading = (accent: string): React.CSSProperties => ({
-  fontSize: 13,
-  fontWeight: 800,
-  letterSpacing: 1.5,
-  textTransform: "uppercase",
-  color: accent,
-  marginBottom: 16,
-});
-
-export function MetricsBars({ metrics }: { metrics: Metric[] }) {
+function Section({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div style={card("#888")}>
-      <div style={heading("#aaa")}>Before → After</div>
-      <div style={{ display: "grid", gap: 16 }}>
+    <div style={{ marginTop: 28 }}>
+      <div
+        style={{
+          fontSize: 12,
+          fontWeight: 800,
+          letterSpacing: 1.6,
+          textTransform: "uppercase",
+          color: "#7f8694",
+          marginBottom: 14,
+        }}
+      >
+        {label}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function MiniBar({ value, color, label }: { value: number; color: string; label: string }) {
+  return (
+    <div style={{ flex: 1, minWidth: 96 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#9aa0ac", marginBottom: 4 }}>
+        <span>{label}</span>
+        <span style={{ color: "#cfd3dc", fontWeight: 700 }}>{value}</span>
+      </div>
+      <div style={{ height: 6, background: "#15171f", borderRadius: 3 }}>
+        <div style={{ height: "100%", width: `${value}%`, background: color, borderRadius: 3 }} />
+      </div>
+    </div>
+  );
+}
+
+export function Metrics({ metrics }: { metrics: Metric[] }) {
+  return (
+    <Section label="Outcomes">
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
         {metrics.map((m, i) => {
-          const max = Math.max(m.before, m.after) || 1;
-          const improved =
-            (m.after - m.before) / (m.before || 1);
-          const pct = Math.round(Math.abs(improved) * 100);
+          const pct = Math.round((Math.abs(m.after - m.before) / (m.before || 1)) * 100);
+          const down = m.after < m.before;
           return (
-            <div key={i}>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  fontSize: 13,
-                  marginBottom: 6,
-                  color: "#cfd3dc",
-                }}
-              >
-                <span style={{ fontWeight: 600 }}>{m.label}</span>
-                <span style={{ color: m.color, fontWeight: 700 }}>
-                  {m.before}
-                  {m.unit} → {m.after}
-                  {m.unit}{" "}
-                  <span style={{ color: "#7f8694" }}>({pct}%)</span>
-                </span>
+            <div key={i} style={{ background: "#0b0d14", border: "1px solid #1c2030", borderRadius: 8, padding: "16px 18px" }}>
+              <div style={{ fontSize: 12, color: "#9aa0ac", marginBottom: 8 }}>{m.label}</div>
+              <div style={{ fontSize: 30, fontWeight: 900, color: m.color, lineHeight: 1 }}>
+                {m.after}
+                <span style={{ fontSize: 15, fontWeight: 700 }}>{m.unit}</span>
               </div>
-              <div style={{ display: "grid", gap: 4 }}>
-                <Bar value={m.before} max={max} color="#3a3f4d" />
-                <Bar value={m.after} max={max} color={m.color} />
+              <div style={{ fontSize: 12, color: "#6b7280", marginTop: 8 }}>
+                from {m.before}
+                {m.unit}{" "}
+                <span style={{ color: m.color, fontWeight: 800 }}>
+                  {down ? "↓" : "↑"}
+                  {pct}%
+                </span>
               </div>
             </div>
           );
         })}
       </div>
-    </div>
+    </Section>
   );
 }
 
-function Bar({ value, max, color }: { value: number; max: number; color: string }) {
+export function Decisions({ decisions, accent }: { decisions: Decision[]; accent: string }) {
   return (
-    <div style={{ height: 8, background: "#15171f" }}>
-      <div
-        style={{
-          height: "100%",
-          width: `${Math.max(2, (value / max) * 100)}%`,
-          background: color,
-          transition: "width .4s ease",
-        }}
-      />
-    </div>
-  );
-}
-
-// Generic 2-axis scatter used by both Decision and Effort/Impact charts.
-function Scatter({
-  accent,
-  title,
-  xLabel,
-  yLabel,
-  points,
-}: {
-  accent: string;
-  title: string;
-  xLabel: string;
-  yLabel: string;
-  points: { x: number; y: number; r: number; color: string; label: string; highlight?: boolean }[];
-}) {
-  const W = 280;
-  const H = 200;
-  const pad = 28;
-  const px = (x: number) => pad + (x / 100) * (W - pad * 2);
-  const py = (y: number) => H - pad - (y / 100) * (H - pad * 2);
-  return (
-    <div style={card(accent)}>
-      <div style={heading(accent)}>{title}</div>
-      <svg width="100%" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`${title}: ${xLabel} versus ${yLabel}`}>
-        <line x1={pad} y1={H - pad} x2={W - pad} y2={H - pad} stroke="#2a2e3a" />
-        <line x1={pad} y1={pad} x2={pad} y2={H - pad} stroke="#2a2e3a" />
-        <text x={W - pad} y={H - 8} fill="#6b7280" fontSize="9" textAnchor="end">
-          {xLabel} →
-        </text>
-        <text x={10} y={pad} fill="#6b7280" fontSize="9">
-          {yLabel} ↑
-        </text>
-        {points.map((p, i) => (
-          <g key={i}>
-            {p.highlight && (
-              <circle cx={px(p.x)} cy={py(p.y)} r={p.r + 5} fill="none" stroke={p.color} strokeWidth="1.5" opacity="0.6" />
-            )}
-            <circle cx={px(p.x)} cy={py(p.y)} r={p.r} fill={p.color} opacity={p.highlight ? 1 : 0.7} />
-          </g>
-        ))}
-      </svg>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "6px 14px", marginTop: 10 }}>
-        {points.map((p, i) => (
-          <span key={i} style={{ fontSize: 11, color: p.highlight ? "#fff" : "#9aa0ac", display: "flex", alignItems: "center", gap: 6 }}>
-            <span style={{ width: 8, height: 8, background: p.color, display: "inline-block", borderRadius: "50%" }} />
-            {p.label}
-            {p.highlight ? " ★" : ""}
-          </span>
+    <Section label="The decision">
+      <div style={{ display: "grid", gap: 10 }}>
+        {decisions.map((d, i) => (
+          <div
+            key={i}
+            style={{
+              background: d.isChosen ? `${accent}14` : "#0b0d14",
+              border: `1.5px solid ${d.isChosen ? accent : "#1c2030"}`,
+              borderRadius: 8,
+              padding: "14px 16px",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+              <span style={{ width: 9, height: 9, background: d.color, borderRadius: "50%", flexShrink: 0 }} />
+              <span style={{ fontWeight: 700, fontSize: 14, color: "#e7e9ee" }}>{d.label}</span>
+              {d.isChosen && (
+                <span
+                  style={{
+                    marginLeft: "auto",
+                    fontSize: 10,
+                    fontWeight: 800,
+                    letterSpacing: 0.5,
+                    color: "#000",
+                    background: accent,
+                    padding: "3px 8px",
+                    borderRadius: 4,
+                  }}
+                >
+                  ✓ CHOSEN
+                </span>
+              )}
+            </div>
+            <div style={{ display: "flex", gap: 18 }}>
+              <MiniBar value={d.speed} color={d.color} label="Speed" />
+              <MiniBar value={d.risk} color="#6b7280" label="Risk" />
+            </div>
+          </div>
         ))}
       </div>
-    </div>
+    </Section>
   );
 }
 
-export function DecisionMatrix({ decisions, accent }: { decisions: Decision[]; accent: string }) {
+export function Initiatives({ initiatives }: { initiatives: Initiative[]; accent: string }) {
+  const sorted = [...initiatives].sort((a, b) => b.impact - a.impact);
   return (
-    <Scatter
-      accent={accent}
-      title="Decision Matrix"
-      xLabel="Speed"
-      yLabel="Safety"
-      points={decisions.map((d) => ({
-        x: d.speed,
-        y: 100 - d.risk, // higher = safer
-        r: d.isChosen ? 8 : 6,
-        color: d.color,
-        label: d.label,
-        highlight: d.isChosen,
-      }))}
-    />
+    <Section label="What we prioritized">
+      <div style={{ display: "grid", gap: 10 }}>
+        {sorted.map((it, i) => (
+          <div key={i} style={{ background: "#0b0d14", border: "1px solid #1c2030", borderRadius: 8, padding: "14px 16px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+              <span style={{ width: 9, height: 9, background: it.color, borderRadius: "50%", flexShrink: 0 }} />
+              <span style={{ fontWeight: 700, fontSize: 14, color: "#e7e9ee" }}>{it.label}</span>
+            </div>
+            <div style={{ display: "flex", gap: 18 }}>
+              <MiniBar value={it.impact} color={it.color} label="Impact" />
+              <MiniBar value={it.effort} color="#6b7280" label="Effort" />
+              <MiniBar value={it.timeToValue} color="#6b7280" label="Speed to value" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </Section>
   );
 }
 
-export function EffortImpact({ initiatives, accent }: { initiatives: Initiative[]; accent: string }) {
+export function Stakeholders({ stakeholders }: { stakeholders: Stakeholder[]; accent: string }) {
   return (
-    <Scatter
-      accent={accent}
-      title="Effort vs Impact"
-      xLabel="Effort"
-      yLabel="Impact"
-      points={initiatives.map((it) => ({
-        x: it.effort,
-        y: it.impact,
-        r: 4 + (it.timeToValue / 100) * 8,
-        color: it.color,
-        label: it.label,
-      }))}
-    />
-  );
-}
-
-export function Stakeholders({ stakeholders, accent }: { stakeholders: Stakeholder[]; accent: string }) {
-  return (
-    <div style={card(accent)}>
-      <div style={heading(accent)}>Stakeholders aligned</div>
+    <Section label="Stakeholders aligned">
       <div style={{ display: "grid", gap: 8 }}>
         {stakeholders.map((s, i) => (
-          <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13 }}>
-            <span style={{ width: 10, height: 10, background: s.color, display: "inline-block" }} />
+          <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14 }}>
+            <span style={{ width: 10, height: 10, background: s.color, display: "inline-block", borderRadius: 2 }} />
             <span style={{ fontWeight: 700, color: "#e7e9ee" }}>{s.name}</span>
             <span style={{ color: "#7f8694" }}>· {s.role}</span>
           </div>
         ))}
       </div>
-    </div>
+    </Section>
   );
 }

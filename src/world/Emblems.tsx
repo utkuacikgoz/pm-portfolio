@@ -1,8 +1,18 @@
 import { useRef } from "react";
-import { useFrame, type ThreeEvent } from "@react-three/fiber";
+import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { PUBLISHED_PROJECTS, type Project } from "../projects/projects";
+import { PUBLISHED_PROJECTS, type Project, type StructureType } from "../projects/projects";
 import { islandPosition } from "./geometry";
+
+// Hover just above each structure type so the emblem reads as part of it.
+const HOVER_BY_STRUCTURE: Record<StructureType, number> = {
+  tower: 12,
+  market: 5,
+  campus: 5,
+  arcade: 8,
+  bridge: 7,
+  beacon: 8,
+};
 
 // Floating, themed, spinnable icon per project. Separate from the big
 // InstancedMesh so the active one can rotate / be dragged. Cube counts are tiny
@@ -65,51 +75,23 @@ function emblemCubes(id: string): Cubelet[] {
   }
 }
 
-const HOVER_Y = 9;
-
 function Emblem({ project, index, active }: { project: Project; index: number; active: boolean }) {
   const ref = useRef<THREE.Group>(null);
   const spin = useRef(0);
-  const dragging = useRef(false);
   const [px, , pz] = islandPosition(index);
   const cubes = emblemCubes(project.id);
   const bright = mix(project.accent, "#ffffff", 0.45);
+  const hoverY = HOVER_BY_STRUCTURE[project.structure] ?? 8;
 
   useFrame((state, dt) => {
     if (!ref.current) return;
-    if (!dragging.current) spin.current += dt * (active ? 0.6 : 0.22);
+    spin.current += dt * (active ? 0.6 : 0.22);
     ref.current.rotation.y = spin.current;
-    ref.current.position.y = HOVER_Y + Math.sin(state.clock.elapsedTime * 1.1 + index) * 0.25;
+    ref.current.position.y = hoverY + Math.sin(state.clock.elapsedTime * 1.1 + index) * 0.2;
   });
 
-  // Robust drag: while pointer is down, track at the window level so leaving the
-  // mesh mid-drag doesn't drop it. Only the active emblem is interactive.
-  const onDown = (e: ThreeEvent<PointerEvent>) => {
-    if (!active) return;
-    e.stopPropagation();
-    dragging.current = true;
-    let last = e.nativeEvent.clientX;
-    const move = (ev: PointerEvent) => {
-      spin.current += (ev.clientX - last) * 0.01;
-      last = ev.clientX;
-    };
-    const up = () => {
-      dragging.current = false;
-      window.removeEventListener("pointermove", move);
-      window.removeEventListener("pointerup", up);
-    };
-    window.addEventListener("pointermove", move);
-    window.addEventListener("pointerup", up);
-  };
-
   return (
-    <group
-      ref={ref}
-      position={[px, HOVER_Y, pz]}
-      onPointerDown={onDown}
-      onPointerOver={active ? () => (document.body.style.cursor = "grab") : undefined}
-      onPointerOut={active ? () => (document.body.style.cursor = "auto") : undefined}
-    >
+    <group ref={ref} position={[px, hoverY, pz]}>
       {cubes.map((c, i) => (
         <mesh key={i} position={c.pos} scale={c.scale}>
           <boxGeometry args={[1, 1, 1]} />
