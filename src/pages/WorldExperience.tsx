@@ -1,6 +1,7 @@
 import { Suspense, lazy, useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { PUBLISHED_PROJECTS, projectIndexById, type Project } from "../projects/projects";
+import { PUBLISHED_PROJECTS, INDIE_PROJECTS, projectIndexById, type Project } from "../projects/projects";
+import { INDIE_INDEX } from "../world/geometry";
 import { useExperienceMode } from "../state/useExperienceMode";
 import WorldNav from "../ui/WorldNav";
 import EscapeHatch from "../ui/EscapeHatch";
@@ -51,8 +52,11 @@ export default function WorldExperience() {
     return () => clearTimeout(t);
   }, [mode, entered, panelOpen]);
 
+  const isIndie = active === INDIE_INDEX;
+
   const open = useCallback(
     (i: number) => {
+      if (i >= projects.length) return; // indie island has no case study
       opener.current = document.activeElement as HTMLElement;
       navigate(`/p/${projects[i].id}`);
     },
@@ -71,7 +75,7 @@ export default function WorldExperience() {
     const onKey = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement | null;
       if (t && ["BUTTON", "A", "INPUT", "TEXTAREA"].includes(t.tagName)) return;
-      if (e.key === "ArrowRight") setActive((a) => Math.min(projects.length - 1, a + 1));
+      if (e.key === "ArrowRight") setActive((a) => Math.min(INDIE_INDEX, a + 1));
       else if (e.key === "ArrowLeft") setActive((a) => Math.max(0, a - 1));
       else if (e.key === "Enter") open(active);
     };
@@ -125,15 +129,40 @@ export default function WorldExperience() {
         </div>
       )}
 
-      {mode === "world" && entered && !panelOpen && (
-        <TitleCard
-          project={projects[active]}
-          index={active}
-          total={projects.length}
-          onPrev={() => setActive((a) => Math.max(0, a - 1))}
-          onNext={() => setActive((a) => Math.min(projects.length - 1, a + 1))}
-          onOpen={() => open(active)}
-        />
+      {mode === "world" && entered && !panelOpen && !isIndie && (
+        <>
+          <TitleCard
+            project={projects[active]}
+            index={active}
+            total={projects.length}
+            onPrev={() => setActive((a) => Math.max(0, a - 1))}
+            onNext={() => setActive((a) => Math.min(projects.length - 1, a + 1))}
+            onOpen={() => open(active)}
+          />
+          <button
+            onClick={() => setActive(INDIE_INDEX)}
+            style={{
+              position: "fixed",
+              bottom: 28,
+              right: 24,
+              zIndex: 44,
+              padding: "11px 18px",
+              background: "rgba(7,8,12,0.85)",
+              border: "2px solid #00E5A0",
+              color: "#00E5A0",
+              fontSize: 13,
+              fontWeight: 800,
+              cursor: "pointer",
+              backdropFilter: "blur(6px)",
+            }}
+          >
+            🏄 What I'm building →
+          </button>
+        </>
+      )}
+
+      {mode === "world" && entered && !panelOpen && isIndie && (
+        <IndieOverlay onBack={() => setActive(INDIE_INDEX - 1)} />
       )}
 
       {panelOpen && <ProjectPanel project={projects[openIndex]} onClose={close} />}
@@ -157,6 +186,70 @@ function WorldLoading() {
       }}
     >
       BUILDING WORLD…
+    </div>
+  );
+}
+
+function IndieOverlay({ onBack }: { onBack: () => void }) {
+  return (
+    <div
+      style={{
+        position: "fixed",
+        left: "50%",
+        bottom: 28,
+        transform: "translateX(-50%)",
+        zIndex: 44,
+        width: "min(560px, calc(100vw - 32px))",
+        background: "rgba(7,8,12,0.92)",
+        border: "2px solid #00E5A0",
+        backdropFilter: "blur(8px)",
+        padding: "20px 22px",
+        textAlign: "center",
+      }}
+    >
+      <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.5, color: "#00E5A0", marginBottom: 8 }}>
+        🏄 WHAT I'M BUILDING
+      </div>
+      <p style={{ fontSize: 13.5, color: "#c4c8d2", lineHeight: 1.55, marginBottom: 16 }}>
+        53 countries surfed so far — here's what I'm building next. No case studies yet, just bets.
+      </p>
+      <div style={{ display: "grid", gap: 8, marginBottom: 16 }}>
+        {INDIE_PROJECTS.map((p) => (
+          <div
+            key={p.id}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              padding: "10px 14px",
+              border: `1.5px solid ${p.accent}55`,
+              background: "#0b0d14",
+              textAlign: "left",
+            }}
+          >
+            <span style={{ width: 9, height: 9, borderRadius: "50%", background: p.accent, flexShrink: 0 }} />
+            <span style={{ fontWeight: 800, fontSize: 14 }}>{p.title}</span>
+            <span style={{ fontSize: 12.5, color: "#9aa0ac" }}>{p.tagline}</span>
+            <span style={{ marginLeft: "auto", fontSize: 10, fontWeight: 800, letterSpacing: 0.5, color: p.accent }}>
+              COMING SOON
+            </span>
+          </div>
+        ))}
+      </div>
+      <button
+        onClick={onBack}
+        style={{
+          padding: "10px 20px",
+          background: "transparent",
+          border: "2px solid #00E5A0",
+          color: "#00E5A0",
+          fontSize: 13,
+          fontWeight: 800,
+          cursor: "pointer",
+        }}
+      >
+        ← Surf back
+      </button>
     </div>
   );
 }

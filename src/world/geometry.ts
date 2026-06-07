@@ -1,7 +1,12 @@
+import { PUBLISHED_PROJECTS } from "../projects/projects";
 import type { Project, StructureType } from "../projects/projects";
 
 // Distance between island centers along the rail (X axis).
 export const SPACING = 16;
+export const EMP_COUNT = PUBLISHED_PROJECTS.length;
+export const WATER_GAP = 34; // ocean you surf across to reach the indie island
+export const WATER_Y = -3.4;
+export const INDIE_INDEX = EMP_COUNT; // the separate indie island sits past the gap
 
 export interface Cube {
   position: [number, number, number];
@@ -46,12 +51,17 @@ function rng(seed: number): () => number {
 const TERRAIN_DARK = "#0e1019";
 const TERRAIN_MID = "#161a27";
 
+// X position per island index. Employment islands are evenly spaced; the indie
+// island sits past a wide water gap (you surf across it).
+export function islandX(i: number): number {
+  return i < EMP_COUNT ? i * SPACING : (EMP_COUNT - 1) * SPACING + WATER_GAP;
+}
 // Islands weave gently along Z so the rail isn't a dead-straight line.
 export function islandBaseZ(i: number): number {
-  return Math.sin(i * 0.9) * 2.4;
+  return i < EMP_COUNT ? Math.sin(i * 0.9) * 2.4 : 0;
 }
 export function islandPosition(i: number): [number, number, number] {
-  return [i * SPACING, 0, islandBaseZ(i)];
+  return [islandX(i), 0, islandBaseZ(i)];
 }
 
 // All builders below produce cubes relative to an island's origin (0,0,0);

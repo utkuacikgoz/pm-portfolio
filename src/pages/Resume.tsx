@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { PUBLISHED_PROJECTS } from "../projects/projects";
+import { PUBLISHED_PROJECTS, INDIE_PROJECTS } from "../projects/projects";
 
 const CONTACTS = [
   { label: "EMAIL", href: "mailto:hello@utkuacikgoz.com", color: "#FFD700" },
@@ -7,8 +7,8 @@ const CONTACTS = [
   { label: "WEBSITE", href: "https://utkuacikgoz.com", color: "#00FFFF" },
 ];
 
-const EMPLOYMENT = PUBLISHED_PROJECTS.filter((p) => p.kind === "employment");
-const INDIE = PUBLISHED_PROJECTS.filter((p) => p.kind === "indie");
+const EMPLOYMENT = PUBLISHED_PROJECTS;
+const INDIE = INDIE_PROJECTS;
 
 /**
  * The <30s escape hatch: fast, plain-DOM résumé. No 3D, no animation. Skimmable
@@ -75,7 +75,29 @@ export default function Resume() {
       {INDIE.length > 0 && (
         <Section title="CURRENTLY BUILDING">
           {INDIE.map((p) => (
-            <Row key={p.id} to={`/p/${p.id}`} accent={p.accent} title={p.title} sub={p.glimpse ?? p.tagline} cta="PEEK →" />
+            <li key={p.id}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  gap: 16,
+                  padding: "16px 20px",
+                  background: "#0a0c12",
+                  borderLeft: `4px solid ${p.accent}`,
+                }}
+              >
+                <span>
+                  <span style={{ display: "block", fontSize: 18, fontWeight: 800 }}>{p.title}</span>
+                  <span style={{ display: "block", fontSize: 13, color: "#9aa0ac", marginTop: 3, lineHeight: 1.5 }}>
+                    {p.glimpse ?? p.tagline}
+                  </span>
+                </span>
+                <span style={{ color: p.accent, fontSize: 11, fontWeight: 800, letterSpacing: 0.5, whiteSpace: "nowrap" }}>
+                  COMING SOON
+                </span>
+              </div>
+            </li>
           ))}
         </Section>
       )}

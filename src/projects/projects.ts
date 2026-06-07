@@ -79,39 +79,37 @@ export const PROJECTS: Project[] = [
     content: C.upshift,
   },
 
-  // ── Indie products — shown as light "glimpses" (no full case study yet). ──
+  // ── Indie products — live on the separate "ocean" island as coming-soon
+  //    bubbles (not clickable). published:false keeps them off the main rail. ──
   {
     id: "signalbot",
     title: "Buyback Signal",
-    tagline: "Indie · a trading-signal bot",
+    tagline: "trading-signal bot",
     kind: "indie",
-    published: true,
+    published: false,
     accent: "#00E5A0",
     structure: "beacon",
-    glimpse:
-      "A bot that watches the market and flags buyback signals in real time — turning a manual ritual into an automated edge.",
+    glimpse: "A bot that watches the market and flags buyback signals in real time.",
   },
   {
     id: "passats",
     title: "PassATS",
-    tagline: "Indie · beat the résumé robots",
+    tagline: "beat the résumé robots",
     kind: "indie",
-    published: true,
+    published: false,
     accent: "#B14EFF",
     structure: "beacon",
-    glimpse:
-      "A tool that helps job-seekers get past automated applicant-tracking filters, built from the inside knowledge of how ATS ranking actually works.",
+    glimpse: "Helps job-seekers get past automated applicant-tracking filters.",
   },
   {
     id: "cofoundr",
     title: "Cofoundr",
-    tagline: "Indie · co-founder matching",
+    tagline: "co-founder matching",
     kind: "indie",
-    published: true,
+    published: false,
     accent: "#FFE600",
     structure: "beacon",
-    glimpse:
-      "A matching app for finding a co-founder — the 'right person, right time' problem, treated like a product.",
+    glimpse: "A matching app for finding a co-founder — right person, right time.",
   },
   // Mona is real but lower-signal; surface it by flipping published:true.
   {
@@ -126,8 +124,11 @@ export const PROJECTS: Project[] = [
   },
 ];
 
-/** Projects that actually appear in the world / flat map, in travel order. */
+/** Employment projects on the main rail / flat map, in travel order. */
 export const PUBLISHED_PROJECTS: Project[] = PROJECTS.filter((p) => p.published);
+
+/** Indie products shown as coming-soon bubbles on the separate ocean island. */
+export const INDIE_PROJECTS: Project[] = PROJECTS.filter((p) => p.kind === "indie" && !!p.glimpse);
 
 export const projectIndexById = (id: string | undefined): number =>
   id ? PUBLISHED_PROJECTS.findIndex((p) => p.id === id) : -1;

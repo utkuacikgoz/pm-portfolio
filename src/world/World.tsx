@@ -5,6 +5,7 @@ import { PUBLISHED_PROJECTS } from "../projects/projects";
 import { buildWorld } from "./geometry";
 import CameraRig from "./CameraRig";
 import Emblems from "./Emblems";
+import { Water, IndieIsland } from "./Ocean";
 
 interface Props {
   activeIndex: number;
@@ -52,6 +53,8 @@ export default function World({ activeIndex, entered }: Props) {
         ))}
       </Instances>
 
+      <Water />
+      <IndieIsland />
       <Emblems active={activeIndex} />
       <CameraRig activeIndex={activeIndex} accent={accent} entered={entered} />
     </Canvas>

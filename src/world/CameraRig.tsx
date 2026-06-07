@@ -1,10 +1,7 @@
-
-
 import { useEffect, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
-import { SPACING, islandBaseZ } from "./geometry";
-import { PUBLISHED_PROJECTS } from "../projects/projects";
+import { SPACING, EMP_COUNT, INDIE_INDEX, WATER_Y, islandX, islandBaseZ } from "./geometry";
 
 interface Props {
   activeIndex: number;
@@ -13,34 +10,30 @@ interface Props {
 }
 
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
-const CENTER_X = ((PUBLISHED_PROJECTS.length - 1) / 2) * SPACING;
+const CENTER_X = ((EMP_COUNT - 1) / 2) * SPACING;
 const ORBIT_RADIUS = 16;
 const ORBIT_HEIGHT = 7;
 
 /**
- * On-rails camera + free 360° orbit of the active structure.
- * - Intro (`entered` false): a wide cinematic establishing shot; "Begin" flies in.
- * - Travel: a continuous `progress` value damps toward the active island and is
- *   sampled along the weaving path so jumps glide.
- * - Orbit: drag on the canvas to swing the camera all the way around the focused
- *   island (the user asked to "spin the towers 360°"). Vertical drag tilts slightly.
- * Reuses vectors (zero per-frame allocation); carries the accent point light.
+ * On-rails camera + 360° orbit + the "surf" ride to the indie island.
+ * Travel is sampled along the gapped island path (islandX), so heading past the
+ * last employment island glides across the water gap to the indie island. While
+ * over water, a surfboard (with a little rider) rides the surface for personality.
  */
 export default function CameraRig({ activeIndex, accent, entered }: Props) {
   const gl = useThree((s) => s.gl);
   const lightRef = useRef<THREE.PointLight>(null);
+  const boardRef = useRef<THREE.Group>(null);
   const progress = useRef(activeIndex);
   const enterT = useRef(entered ? 1 : 0);
-  const orbit = useRef(0); // azimuth radians
-  const tilt = useRef(0); // small vertical offset
+  const orbit = useRef(0);
+  const tilt = useRef(0);
   const look = useRef(new THREE.Vector3(CENTER_X, 1, 0));
   const tPos = useRef(new THREE.Vector3());
   const tLook = useRef(new THREE.Vector3());
   const wPos = useRef(new THREE.Vector3());
   const iPos = useRef(new THREE.Vector3());
 
-  // Drag-to-orbit (mouse / pointer). Window-level move/up so leaving the canvas
-  // mid-drag doesn't drop it.
   useEffect(() => {
     const el = gl.domElement;
     el.style.cursor = "grab";
@@ -81,19 +74,18 @@ export default function CameraRig({ activeIndex, accent, entered }: Props) {
 
     const p = progress.current;
     const i0 = Math.floor(p);
+    const i1 = Math.min(i0 + 1, INDIE_INDEX);
     const f = p - i0;
-    const cx = p * SPACING;
-    const cz = lerp(islandBaseZ(i0), islandBaseZ(i0 + 1), f);
+    const cx = lerp(islandX(i0), islandX(i1), f);
+    const cz = lerp(islandBaseZ(i0), islandBaseZ(i1), f);
     const t = state.clock.elapsedTime;
 
-    // Island framing — orbit around the island center.
     const a = orbit.current;
     iPos.current.set(
       cx + Math.sin(a) * ORBIT_RADIUS,
       ORBIT_HEIGHT + tilt.current + Math.sin(t * 0.45) * 0.15,
       cz + Math.cos(a) * ORBIT_RADIUS
     );
-    // Wide establishing framing for the intro.
     wPos.current.set(CENTER_X + Math.sin(t * 0.1) * 3, 22, 50);
 
     const e = enterT.current;
@@ -104,16 +96,33 @@ export default function CameraRig({ activeIndex, accent, entered }: Props) {
     state.camera.lookAt(look.current);
 
     if (lightRef.current) lightRef.current.position.set(cx, 9, cz + 5);
+
+    // Surfboard rides the water while crossing the gap to the indie island.
+    if (boardRef.current) {
+      const overWater = cx > (EMP_COUNT - 1) * SPACING + 3;
+      boardRef.current.visible = overWater && e > 0.6;
+      boardRef.current.position.set(cx, WATER_Y + 0.3 + Math.sin(t * 2.2) * 0.18, cz);
+      boardRef.current.rotation.set(Math.sin(t * 1.3) * 0.06, Math.PI / 2, Math.sin(t * 1.7) * 0.1);
+    }
   });
 
   return (
-    <pointLight
-      ref={lightRef}
-      color={accent}
-      intensity={240}
-      distance={55}
-      decay={2}
-      position={[0, 9, 5]}
-    />
+    <>
+      <pointLight ref={lightRef} color={accent} intensity={240} distance={55} decay={2} position={[0, 9, 5]} />
+      <group ref={boardRef} visible={false}>
+        <mesh>
+          <boxGeometry args={[0.9, 0.18, 3.4]} />
+          <meshStandardMaterial color="#ffce54" flatShading />
+        </mesh>
+        <mesh position={[0, 0.75, -0.2]}>
+          <boxGeometry args={[0.5, 1.1, 0.5]} />
+          <meshStandardMaterial color="#FF0080" flatShading />
+        </mesh>
+        <mesh position={[0, 1.5, -0.2]}>
+          <boxGeometry args={[0.42, 0.42, 0.42]} />
+          <meshStandardMaterial color="#f0c19c" flatShading />
+        </mesh>
+      </group>
+    </>
   );
 }
