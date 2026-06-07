@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://utkuacikgoz.com/sitemap.xml
+Sitemap: https://portfolio.utkuacikgoz.com/sitemap.xml
