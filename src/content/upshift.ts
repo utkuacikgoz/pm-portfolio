@@ -105,10 +105,10 @@ export const upshift = {
     {
       id: "proof",
       body: [
-        "Strategic Pivot: Distributed product teams solved the 'Western process imposed on Asia' problem. By putting a PM in each region with autonomy, we got alignment without cultural friction. This became a competitive advantage—we understood local markets faster than competitors.",
-        "Change Management Lesson: Never start with process; always start with data and user problems. I didn't say, 'We need a prioritization framework' I said, '40% of our losses are due to product inconsistency.' The framework came later, once everyone agreed on the problem.",
-        "Leadership Development: The CTO and I built a deep partnership. Instead of me imposing product decisions on Engineering, we co-owned outcomes. When churn dropped 4%, he celebrated it as much as I did. When a feature didn't work, we learned together instead of blaming each other.",
-        "Scalability Insight: AI retention features worked because we had product discipline to analyze churn patterns rigorously. Under the old ad-hoc system, we would've shipped random feature requests and never understood why churn was actually dropping. Data-driven product culture made innovation repeatable."
+        "Distributed product teams solved the 'Western process imposed on Asia' problem. Putting a PM in each region, with real autonomy, got us alignment without the cultural friction. It turned into an edge: we read local markets faster than competitors did.",
+        "Never start with process; start with data and the user problem. I didn't say 'we need a prioritization framework.' I said '40% of our losses come from product inconsistency.' The framework came later, once everyone already agreed on the problem.",
+        "The CTO and I built a real partnership. Instead of me imposing product decisions on engineering, we co-owned the outcomes. When churn dropped 4% he celebrated it as much as I did, and when a feature missed we worked it out together instead of pointing fingers.",
+        "The AI retention work paid off because we had the discipline to analyze churn patterns properly. Under the old ad-hoc system we'd have shipped random feature requests and never known why churn actually moved. The data-driven culture is what made the wins repeatable."
       ]
     }
   ]

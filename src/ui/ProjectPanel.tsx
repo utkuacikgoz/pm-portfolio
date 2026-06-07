@@ -126,9 +126,9 @@ function CTA({ accent }: { accent: string }) {
         borderRadius: 12,
       }}
     >
-      <h3 style={{ fontSize: 22, fontWeight: 900, marginBottom: 8 }}>Like the way I think?</h3>
+      <h3 style={{ fontSize: 22, fontWeight: 900, marginBottom: 8 }}>Like how I work?</h3>
       <p style={{ fontSize: 14.5, color: "#c4c8d2", lineHeight: 1.6, marginBottom: 20 }}>
-        I'm open to senior product roles and building my own products. If this resonated, let's talk.
+        I'm open to senior product roles, and I build my own products on the side. If you want to talk, grab a slot or drop me a line.
       </p>
       <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
         <a

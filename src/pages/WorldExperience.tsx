@@ -6,6 +6,7 @@ import WorldNav from "../ui/WorldNav";
 import EscapeHatch from "../ui/EscapeHatch";
 import ProjectPanel from "../ui/ProjectPanel";
 import HeroIntro from "../ui/HeroIntro";
+import ErrorBoundary from "../ui/ErrorBoundary";
 import FlatMap from "./FlatMap";
 
 // Lazy so three.js / r3f / drei only download on the interactive world path.
@@ -68,9 +69,11 @@ export default function WorldExperience() {
       <WorldNav projects={projects} active={active} onFocus={setActive} onOpen={open} />
 
       {mode === "world" ? (
-        <Suspense fallback={<WorldLoading />}>
-          <World activeIndex={active} entered={entered} />
-        </Suspense>
+        <ErrorBoundary fallback={<FlatMap projects={projects} onOpen={open} />}>
+          <Suspense fallback={<WorldLoading />}>
+            <World activeIndex={active} entered={entered} />
+          </Suspense>
+        </ErrorBoundary>
       ) : (
         <FlatMap projects={projects} onOpen={open} />
       )}

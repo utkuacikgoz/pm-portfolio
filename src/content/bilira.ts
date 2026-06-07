@@ -107,10 +107,10 @@ export const bilira: CaseStudy = {
     {
       id: "learnings",
       body: [
-        "Turning Point Insight: When two experts (CTO & Compliance Officer) fundamentally disagree on approach, it usually means both are partly right. We didn't hire another opinion; we co-designed a solution that incorporated their legitimate concerns. The hybrid model worked because it was built on shared problem-solving, not compromise.",
-        "Strategic Principle: In regulated fintech, automation accelerates business, but regulation-friendly automation builds moats. Competitors could copy our throughput, but regulators' trust in our governance was harder to replicate. By the time competitors caught up technically, we had 18 months of regulatory goodwill and reference cases.",
-        "Leadership Lesson: Compliance teams are often seen as 'cost centers' preventing growth. We reframed them as 'growth enablers', their expertise unlocked $18M in institutional volume. This shifted the entire org's view: compliance became strategic, not administrative.",
-        "Product Principle: Ship modular, not monolithic. We built the compliance engine as a pluggable system because we knew Turkish regulations would evolve. When regulations changed (twice in 18 months), we updated one module in 2 days vs. the 3-4 weeks a monolithic system would've required. Modularity literally saved us from being out-of-compliance during transitions."
+        "When two experts (the CTO and the compliance officer) fundamentally disagree on approach, it usually means both are partly right. We didn't go hire a third opinion; we co-designed a solution that absorbed both sets of concerns. The hybrid model held because it was built on shared problem-solving, not compromise.",
+        "In regulated fintech, automation accelerates the business, but regulation-friendly automation builds the moat. Competitors could copy our throughput; they couldn't copy the regulators' trust in our governance. By the time they caught up technically, we had 18 months of goodwill and reference cases.",
+        "Compliance teams get treated as cost centers that slow growth down. We reframed ours as growth enablers, and their work unlocked $18M in institutional volume. After that, nobody in the org argued that compliance was just administrative.",
+        "Ship modular, not monolithic. We built the compliance engine as a pluggable system because we knew Turkish regulation would keep moving. When it changed twice in 18 months, we updated one module in two days instead of the three to four weeks a monolith would have cost us."
       ]
     }
   ]
