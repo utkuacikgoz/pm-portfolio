@@ -43,6 +43,7 @@ export interface Stakeholder {
 export interface Beat {
   id: string;
   body: string[];
+  insight?: string; // sharp one-line takeaway, rendered as a callout
   metrics?: Metric[];
   decisions?: Decision[];
   initiatives?: Initiative[];

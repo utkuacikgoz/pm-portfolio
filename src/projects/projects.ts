@@ -20,7 +20,8 @@ export interface Project {
   published: boolean;
   accent: string; // neon accent (matches brand palette)
   structure: StructureType;
-  content?: CaseStudy; // omitted for unbuilt indie placeholders
+  content?: CaseStudy; // omitted for indie glimpses (no full case study yet)
+  glimpse?: string; // teaser line shown on the glimpse panel for indie products
 }
 
 const C = CASE_STUDIES as Record<string, CaseStudy>;
@@ -78,24 +79,39 @@ export const PROJECTS: Project[] = [
     content: C.upshift,
   },
 
-  // ── Hidden, architecture-ready. Flip published:true + attach content to ship. ──
+  // ── Indie products — shown as light "glimpses" (no full case study yet). ──
+  {
+    id: "signalbot",
+    title: "Buyback Signal",
+    tagline: "Indie · a trading-signal bot",
+    kind: "indie",
+    published: true,
+    accent: "#00E5A0",
+    structure: "beacon",
+    glimpse:
+      "A bot that watches the market and flags buyback signals in real time — turning a manual ritual into an automated edge.",
+  },
   {
     id: "passats",
     title: "PassATS",
-    tagline: "Indie product · coming soon",
+    tagline: "Indie · beat the résumé robots",
     kind: "indie",
-    published: false,
+    published: true,
     accent: "#B14EFF",
     structure: "beacon",
+    glimpse:
+      "A tool that helps job-seekers get past automated applicant-tracking filters, built from the inside knowledge of how ATS ranking actually works.",
   },
   {
-    id: "statsxi",
-    title: "Stats XI",
-    tagline: "Indie product · coming soon",
+    id: "cofoundr",
+    title: "Cofoundr",
+    tagline: "Indie · co-founder matching",
     kind: "indie",
-    published: false,
+    published: true,
     accent: "#FFE600",
     structure: "beacon",
+    glimpse:
+      "A matching app for finding a co-founder — the 'right person, right time' problem, treated like a product.",
   },
   // Mona is real but lower-signal; surface it by flipping published:true.
   {

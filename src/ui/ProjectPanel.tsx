@@ -64,8 +64,24 @@ export default function ProjectPanel({ project, onClose }: Props) {
   if (!content) {
     return (
       <Drawer scrollRef={scrollRef} accent={project.accent} onClose={onClose} title={project.title}>
-        <p style={{ color: "#9aa0ac", fontSize: 16 }}>{project.tagline}</p>
-        <p style={{ color: "#7f8694", marginTop: 16 }}>Case study coming soon.</p>
+        <span
+          style={{
+            display: "inline-block",
+            fontSize: 10,
+            fontWeight: 800,
+            letterSpacing: 1,
+            color: "#000",
+            background: project.accent,
+            padding: "4px 9px",
+            borderRadius: 4,
+            marginBottom: 18,
+          }}
+        >
+          BUILDING NOW
+        </span>
+        <p style={{ color: "#e7e9ee", fontSize: 18, lineHeight: 1.6, marginBottom: 14 }}>{project.tagline}</p>
+        {project.glimpse && <p style={{ color: "#9aa0ac", fontSize: 15, lineHeight: 1.7 }}>{project.glimpse}</p>}
+        <CTA accent={project.accent} />
       </Drawer>
     );
   }
@@ -117,6 +133,8 @@ export default function ProjectPanel({ project, onClose }: Props) {
         </p>
       ))}
 
+      {current.insight && <InsightCallout accent={project.accent} text={current.insight} />}
+
       {current.metrics && <Metrics metrics={current.metrics} />}
       {current.decisions && <Decisions decisions={current.decisions} accent={project.accent} />}
       {current.initiatives && <Initiatives initiatives={current.initiatives} accent={project.accent} />}
@@ -134,6 +152,27 @@ export default function ProjectPanel({ project, onClose }: Props) {
         </NavBtn>
       </div>
     </Drawer>
+  );
+}
+
+function InsightCallout({ accent, text }: { accent: string; text: string }) {
+  return (
+    <div
+      style={{
+        margin: "26px 0 4px",
+        padding: "18px 20px",
+        background: "#fff",
+        borderLeft: `4px solid ${accent}`,
+        borderRadius: "0 8px 8px 0",
+        color: "#111",
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+        <span aria-hidden="true">💡</span>
+        <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.2, color: accent }}>THE INSIGHT</span>
+      </div>
+      <p style={{ fontSize: 16, lineHeight: 1.55, fontWeight: 600, color: "#15171f" }}>{text}</p>
+    </div>
   );
 }
 

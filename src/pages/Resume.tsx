@@ -7,9 +7,12 @@ const CONTACTS = [
   { label: "WEBSITE", href: "https://utkuacikgoz.com", color: "#00FFFF" },
 ];
 
+const EMPLOYMENT = PUBLISHED_PROJECTS.filter((p) => p.kind === "employment");
+const INDIE = PUBLISHED_PROJECTS.filter((p) => p.kind === "indie");
+
 /**
  * The <30s escape hatch: fast, plain-DOM résumé. No 3D, no animation. Skimmable
- * outcomes with deep links into each case study.
+ * outcomes with deep links into each case study, plus a CV download.
  */
 export default function Resume() {
   return (
@@ -33,13 +36,22 @@ export default function Resume() {
       <header style={{ marginTop: 24, marginBottom: 12 }}>
         <h1 style={{ fontSize: "clamp(34px, 8vw, 48px)", fontWeight: 900 }}>Utku Acikgoz</h1>
         <p style={{ color: "#FF0080", fontSize: 18, fontWeight: 700, marginTop: 6 }}>
-          Senior Technical Product Manager
+          Senior Product Manager
         </p>
-        <p style={{ color: "#9aa0ac", fontSize: 15, marginTop: 12, lineHeight: 1.7 }}>
-          8+ years across fintech, blockchain, HRtech and SaaS. 11 products shipped — regulated-scale
-          platforms, 0→1 transformations, and the teams behind them.
+        <p style={{ color: "#c4c8d2", fontSize: 15, marginTop: 12, lineHeight: 1.75 }}>
+          8+ years and 11+ products shipped across fintech, blockchain, e-commerce, food delivery and
+          marketplaces. I lead distributed teams — up to 25 people across Turkey, the UAE, KSA and the
+          US — and lean hard on analytics and AI to ship. Certified Scrum Master (PSM I) and Product
+          Owner (PSPO I).
         </p>
-        <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginTop: 20 }}>
+        <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginTop: 20, alignItems: "center" }}>
+          <a
+            href="/UtkuAcikgoz-CV.pdf"
+            download
+            style={{ padding: "9px 18px", background: "#fff", color: "#000", fontSize: 13, fontWeight: 800 }}
+          >
+            ↓ DOWNLOAD CV
+          </a>
           {CONTACTS.map((c) => (
             <a
               key={c.label}
@@ -54,34 +66,54 @@ export default function Resume() {
         </div>
       </header>
 
-      <h2 style={{ fontSize: 20, fontWeight: 900, margin: "40px 0 18px", letterSpacing: 1 }}>
-        SELECTED WORK
-      </h2>
-      <ul style={{ listStyle: "none", display: "grid", gap: 12 }}>
-        {PUBLISHED_PROJECTS.map((p) => (
-          <li key={p.id}>
-            <Link
-              to={`/p/${p.id}`}
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                gap: 16,
-                padding: "16px 20px",
-                background: "#0a0c12",
-                borderLeft: `4px solid ${p.accent}`,
-                color: "#fff",
-              }}
-            >
-              <span>
-                <span style={{ display: "block", fontSize: 18, fontWeight: 800 }}>{p.title}</span>
-                <span style={{ display: "block", fontSize: 13, color: "#9aa0ac", marginTop: 3 }}>{p.tagline}</span>
-              </span>
-              <span style={{ color: p.accent, fontSize: 13, fontWeight: 700, whiteSpace: "nowrap" }}>VIEW →</span>
-            </Link>
-          </li>
+      <Section title="SELECTED WORK">
+        {EMPLOYMENT.map((p) => (
+          <Row key={p.id} to={`/p/${p.id}`} accent={p.accent} title={p.title} sub={p.tagline} cta="VIEW →" />
         ))}
-      </ul>
+      </Section>
+
+      {INDIE.length > 0 && (
+        <Section title="CURRENTLY BUILDING">
+          {INDIE.map((p) => (
+            <Row key={p.id} to={`/p/${p.id}`} accent={p.accent} title={p.title} sub={p.glimpse ?? p.tagline} cta="PEEK →" />
+          ))}
+        </Section>
+      )}
     </div>
+  );
+}
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <>
+      <h2 style={{ fontSize: 20, fontWeight: 900, margin: "40px 0 18px", letterSpacing: 1 }}>{title}</h2>
+      <ul style={{ listStyle: "none", display: "grid", gap: 12 }}>{children}</ul>
+    </>
+  );
+}
+
+function Row({ to, accent, title, sub, cta }: { to: string; accent: string; title: string; sub: string; cta: string }) {
+  return (
+    <li>
+      <Link
+        to={to}
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          gap: 16,
+          padding: "16px 20px",
+          background: "#0a0c12",
+          borderLeft: `4px solid ${accent}`,
+          color: "#fff",
+        }}
+      >
+        <span>
+          <span style={{ display: "block", fontSize: 18, fontWeight: 800 }}>{title}</span>
+          <span style={{ display: "block", fontSize: 13, color: "#9aa0ac", marginTop: 3, lineHeight: 1.5 }}>{sub}</span>
+        </span>
+        <span style={{ color: accent, fontSize: 13, fontWeight: 700, whiteSpace: "nowrap" }}>{cta}</span>
+      </Link>
+    </li>
   );
 }
