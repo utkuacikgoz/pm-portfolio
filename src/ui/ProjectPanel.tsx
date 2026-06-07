@@ -250,7 +250,7 @@ function Drawer({
         backdropFilter: "blur(10px)",
         borderLeft: `3px solid ${accent}`,
         boxShadow: "-20px 0 60px rgba(0,0,0,0.6)",
-        padding: "72px 40px 56px",
+        padding: "72px clamp(20px, 5vw, 40px) 56px",
         overflowY: "auto",
         zIndex: 60,
         outline: "none",

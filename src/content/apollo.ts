@@ -1,117 +1,82 @@
-export const apollo = {
+import type { CaseStudy } from "./types";
+
+export const apollo: CaseStudy = {
   id: "apollo",
   title: "Apollo — Healthcare Digital Transformation",
-  sentimentScores: [15, 28, 45, 82, 95], // Crisis to triumph arc
+  sentimentScores: [15, 28, 45, 82, 95],
   beats: [
     {
       id: "problem",
       body: [
-        "We partnered with one of Saudi Arabia's largest conglomerates to modernize their healthcare engineering division. The core issue was an outdated technology stack built on legacy systems that hadn't evolved with modern best practices. The platform consisted of three disconnected services: hospital management, pharmacy operations, and stock/inventory control that operated in complete isolation from each other.",
-        "The system was fundamentally disconnected from patient needs. There was no way for patients to locate nearby pharmacies, scan prescriptions digitally, or access their medical records across facilities. Doctors couldn't see pharmacy inventory in real-time, pharmacists had no visibility into hospital admissions, and inventory managers worked blind to actual demand. The technology gap wasn't just inefficient, also it was actively harming patient care and operational capacity.",
-        "The business impact was severe: medication delays averaged 4-6 hours because inventory checks required manual phone calls between departments. Patient satisfaction scores were 2.3/5. The conglomerate's leadership recognized they were losing market share to competitors who had digitized years earlier. This wasn't just a software problem."
+        "We partnered with one of Saudi Arabia's largest conglomerates to modernize the engineering behind their healthcare arm. The stack was legacy and had stopped evolving years earlier — three services (hospital management, pharmacy, inventory) running in complete isolation from each other.",
+        "None of it was built around the patient. You couldn't find a nearby pharmacy, scan a prescription, or pull records across facilities. Doctors couldn't see pharmacy stock, pharmacists couldn't see admissions, and inventory managers worked blind to real demand. The gap wasn't just inefficient — it was hurting care.",
+        "The numbers showed it. Medication took 4–6 hours because every inventory check was a phone call between departments, and patient satisfaction sat at 2.3/5. Leadership knew they were bleeding share to competitors who'd digitized years earlier. This was never just a software problem.",
       ],
+      insight:
+        "Three departments that don't share data aren't slow because of bad software — they're slow because no one designed them to work as one.",
       stakeholders: [
         { name: "Hospital Management", role: "Clinical Leadership", color: "#FF0080" },
         { name: "Pharmacy Directors", role: "Operations", color: "#00FFFF" },
         { name: "IT Leadership", role: "Legacy System Owners", color: "#FFD700" },
         { name: "Inventory Managers", role: "Supply Chain", color: "#FF6B35" },
-        { name: "Patient Services", role: "Customer Advocacy", color: "#00FF00" }
-      ]
+        { name: "Patient Services", role: "Customer Advocacy", color: "#00FF00" },
+      ],
     },
     {
       id: "constraints",
       body: [
-        "Time pressure from upper management was immense. This was a high-stakes consultancy engagement with a fixed 4-month delivery window. Missing the deadline would mean contract penalties and reputational damage across the region. We weren't just building software. We were also responsible for training internal teams to maintain and evolve the system after handoff.",
-        "The internal team presented a major cultural barrier. They were deeply skeptical of new technologies, unfamiliar with modern development practices (Agile, CI/CD, user-centered design), and protective of their existing workflows. Many had worked the same way for 10-15 years. Introducing React, microservices architecture, and cloud infrastructure felt threatening rather than empowering.",
-        "Operationally, the challenge was even deeper: we weren't just changing software, we were changing how three departments worked. Hospital staff, pharmacists, and inventory managers had operated asynchronously for decades. Asking them to work as one integrated system required organizational transformation, not just technical implementation. The team had a strict hierarchical approval process (every decision required sign-off from 3+ layers of management), while we operated lean and iterative.",
-        "Language and cultural barriers compounded everything. Miscommunications weren't just about vocabulary. They were about decision-making norms, authority structures, and trust. We had to prove we weren't there to replace them or impose foreign practices. We were there to enable them."
+        "The clock was the first constraint: a fixed four-month window, with contract penalties and regional reputation on the line if we slipped. And we weren't only shipping software — we were on the hook to train the internal team to own it after we left.",
+        "The team was the harder constraint. They were skeptical of new tools, unfamiliar with Agile, CI/CD and user-centered design, and protective of workflows they'd run for 10–15 years. React, microservices and cloud felt like a threat, not an upgrade.",
+        "And the real work wasn't technical — it was getting three departments that had operated independently for decades to act as one system, inside a hierarchy where every decision needed three layers of sign-off while we ran lean and iterative.",
+        "Language and culture sat on top of all of it. The miscommunications were about authority and trust, not vocabulary. We had to prove we were there to enable them, not replace them.",
       ],
       decisions: [
-        {
-          label: "Legacy + Gradual Updates",
-          speed: 20,
-          risk: 15,
-          isChosen: false,
-          color: "#FF6B35"
-        },
-        {
-          label: "Rip-and-Replace Modernization",
-          speed: 92,
-          risk: 85,
-          isChosen: false,
-          color: "#FFD700"
-        },
-        {
-          label: "Phased Modernization with Trust-Building",
-          speed: 75,
-          risk: 38,
-          isChosen: true,
-          color: "#FF0080"
-        }
-      ]
+        { label: "Legacy + Gradual Updates", speed: 20, risk: 15, isChosen: false, color: "#FF6B35" },
+        { label: "Rip-and-Replace Modernization", speed: 92, risk: 85, isChosen: false, color: "#FFD700" },
+        { label: "Phased Modernization with Trust-Building", speed: 75, risk: 38, isChosen: true, color: "#FF0080" },
+      ],
     },
     {
       id: "approach",
       body: [
-        "We started with clarity, not code. Before writing a single line, we mapped every user journey: patients, doctors, nurses, pharmacists, inventory managers, hospital administrators. We discovered there were actually 9 distinct user personas, each with different workflows, pain points, and success metrics. We created visual artifacts obsessively: customer journey maps, service blueprints, interaction flows, and system architecture diagrams, all displayed on physical boards in the client's office.",
-        "By making our reasoning visible and inviting feedback at every stage, we demonstrated two things: (1) we weren't hostile outsiders imposing solutions, and (2) we genuinely understood the complexity of their operations better than anyone. We over-communicated our technical decisions. Why microservices instead of a monolith? Why React over Angular? Why cloud-native architecture? Every choice was explained with trade-offs, not authority.",
-        "When the internal team questioned our stack, we didn't defend upfront. We ran workshops showing how modern practices (automated testing, feature flags, incremental releases) would reduce risk and accelerate iteration. Slowly, skepticism turned to curiosity. We also adapted our process to their culture. Instead of forcing Agile ceremonies, we created hybrid rituals that respected their hierarchical approval structure while maintaining iterative progress.",
-        "Most importantly, we delivered incremental wins fast. Within 3 weeks, we shipped a patient-facing pharmacy locator feature that worked across all facilities. Pharmacists loved it. Hospital staff started asking, 'What else can we do?' That early win converted skeptics into advocates."
+        "We started with clarity, not code. Before writing anything we mapped every journey — patients, doctors, nurses, pharmacists, inventory managers, admins — and found nine distinct personas, each with its own workflow and pain. We made the thinking physical: journey maps, service blueprints, architecture diagrams, all up on boards in their office.",
+        "Making our reasoning visible did two things: it showed we weren't outsiders imposing answers, and it showed we understood their operation better than anyone. Every technical call — microservices over a monolith, React over Angular, cloud-native — came with trade-offs, not authority.",
+        "When the team pushed back on the stack, we didn't argue. We ran workshops showing how automated testing, feature flags and incremental releases lower risk, and skepticism turned to curiosity. We also bent our process to their culture instead of forcing ceremonies on them — hybrid rituals that respected their approval chain but kept us iterating.",
+        "Most of all, we shipped a real win fast. Within three weeks we put a patient-facing pharmacy locator live across every facility. Pharmacists loved it, hospital staff started asking what else we could do, and that one feature turned skeptics into advocates.",
       ],
+      insight:
+        "A win you can ship in three weeks buys more trust than a six-month roadmap you can only promise.",
       initiatives: [
-        {
-          label: "User Research & Design",
-          effort: 70,
-          impact: 92,
-          timeToValue: 25,
-          color: "#FF0080"
-        },
-        {
-          label: "Microservices Architecture",
-          effort: 85,
-          impact: 88,
-          timeToValue: 90,
-          color: "#00FFFF"
-        },
-        {
-          label: "Real-time Inventory System",
-          effort: 75,
-          impact: 90,
-          timeToValue: 60,
-          color: "#FFD700"
-        },
-        {
-          label: "Change Management & Training",
-          effort: 65,
-          impact: 85,
-          timeToValue: 40,
-          color: "#FF6B35"
-        }
-      ]
+        { label: "User Research & Design", effort: 70, impact: 92, timeToValue: 25, color: "#FF0080" },
+        { label: "Microservices Architecture", effort: 85, impact: 88, timeToValue: 90, color: "#00FFFF" },
+        { label: "Real-time Inventory System", effort: 75, impact: 90, timeToValue: 60, color: "#FFD700" },
+        { label: "Change Management & Training", effort: 65, impact: 85, timeToValue: 40, color: "#FF6B35" },
+      ],
     },
     {
       id: "results",
       body: [
-        "The platform launched on time and exceeded every success metric. Patient satisfaction jumped from 2.3/5 to 4.6/5 within the first quarter post-launch. Medication fulfillment time dropped from 4-6 hours to under 45 minutes because real-time inventory visibility eliminated manual coordination. Pharmacists reported 60% reduction in stockouts because the system predicted demand based on hospital admissions and prescription trends.",
-        "Operationally, the three previously disconnected departments now functioned as one integrated system. Hospital admissions automatically triggered pharmacy alerts; inventory levels updated in real-time across all locations; doctors could prescribe medications knowing exactly which pharmacy had stock. This synchronization unlocked $2M+ in annual cost savings by eliminating duplicate orders and reducing emergency procurement.",
-        "The internal team that were initially hostile became champions. They didn't just maintain the system; they evolved it. Within 6 months post-launch, they shipped 4 new features independently, proving the training and knowledge transfer had worked. Patients experienced the difference immediately: they could now scan prescriptions via mobile app, locate pharmacies with real-time stock availability, and access their medical history across facilities. The platform processed 50K+ patient interactions in the first month, with 89% reporting improved experience."
+        "We launched on time and beat every target. Patient satisfaction went 2.3 → 4.6 out of 5 in the first quarter. Medication fulfillment dropped from 4–6 hours to under 45 minutes once real-time inventory killed the manual coordination. Stockouts fell 60% because the system predicted demand from admissions and prescription trends.",
+        "The three siloed departments now ran as one. Admissions triggered pharmacy alerts automatically, stock updated live across locations, and doctors prescribed knowing exactly where the medication was. That synchronization took out $2M+ a year in duplicate orders and emergency procurement.",
+        "The team that started out hostile ended up owning it — within six months they shipped four new features on their own, which is the only real proof the knowledge transfer worked. Patients felt it immediately: scan a prescription from the app, find a pharmacy with live stock, pull history across facilities. 50K+ interactions in month one, 89% reporting a better experience.",
       ],
       metrics: [
         { label: "Patient Satisfaction", before: 2.3, after: 4.6, unit: "/5", color: "#FF0080" },
         { label: "Medication Fulfillment Time", before: 360, after: 45, unit: "mins", color: "#00FFFF" },
         { label: "Stockout Reduction", before: 0, after: 60, unit: "%", color: "#FFD700" },
-        { label: "Annual Cost Savings", before: 0, after: 2, unit: "M$", color: "#FF6B35" }
-      ]
+        { label: "Annual Cost Savings", before: 0, after: 2, unit: "M$", color: "#FF6B35" },
+      ],
     },
     {
       id: "learnings",
       body: [
-        "Cultural transformation is harder than technical transformation—and more important. We spent as much time on change management as on code. Building trust with a skeptical, hierarchical team required patience, transparency, and humility. Technical excellence alone wouldn't have succeeded; we had to meet them where they were and guide them forward.",
-        "Visual communication bridges gaps that documentation can't. By making our reasoning physical and collaborative (boards, diagrams, journey maps), we invited participation instead of imposing decisions. This approach worked across language and cultural barriers because the artifacts spoke louder than presentations.",
-        "Incremental wins convert skeptics faster than grand visions. The pharmacy locator feature wasn't glamorous, but it proved we could deliver value fast. That credibility unlocked trust for the harder, riskier parts of the project. Start small, ship fast, build momentum.",
-        "Organizational integration is the real product. The software was the enabler, but the transformation was making three departments work as one. Technology can't force collaboration. We succeeded because we designed for people and workflows first, then built the software to match.",
-        "Training and knowledge transfer determine long-term success. Our job was to empower the internal team to own it. We invested heavily in pairing, documentation, and hands-on workshops. Six months later, they were shipping features independently. That's the real measure of success: the client doesn't need you anymore."
-      ]
-    }
-  ]
+        "Cultural change is harder than technical change, and it matters more. We spent as much time on change management as on code. Earning trust from a skeptical, hierarchical team took patience and humility; the tech alone would never have carried it.",
+        "Visual communication bridges gaps that documents can't. Boards, diagrams and journey maps invited people in instead of presenting at them — and that worked across language and authority lines.",
+        "Incremental wins convert skeptics faster than grand visions. The pharmacy locator wasn't glamorous, but it proved we could deliver, and that bought us room for the riskier work.",
+        "The real product was the org, not the software. Tech can't force collaboration; we designed for the people and the workflows first, then built to match.",
+      ],
+      insight:
+        "If the client still needs you a year later, you didn't transform anything — you rented them a dependency.",
+    },
+  ],
 };

@@ -125,7 +125,7 @@ export default function WorldExperience() {
             animation: "panelIn .4s ease",
           }}
         >
-          Drag to spin · ← → to travel · click a structure to open
+          Drag or Q/E to spin · ← → to travel · click a structure to open
         </div>
       )}
 

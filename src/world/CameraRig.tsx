@@ -57,13 +57,20 @@ export default function CameraRig({ activeIndex, accent, entered }: Props) {
       dragging = false;
       el.style.cursor = "grab";
     };
+    // Keyboard orbit (Q/E) so the spin is reachable without a mouse.
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "q" || e.key === "Q") orbit.current += 0.22;
+      else if (e.key === "e" || e.key === "E") orbit.current -= 0.22;
+    };
     el.addEventListener("pointerdown", down);
     window.addEventListener("pointermove", move);
     window.addEventListener("pointerup", up);
+    window.addEventListener("keydown", onKey);
     return () => {
       el.removeEventListener("pointerdown", down);
       window.removeEventListener("pointermove", move);
       window.removeEventListener("pointerup", up);
+      window.removeEventListener("keydown", onKey);
     };
   }, [gl]);
 
