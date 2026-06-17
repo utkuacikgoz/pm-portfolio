@@ -1,5 +1,5 @@
-import { useRef } from "react";
-import { useFrame } from "@react-three/fiber";
+import { useRef, useState } from "react";
+import { useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
 import * as THREE from "three";
 import { PUBLISHED_PROJECTS, type Project, type StructureType } from "../projects/projects";
 import { islandPosition } from "./geometry";
@@ -75,19 +75,30 @@ function emblemCubes(id: string): Cubelet[] {
   }
 }
 
-function Emblem({ project, index, active }: { project: Project; index: number; active: boolean }) {
+function Emblem({
+  project,
+  index,
+  active,
+  hovered,
+}: {
+  project: Project;
+  index: number;
+  active: boolean;
+  hovered: boolean;
+}) {
   const ref = useRef<THREE.Group>(null);
   const spin = useRef(0);
   const [px, , pz] = islandPosition(index);
   const cubes = emblemCubes(project.id);
   const bright = mix(project.accent, "#ffffff", 0.45);
   const hoverY = HOVER_BY_STRUCTURE[project.structure] ?? 8;
+  const lift = hovered ? 0.7 : 0;
 
   useFrame((state, dt) => {
     if (!ref.current) return;
-    spin.current += dt * (active ? 0.6 : 0.22);
+    spin.current += dt * (active || hovered ? 0.6 : 0.22);
     ref.current.rotation.y = spin.current;
-    ref.current.position.y = hoverY + Math.sin(state.clock.elapsedTime * 1.1 + index) * 0.2;
+    ref.current.position.y = hoverY + lift + Math.sin(state.clock.elapsedTime * 1.1 + index) * 0.2;
   });
 
   return (
@@ -98,7 +109,7 @@ function Emblem({ project, index, active }: { project: Project; index: number; a
           <meshStandardMaterial
             color={c.bright ? bright : project.accent}
             emissive={c.bright ? bright : project.accent}
-            emissiveIntensity={active ? 0.6 : 0.22}
+            emissiveIntensity={active || hovered ? 0.6 : 0.22}
             flatShading
             roughness={0.4}
             metalness={0.1}
@@ -109,11 +120,62 @@ function Emblem({ project, index, active }: { project: Project; index: number; a
   );
 }
 
-export default function Emblems({ active }: { active: number }) {
+// Invisible, generously-sized click target covering each island + its emblem.
+// Raycast stays ON (unlike Ocean's visual-only meshes) so the structure opens its
+// case study. A drag guard suppresses opens that were really camera-orbit drags.
+function Hitbox({
+  index,
+  onOpen,
+  onHover,
+}: {
+  index: number;
+  onOpen: (i: number) => void;
+  onHover: (i: number | null) => void;
+}) {
+  const [px, , pz] = islandPosition(index);
+  const hoverY = HOVER_BY_STRUCTURE[PUBLISHED_PROJECTS[index].structure] ?? 8;
+  const gl = useThree((s) => s.gl);
+  const down = useRef<{ x: number; y: number } | null>(null);
+
+  return (
+    <mesh
+      position={[px, (hoverY - 2) / 2, pz]}
+      onPointerOver={(e) => {
+        e.stopPropagation();
+        gl.domElement.style.cursor = "pointer";
+        onHover(index);
+      }}
+      onPointerOut={() => {
+        gl.domElement.style.cursor = "grab";
+        onHover(null);
+      }}
+      onPointerDown={(e: ThreeEvent<PointerEvent>) => {
+        down.current = { x: e.nativeEvent.clientX, y: e.nativeEvent.clientY };
+      }}
+      onClick={(e: ThreeEvent<MouseEvent>) => {
+        e.stopPropagation();
+        const d = down.current;
+        down.current = null;
+        // Treat as a click only if the pointer barely moved — otherwise it was a drag.
+        if (d && Math.hypot(e.nativeEvent.clientX - d.x, e.nativeEvent.clientY - d.y) > 6) return;
+        onOpen(index);
+      }}
+    >
+      <boxGeometry args={[10, hoverY + 6, 10]} />
+      <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+    </mesh>
+  );
+}
+
+export default function Emblems({ active, onOpen }: { active: number; onOpen: (i: number) => void }) {
+  const [hovered, setHovered] = useState<number | null>(null);
   return (
     <>
       {PUBLISHED_PROJECTS.map((p, i) => (
-        <Emblem key={p.id} project={p} index={i} active={i === active} />
+        <Emblem key={p.id} project={p} index={i} active={i === active} hovered={i === hovered} />
+      ))}
+      {PUBLISHED_PROJECTS.map((p, i) => (
+        <Hitbox key={`hit-${p.id}`} index={i} onOpen={onOpen} onHover={setHovered} />
       ))}
     </>
   );

@@ -107,6 +107,25 @@ the quantified outcomes are the gold.
 - Repo lives at `~/Desktop/projects/pm-portfolio-main/pm-portfolio` (git-backed, Vercel).
   Stale duplicates exist elsewhere on disk — ignore them.
 
+## Shipping workflow (the standing default — do this without being re-asked)
+When work is done and Utku says "ship it" (or commit / PR / merge / deploy), run the whole
+chain end-to-end, no per-step hand-holding:
+1. **Deps:** `npm outdated` + `npm audit`. Take **safe** same-major updates (e.g. router 7.x).
+   Do **NOT** bump Vite past 7 or `@vitejs/plugin-react` past 5 (pinned — Vite 8/rolldown is
+   breaking; see Stack section). The remaining 2 highs are esbuild/vite **dev-only** (never
+   shipped to prod) and are accepted until the toolchain can move — don't `audit fix --force`.
+2. **Verify (always, with Node 20.19):** `source ~/.nvm/nvm.sh && nvm use 20.19.6` then
+   `npx tsc --noEmit -p tsconfig.app.json` (must be 0) **and** `npm run build` (vite-only, so
+   tsc is separate). Never ship without both green.
+3. **Branch off main** (never commit straight to main), commit with a clear message
+   (Co-Authored-By trailer), `git push -u origin <branch>`.
+4. **PR:** `gh pr create` with a real summary + the 🤖 Generated-with trailer.
+5. **Merge:** `gh pr merge --squash --delete-branch` (admin-merge if checks aren't required).
+6. **Deploy:** merging to `main` auto-deploys prod via the Vercel↔GitHub integration — confirm
+   it kicked off; don't run `vercel --prod` locally (repo isn't `.vercel`-linked, would go
+   interactive). I have no browser, so visual/interaction QA still has to be eyeballed on the
+   resulting prod/preview URL.
+
 ## Status & next steps (as of 2026-06-07)
 - **Done (Increment 1):** full architecture + all 5 employment islands navigable; BiLira
   fully fleshed; content bug in `bilira.ts` (mis-nested `metrics`) fixed.

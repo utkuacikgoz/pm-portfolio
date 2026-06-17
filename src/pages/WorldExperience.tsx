@@ -8,6 +8,7 @@ import EscapeHatch from "../ui/EscapeHatch";
 import ProjectPanel from "../ui/ProjectPanel";
 import HeroIntro from "../ui/HeroIntro";
 import ErrorBoundary from "../ui/ErrorBoundary";
+import EggToast from "../ui/EggToast";
 import FlatMap from "./FlatMap";
 
 // Lazy so three.js / r3f / drei only download on the interactive world path.
@@ -58,6 +59,7 @@ export default function WorldExperience() {
     (i: number) => {
       if (i >= projects.length) return; // indie island has no case study
       opener.current = document.activeElement as HTMLElement;
+      setActive(i); // keep the camera pointed at this island when the panel closes
       navigate(`/p/${projects[i].id}`);
     },
     [navigate, projects]
@@ -89,12 +91,13 @@ export default function WorldExperience() {
         Skip to résumé
       </Link>
       <EscapeHatch />
+      <EggToast />
       <WorldNav projects={projects} active={active} onFocus={setActive} onOpen={open} />
 
       {mode === "world" ? (
         <ErrorBoundary fallback={<FlatMap projects={projects} onOpen={open} />}>
           <Suspense fallback={<WorldLoading />}>
-            <World activeIndex={active} entered={entered} />
+            <World activeIndex={active} entered={entered} onOpen={open} />
           </Suspense>
         </ErrorBoundary>
       ) : (
