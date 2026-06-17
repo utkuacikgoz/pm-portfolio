@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { SPACING, EMP_COUNT, INDIE_INDEX, WATER_Y, islandX, islandBaseZ } from "./geometry";
+import { markEgg } from "../state/progress";
 
 interface Props {
   activeIndex: number;
@@ -116,7 +117,22 @@ export default function CameraRig({ activeIndex, accent, entered }: Props) {
   return (
     <>
       <pointLight ref={lightRef} color={accent} intensity={240} distance={55} decay={2} position={[0, 9, 5]} />
-      <group ref={boardRef} visible={false}>
+      {/* Hidden easter egg: only visible (and clickable) while surfing the gap. */}
+      <group
+        ref={boardRef}
+        visible={false}
+        onClick={(e) => {
+          e.stopPropagation();
+          markEgg();
+        }}
+        onPointerOver={(e) => {
+          e.stopPropagation();
+          gl.domElement.style.cursor = "pointer";
+        }}
+        onPointerOut={() => {
+          gl.domElement.style.cursor = "grab";
+        }}
+      >
         <mesh>
           <boxGeometry args={[0.9, 0.18, 3.4]} />
           <meshStandardMaterial color="#ffce54" flatShading />

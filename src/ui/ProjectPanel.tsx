@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type { Project } from "../projects/projects";
 import { Metrics, Decisions, Initiatives, Stakeholders } from "./viz";
 import { CONTACT } from "../content/contact";
+import { markRead } from "../state/progress";
 
 const SECTION_LABELS = ["Problem", "Constraints", "Approach", "Results", "Learnings"];
 
@@ -21,6 +22,11 @@ export default function ProjectPanel({ project, onClose }: Props) {
   const content = project.content;
 
   useEffect(() => setBeat(0), [project.id]);
+
+  // Reaching the final beat (Learnings) counts the study as "read" → ✓ stamp.
+  useEffect(() => {
+    if (content && beat === content.beats.length - 1) markRead(project.id);
+  }, [beat, content, project.id]);
 
   // Scroll the panel back to the top whenever the beat changes (respecting motion prefs).
   useEffect(() => {

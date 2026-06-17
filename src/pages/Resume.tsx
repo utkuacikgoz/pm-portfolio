@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { PUBLISHED_PROJECTS, INDIE_PROJECTS } from "../projects/projects";
+import { useProgress } from "../state/progress";
 
 const CONTACTS = [
   { label: "EMAIL", href: "mailto:hello@utkuacikgoz.com", color: "#FFD700" },
@@ -15,6 +16,7 @@ const INDIE = INDIE_PROJECTS;
  * outcomes with deep links into each case study, plus a CV download.
  */
 export default function Resume() {
+  const { read } = useProgress();
   return (
     <div style={{ minHeight: "100vh", padding: "64px 24px 96px", maxWidth: 800, margin: "0 auto" }}>
       <Link
@@ -68,7 +70,15 @@ export default function Resume() {
 
       <Section title="SELECTED WORK">
         {EMPLOYMENT.map((p) => (
-          <Row key={p.id} to={`/p/${p.id}`} accent={p.accent} title={p.title} sub={p.tagline} cta="VIEW →" />
+          <Row
+            key={p.id}
+            to={`/p/${p.id}`}
+            accent={p.accent}
+            title={p.title}
+            sub={p.tagline}
+            cta={read.has(p.id) ? "READ ✓" : "VIEW →"}
+            read={read.has(p.id)}
+          />
         ))}
       </Section>
 
@@ -114,7 +124,21 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-function Row({ to, accent, title, sub, cta }: { to: string; accent: string; title: string; sub: string; cta: string }) {
+function Row({
+  to,
+  accent,
+  title,
+  sub,
+  cta,
+  read,
+}: {
+  to: string;
+  accent: string;
+  title: string;
+  sub: string;
+  cta: string;
+  read?: boolean;
+}) {
   return (
     <li>
       <Link
@@ -131,7 +155,10 @@ function Row({ to, accent, title, sub, cta }: { to: string; accent: string; titl
         }}
       >
         <span>
-          <span style={{ display: "block", fontSize: 18, fontWeight: 800 }}>{title}</span>
+          <span style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 18, fontWeight: 800 }}>
+            {title}
+            {read && <span aria-label="read" style={{ color: accent, fontSize: 13 }}>✓</span>}
+          </span>
           <span style={{ display: "block", fontSize: 13, color: "#9aa0ac", marginTop: 3, lineHeight: 1.5 }}>{sub}</span>
         </span>
         <span style={{ color: accent, fontSize: 13, fontWeight: 700, whiteSpace: "nowrap" }}>{cta}</span>

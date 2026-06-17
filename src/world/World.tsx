@@ -10,6 +10,7 @@ import { Water, IndieIsland } from "./Ocean";
 interface Props {
   activeIndex: number;
   entered: boolean;
+  onOpen: (i: number) => void;
 }
 
 /**
@@ -17,7 +18,7 @@ interface Props {
  * across every island lives in a single <Instances> (one draw call, per-instance
  * color) — no per-cube draw calls. Lazy-loaded so three.js only ships here.
  */
-export default function World({ activeIndex, entered }: Props) {
+export default function World({ activeIndex, entered, onOpen }: Props) {
   const cubes = useMemo(() => buildWorld(PUBLISHED_PROJECTS), []);
   const accent = PUBLISHED_PROJECTS[activeIndex]?.accent ?? "#FF0080";
   const [dpr, setDpr] = useState(1.5);
@@ -55,7 +56,7 @@ export default function World({ activeIndex, entered }: Props) {
 
       <Water />
       <IndieIsland />
-      <Emblems active={activeIndex} />
+      <Emblems active={activeIndex} onOpen={onOpen} />
       <CameraRig activeIndex={activeIndex} accent={accent} entered={entered} />
     </Canvas>
   );

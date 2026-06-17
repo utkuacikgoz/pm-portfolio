@@ -31,7 +31,7 @@ export const PROJECTS: Project[] = [
   {
     id: "bilira",
     title: "BiLira",
-    tagline: "Regulated-fintech scale · −92% AML review time",
+    tagline: "Regulated-fintech scale · −35% AML review time",
     kind: "employment",
     published: true,
     accent: "#FF0080",
