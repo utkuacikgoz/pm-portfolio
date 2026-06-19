@@ -146,7 +146,7 @@ export default function WorldExperience() {
             onClick={() => setActive(INDIE_INDEX)}
             style={{
               position: "fixed",
-              bottom: 28,
+              bottom: "calc(28px + env(safe-area-inset-bottom))",
               right: 24,
               zIndex: 44,
               padding: "11px 18px",
@@ -199,7 +199,7 @@ function IndieOverlay({ onBack }: { onBack: () => void }) {
       style={{
         position: "fixed",
         left: "50%",
-        bottom: 28,
+        bottom: "calc(28px + env(safe-area-inset-bottom))",
         transform: "translateX(-50%)",
         zIndex: 44,
         width: "min(560px, calc(100vw - 32px))",
@@ -277,7 +277,7 @@ function TitleCard({
       style={{
         position: "fixed",
         left: "50%",
-        bottom: 28,
+        bottom: "calc(28px + env(safe-area-inset-bottom))",
         transform: "translateX(-50%)",
         zIndex: 40,
         width: "min(520px, calc(100vw - 32px))",
