@@ -47,7 +47,10 @@ export function Metrics({ metrics }: { metrics: Metric[] }) {
     <Section label="Outcomes">
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
         {metrics.map((m, i) => {
-          const pct = Math.round((Math.abs(m.after - m.before) / (m.before || 1)) * 100);
+          // A "from 0" baseline has no meaningful % change — showing one prints
+          // nonsense like ↑6000%. Only render the delta when the baseline is real.
+          const hasBaseline = m.before !== 0;
+          const pct = hasBaseline ? Math.round((Math.abs(m.after - m.before) / m.before) * 100) : 0;
           const down = m.after < m.before;
           return (
             <div key={i} style={{ background: "#0b0d14", border: "1px solid #1c2030", borderRadius: 8, padding: "16px 18px" }}>
@@ -57,12 +60,18 @@ export function Metrics({ metrics }: { metrics: Metric[] }) {
                 <span style={{ fontSize: 15, fontWeight: 700 }}>{m.unit}</span>
               </div>
               <div style={{ fontSize: 12, color: "#8b93a3", marginTop: 8 }}>
-                from {m.before}
-                {m.unit}{" "}
-                <span style={{ color: m.color, fontWeight: 800 }}>
-                  {down ? "↓" : "↑"}
-                  {pct}%
-                </span>
+                {hasBaseline ? (
+                  <>
+                    from {m.before}
+                    {m.unit}{" "}
+                    <span style={{ color: m.color, fontWeight: 800 }}>
+                      {down ? "↓" : "↑"}
+                      {pct}%
+                    </span>
+                  </>
+                ) : (
+                  <span style={{ color: m.color, fontWeight: 800 }}>new</span>
+                )}
               </div>
             </div>
           );

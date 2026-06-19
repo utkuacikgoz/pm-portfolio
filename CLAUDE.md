@@ -117,9 +117,10 @@ chain end-to-end, no per-step hand-holding:
 2. **Verify (always, with Node 20.19):** `source ~/.nvm/nvm.sh && nvm use 20.19.6` then
    `npx tsc --noEmit -p tsconfig.app.json` (must be 0) **and** `npm run build` (vite-only, so
    tsc is separate). Never ship without both green.
-3. **Branch off main** (never commit straight to main), commit with a clear message
-   (Co-Authored-By trailer), `git push -u origin <branch>`.
-4. **PR:** `gh pr create` with a real summary + the 🤖 Generated-with trailer.
+3. **Branch off main** (never commit straight to main), commit with a clear message,
+   `git push -u origin <branch>`. **No Co-Authored-By / Claude trailer** on commits.
+4. **PR:** `gh pr create` with a real summary. **No "Generated with Claude" / Claude
+   co-author** on PRs (Utku's standing preference).
 5. **Merge:** `gh pr merge --squash --delete-branch` (admin-merge if checks aren't required).
 6. **Deploy:** merging to `main` auto-deploys prod via the Vercel↔GitHub integration — confirm
    it kicked off; don't run `vercel --prod` locally (repo isn't `.vercel`-linked, would go

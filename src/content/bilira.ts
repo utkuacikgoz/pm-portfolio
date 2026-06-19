@@ -12,13 +12,6 @@ export const bilira: CaseStudy = {
         "I owned compliance and OTC strategy and led a 25-person engineering team. The trading desk wanted faster execution; compliance couldn't go faster without cutting corners; the CTO didn't want to automate anything that could put our license at risk. Three groups, three different definitions of 'good enough.'",
         "Doing nothing wasn't neutral. Institutional clients won't sit through a multi-hour review, so we were turning away OTC flow we should have captured. Either we automated compliance, or we capped the business at whatever five reviewers could clear by hand.",
       ],
-      stakeholders: [
-        { name: "Compliance Officer", role: "Regulatory Oversight", color: "#FF0080" },
-        { name: "CTO", role: "Infrastructure & Risk", color: "#00FFFF" },
-        { name: "Trading Desk Lead", role: "OTC Operations", color: "#FFD700" },
-        { name: "Product Lead", role: "Prioritization", color: "#FF6B35" },
-        { name: "DevOps Lead", role: "Reliability", color: "#00FF00" },
-      ],
     },
     {
       id: "constraints",
@@ -29,11 +22,6 @@ export const bilira: CaseStudy = {
       ],
       insight:
         "In a regulated market, the constraint is the product. Design for the regulator first and speed becomes something you're allowed to keep.",
-      decisions: [
-        { label: "Keep Manual Review", speed: 20, risk: 30, isChosen: false, color: "#FF6B35" },
-        { label: "Fully Automate", speed: 90, risk: 80, isChosen: false, color: "#FFD700" },
-        { label: "Hybrid Pipeline (our choice)", speed: 80, risk: 25, isChosen: true, color: "#FF0080" },
-      ],
     },
     {
       id: "approach",
@@ -44,12 +32,6 @@ export const bilira: CaseStudy = {
       ],
       insight:
         "Automate the 90% that's obvious; spend your humans on the 10% that's ambiguous. The machine buys the time, the people catch what the machine can't.",
-      initiatives: [
-        { label: "AML/KYC Automation (Chainalysis + Notabene)", effort: 75, impact: 90, timeToValue: 45, color: "#FF0080" },
-        { label: "OTC System Redesign", effort: 80, impact: 88, timeToValue: 50, color: "#00FFFF" },
-        { label: "Trade API (50M+ calls/mo)", effort: 70, impact: 85, timeToValue: 35, color: "#FFD700" },
-        { label: "Compliance Dashboard", effort: 45, impact: 72, timeToValue: 20, color: "#FF6B35" },
-      ],
     },
     {
       id: "results",

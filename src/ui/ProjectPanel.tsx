@@ -163,21 +163,13 @@ export default function ProjectPanel({ project, onClose }: Props) {
 
 function InsightCallout({ accent, text }: { accent: string; text: string }) {
   return (
-    <div
-      style={{
-        margin: "26px 0 4px",
-        padding: "18px 20px",
-        background: "#fff",
-        borderLeft: `4px solid ${accent}`,
-        borderRadius: "0 8px 8px 0",
-        color: "#111",
-      }}
-    >
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-        <span aria-hidden="true">💡</span>
-        <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.2, color: accent }}>THE INSIGHT</span>
+    <div style={{ margin: "30px 0 6px", paddingLeft: 20, borderLeft: `3px solid ${accent}` }}>
+      <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: 2, color: accent, marginBottom: 8 }}>
+        THE INSIGHT
       </div>
-      <p style={{ fontSize: 16, lineHeight: 1.55, fontWeight: 600, color: "#15171f" }}>{text}</p>
+      <p style={{ fontSize: 19, lineHeight: 1.45, fontWeight: 800, color: "#eceef2", letterSpacing: -0.2 }}>
+        {text}
+      </p>
     </div>
   );
 }
@@ -250,13 +242,13 @@ function Drawer({
         position: "fixed",
         top: 0,
         right: 0,
-        height: "100vh",
+        height: "100dvh",
         width: "min(580px, 100vw)",
         background: "rgba(7,8,12,0.97)",
         backdropFilter: "blur(10px)",
         borderLeft: `3px solid ${accent}`,
         boxShadow: "-20px 0 60px rgba(0,0,0,0.6)",
-        padding: "72px clamp(20px, 5vw, 40px) 56px",
+        padding: "72px clamp(20px, 5vw, 40px) calc(56px + env(safe-area-inset-bottom))",
         overflowY: "auto",
         zIndex: 60,
         outline: "none",
