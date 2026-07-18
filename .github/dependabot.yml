@@ -21,6 +21,24 @@ updates:
         update-types: ["version-update:semver-major"]
       - dependency-name: "@vitejs/plugin-react"
         update-types: ["version-update:semver-major"]
+      # The lint/test toolchain is version-interlocked (eslint 9 ↔ its plugins ↔
+      # typescript-eslint ↔ vitest). A solo major bump breaks peer resolution —
+      # e.g. @eslint/js 10 requires eslint 10 and fails `npm install`. Upgrade
+      # these together by hand; let Dependabot handle only their minors/patches.
+      - dependency-name: "eslint"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@eslint/js"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "eslint-plugin-react-hooks"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "eslint-plugin-react-refresh"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "typescript-eslint"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "vitest"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@vitest/coverage-v8"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: "github-actions"
     directory: "/"
