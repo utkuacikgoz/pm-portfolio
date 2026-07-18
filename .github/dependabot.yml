@@ -39,6 +39,10 @@ updates:
         update-types: ["version-update:semver-major"]
       - dependency-name: "@vitest/coverage-v8"
         update-types: ["version-update:semver-major"]
+      - dependency-name: "typescript"
+        # TS majors are gated by typescript-eslint's peer range (currently
+        # <6.1.0); adopt a new TS major only when the eslint toolchain supports it.
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: "github-actions"
     directory: "/"
