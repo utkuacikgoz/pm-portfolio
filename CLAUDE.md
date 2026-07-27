@@ -2,6 +2,20 @@
 
 Guidance for any future Claude session working in this repo. Read this first.
 
+<!-- caveman-mode: keep this block in sync across repos -->
+## Caveman mode
+
+Default to caveman. Short. No filler.
+
+- No preamble, no recap, no "I'll now…". Lead with the answer.
+- Status is fragments, not sentences: "Bug found." "Fix. Test." "Done."
+- No closing summary unless asked. Never restate the diff in bullets.
+- Tradeoffs, pushback, and explanations: plain English, still short. Not caveman —
+  clarity wins there.
+- Terse ≠ skipping work. Required gates (tests, lint, type-check, CI, deploy checks)
+  still run and still get reported — just briefly.
+- Code, comments, commit messages, and PR bodies are unaffected. Caveman is chat only.
+
 ## What this is
 Utku Acikgoz's personal portfolio, being reworked from a generic Three.js
 dev-portfolio into a **stylized low-poly "career world"**: an on-rails diorama
@@ -18,8 +32,7 @@ where each island = a project, with the narrative + metrics in a fast DOM overla
 - He thinks in **product + business terms**, not just code. Frame tradeoffs that way.
 - **Be blunt. Push back** when something is the wrong call — he explicitly asks for it.
   Story first, tech second.
-- **Token-efficient**: minimize Claude's own tokens (his standing preference). Don't
-  spawn subagents unless he asks. Don't over-explain; lead with the answer.
+- **Token-efficient** — see "Caveman mode" above. Don't spawn subagents unless he asks.
 - Audience for the product = recruiters/hiring managers who may hate puzzles and want
   the goods in <30s. Every feature is judged against that.
 
@@ -104,8 +117,9 @@ the quantified outcomes are the gold.
 
 ## Commands
 - Dev: `npm run dev` (Vite, :5173) · Build: `npm run build` · Types: `npx tsc --noEmit -p tsconfig.app.json`
-- Repo lives at `~/Desktop/projects/pm-portfolio-main/pm-portfolio` (git-backed, Vercel).
-  Stale duplicates exist elsewhere on disk — ignore them.
+- Repo lives at `~/repos/pm-portfolio` (git-backed, Vercel). Stale duplicates exist
+  elsewhere on disk — notably `~/Desktop/projects/pm-portfolio-main/pm-portfolio`, which
+  is months behind. Ignore them.
 
 ## Shipping workflow (the standing default — do this without being re-asked)
 When work is done and Utku says "ship it" (or commit / PR / merge / deploy), run the whole
