@@ -1,19 +1,15 @@
 import { forwardRef, useMemo } from "react";
 import * as THREE from "three";
 
-// A low-poly surfer in a real surf crouch, shared by the free-surf board
-// (SurfController) and the water-gap easter-egg board (CameraRig). Rounded
-// primitives (capsule limbs, a smooth shortboard, a sphere head) instead of the
-// old blocky voxel, so it reads as a person carving, not a Minecraft figure.
-//
-// The parent owns position / bob / heading. The RIDER sits in its own group,
-// exposed via `ref`, so SurfController can lean it into carves each frame without
-// re-rendering React (CameraRig just leaves it upright). All meshes opt out of
+// A low-poly surfer — muscular, tanned, long-haired — shared by the free-surf
+// board (SurfController) and the water-gap easter-egg board (CameraRig). Rounded
+// capsule limbs + a smooth shortboard. The RIDER sits in its own group, exposed
+// via `ref`, so SurfController can lean it into carves AND pitch it prone for the
+// paddle-in intro each frame without re-rendering React. All meshes opt out of
 // raycast; hit-testing (the egg click) lives on the parent group.
 
-const SKIN = "#f0c19c";
-const HAIR = "#2f2016";
-const WETSUIT = "#0e5a63";
+const SKIN = "#e3a878"; // tanned
+const HAIR = "#6e4a26"; // sun-bleached brown
 const BOARD = "#f4ead2";
 
 const Y_UP = new THREE.Vector3(0, 1, 0);
@@ -45,7 +41,16 @@ function Limb({
   return (
     <mesh position={pos} quaternion={quat} raycast={() => null}>
       <capsuleGeometry args={[r, Math.max(0.02, len - r * 2), 4, 10]} />
-      <meshStandardMaterial color={color} roughness={0.72} flatShading={flat} />
+      <meshStandardMaterial color={color} roughness={0.7} flatShading={flat} />
+    </mesh>
+  );
+}
+
+function Blob({ pos, r, color, scale }: { pos: [number, number, number]; r: number; color: string; scale?: [number, number, number] }) {
+  return (
+    <mesh position={pos} scale={scale} raycast={() => null}>
+      <sphereGeometry args={[r, 12, 10]} />
+      <meshStandardMaterial color={color} roughness={0.75} />
     </mesh>
   );
 }
@@ -58,57 +63,57 @@ const Surfer = forwardRef<THREE.Group, { accent?: string }>(function Surfer({ ac
         <sphereGeometry args={[1, 16, 12]} />
         <meshStandardMaterial color={BOARD} roughness={0.35} metalness={0.05} />
       </mesh>
-      {/* stringer stripe */}
       <mesh position={[0, 0.15, 0]} raycast={() => null}>
         <boxGeometry args={[0.05, 0.03, 3.1]} />
         <meshStandardMaterial color={accent} emissive={accent} emissiveIntensity={0.25} />
       </mesh>
-      {/* fin */}
       <mesh position={[0, -0.16, -1.4]} rotation={[0.5, 0, 0]} raycast={() => null}>
         <coneGeometry args={[0.16, 0.44, 4]} />
         <meshStandardMaterial color={accent} flatShading />
       </mesh>
 
-      {/* ── Rider (own group → leaned into carves by the parent) ── */}
+      {/* ── Rider (own group → leaned / pitched by the parent) ── */}
       <group ref={riderRef} position={[0, 0.16, 0]}>
         {/* feet */}
-        <mesh position={[0.02, 0.05, 0.52]} raycast={() => null}>
-          <boxGeometry args={[0.26, 0.12, 0.44]} />
-          <meshStandardMaterial color={WETSUIT} roughness={0.8} />
+        <mesh position={[0.02, 0.05, 0.54]} raycast={() => null}>
+          <boxGeometry args={[0.28, 0.12, 0.46]} />
+          <meshStandardMaterial color={SKIN} roughness={0.8} />
         </mesh>
-        <mesh position={[-0.04, 0.05, -0.5]} raycast={() => null}>
-          <boxGeometry args={[0.26, 0.12, 0.44]} />
-          <meshStandardMaterial color={WETSUIT} roughness={0.8} />
-        </mesh>
-
-        {/* front leg (bent: thigh + shin) */}
-        <Limb a={[0.02, 0.12, 0.52]} b={[0.05, 0.46, 0.34]} r={0.13} color={WETSUIT} />
-        <Limb a={[0.05, 0.46, 0.34]} b={[0.02, 0.62, 0.06]} r={0.14} color={WETSUIT} />
-        {/* back leg (bent) */}
-        <Limb a={[-0.04, 0.12, -0.5]} b={[-0.03, 0.44, -0.28]} r={0.13} color={WETSUIT} />
-        <Limb a={[-0.03, 0.44, -0.28]} b={[-0.02, 0.62, -0.04]} r={0.14} color={WETSUIT} />
-
-        {/* torso, crouched forward */}
-        <Limb a={[0, 0.6, 0]} b={[0.06, 1.0, 0.16]} r={0.2} color={WETSUIT} />
-        {/* accent chest panel */}
-        <mesh position={[0.06, 0.86, 0.22]} rotation={[0.5, 0, 0]} raycast={() => null}>
-          <capsuleGeometry args={[0.15, 0.24, 4, 10]} />
-          <meshStandardMaterial color={accent} roughness={0.6} />
+        <mesh position={[-0.04, 0.05, -0.52]} raycast={() => null}>
+          <boxGeometry args={[0.28, 0.12, 0.46]} />
+          <meshStandardMaterial color={SKIN} roughness={0.8} />
         </mesh>
 
-        {/* arms: leading arm reaching down-forward, trailing arm up-back for balance */}
-        <Limb a={[0.18, 0.98, 0.2]} b={[0.42, 0.62, 0.5]} r={0.09} color={SKIN} />
-        <Limb a={[-0.12, 0.98, 0.06]} b={[-0.48, 1.16, -0.34]} r={0.09} color={SKIN} />
+        {/* legs: bare shins (skin) + boardshorts on the thighs (accent) */}
+        <Limb a={[0.02, 0.12, 0.54]} b={[0.05, 0.46, 0.34]} r={0.14} color={SKIN} />
+        <Limb a={[0.05, 0.44, 0.36]} b={[0.02, 0.64, 0.06]} r={0.17} color={accent} />
+        <Limb a={[-0.04, 0.12, -0.52]} b={[-0.03, 0.44, -0.28]} r={0.14} color={SKIN} />
+        <Limb a={[-0.03, 0.42, -0.3]} b={[-0.02, 0.64, -0.04]} r={0.17} color={accent} />
+        {/* boardshorts waistband */}
+        <Blob pos={[0.01, 0.64, 0.0]} r={0.24} color={accent} scale={[1, 0.6, 1]} />
 
-        {/* head + hair */}
-        <mesh position={[0.09, 1.18, 0.2]} raycast={() => null}>
-          <sphereGeometry args={[0.17, 14, 12]} />
-          <meshStandardMaterial color={SKIN} roughness={0.7} />
-        </mesh>
-        <mesh position={[0.08, 1.26, 0.17]} scale={[1, 0.72, 1]} raycast={() => null}>
-          <sphereGeometry args={[0.185, 12, 10]} />
-          <meshStandardMaterial color={HAIR} roughness={0.9} flatShading />
-        </mesh>
+        {/* muscular torso (shirtless, tanned) + pecs */}
+        <Limb a={[0.0, 0.66, 0.0]} b={[0.05, 1.02, 0.14]} r={0.27} color={SKIN} />
+        <Blob pos={[0.14, 0.92, 0.3]} r={0.12} color={SKIN} />
+        <Blob pos={[-0.06, 0.92, 0.32]} r={0.12} color={SKIN} />
+
+        {/* broad shoulders (delts) */}
+        <Blob pos={[0.32, 1.0, 0.06]} r={0.15} color={SKIN} />
+        <Blob pos={[-0.28, 1.02, 0.02]} r={0.15} color={SKIN} />
+
+        {/* thick arms: leading down-forward, trailing up-back for balance */}
+        <Limb a={[0.32, 1.0, 0.08]} b={[0.52, 0.6, 0.5]} r={0.12} color={SKIN} />
+        <Limb a={[-0.28, 1.02, 0.02]} b={[-0.56, 1.2, -0.36]} r={0.12} color={SKIN} />
+
+        {/* head */}
+        <Blob pos={[0.08, 1.22, 0.18]} r={0.17} color={SKIN} />
+
+        {/* long, sun-bleached hair: a crown cap + strands flowing down the back */}
+        <Blob pos={[0.06, 1.3, 0.06]} r={0.2} color={HAIR} scale={[1, 0.85, 1.05]} />
+        <Limb a={[0.05, 1.34, 0.02]} b={[0.02, 0.82, -0.2]} r={0.07} color={HAIR} flat />
+        <Limb a={[0.17, 1.3, 0.05]} b={[0.2, 0.9, -0.12]} r={0.06} color={HAIR} flat />
+        <Limb a={[-0.06, 1.3, 0.05]} b={[-0.14, 0.9, -0.12]} r={0.06} color={HAIR} flat />
+        <Limb a={[0.22, 1.24, 0.2]} b={[0.27, 0.98, 0.18]} r={0.045} color={HAIR} flat />
       </group>
     </group>
   );
