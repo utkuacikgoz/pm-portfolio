@@ -5,6 +5,10 @@ import { INDIE_PROJECTS, PUBLISHED_PROJECTS } from "../projects/projects";
 import { islandPosition, INDIE_INDEX, WATER_Y, EMP_COUNT, SPACING } from "./geometry";
 import { usePrefersReducedMotion } from "../ui/hooks/useReducedMotion";
 import { T } from "../theme";
+import { daylight } from "./daylight";
+
+const WATER_DUSK = new THREE.Color(T.water);
+const WATER_DAY = new THREE.Color(T.dayWater);
 
 // The sea the islands float on, and the separate "what I'm building" island you
 // surf to — indie products as gently bobbing, NON-clickable coming-soon bubbles.
@@ -16,9 +20,12 @@ import { T } from "../theme";
 // ripple, no motion) under reduced-motion.
 export function Water() {
   const uTime = useRef({ value: 0 });
+  const matRef = useRef<THREE.MeshStandardMaterial>(null);
   const reduced = usePrefersReducedMotion();
   useFrame((s) => {
     if (!reduced) uTime.current.value = s.clock.elapsedTime;
+    // Brighten toward turquoise as free-surf fades to daytime.
+    if (matRef.current) matRef.current.color.lerpColors(WATER_DUSK, WATER_DAY, daylight.v);
   });
 
   const onBeforeCompile = (shader: THREE.WebGLProgramParametersWithUniforms) => {
@@ -54,6 +61,7 @@ export function Water() {
       <planeGeometry args={[600, 320, 96, 64]} />
       {/* Periwinkle-dusk sea (logo palette), reflective enough to catch the sun. */}
       <meshStandardMaterial
+        ref={matRef}
         color={T.water}
         roughness={0.12}
         metalness={0.5}

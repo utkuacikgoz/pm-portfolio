@@ -23,4 +23,9 @@ export const T = {
     coral: "rgba(231,104,74,0.10)",
     peri: "rgba(94,116,197,0.09)",
   },
+
+  // Free-surf shifts to a bright, cheerful daytime (the rail/career world stays
+  // dusk). Sky gradient for the page wrapper + a turquoise daytime sea.
+  daySky: "linear-gradient(180deg, #4aa6e0 0%, #7fc6e8 45%, #a9e0e6 74%, #d9f2ef 100%)",
+  dayWater: "#1f7fa6", // bright turquoise
 };
