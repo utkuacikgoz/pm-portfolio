@@ -13,6 +13,7 @@ import SoundToggle from "../ui/SoundToggle";
 import StoryCaption from "../ui/StoryCaption";
 import AvatarSelect from "../ui/AvatarSelect";
 import { readAvatar } from "../ui/avatars";
+import type { SurfSpot } from "../world/surf-spots";
 import { sfx, armAudio } from "../audio/sfx";
 import { useKeySequence, KONAMI, HIRE } from "../ui/hooks/useKeySequence";
 import { markEggId } from "../state/progress";
@@ -36,6 +37,9 @@ export default function WorldExperience() {
   const [flashing, setFlashing] = useState(false);
   const [celebrate, setCelebrate] = useState(false);
   const [surfing, setSurfing] = useState(false);
+  // The legendary break the surfer is nearest to (or null in open water) — driven
+  // by SurfController, surfaced as a small DOM HUD label while surfing.
+  const [nearSpot, setNearSpot] = useState<SurfSpot | null>(null);
   // Playful "who's looking?" gate, shown once before the experience (skipped on
   // deep links). Fun label only — surfaces as a small badge, no story branching.
   const [avatar, setAvatar] = useState<string | null>(() => readAvatar());
@@ -179,7 +183,7 @@ export default function WorldExperience() {
       {mode === "world" ? (
         <ErrorBoundary fallback={<FlatMap projects={projects} onOpen={open} />}>
           <Suspense fallback={<WorldLoading />}>
-            <World activeIndex={active} entered={entered} surfing={surfing} onOpen={open} />
+            <World activeIndex={active} entered={entered} surfing={surfing} onOpen={open} onNearSpot={setNearSpot} />
           </Suspense>
         </ErrorBoundary>
       ) : (
@@ -328,6 +332,7 @@ export default function WorldExperience() {
           >
             🏄 WASD or arrows to surf · Esc to come back
           </div>
+          {nearSpot && <SpotLabel key={nearSpot.id} spot={nearSpot} />}
           <button
             onClick={exitSurf}
             style={{
@@ -372,6 +377,39 @@ function WorldLoading() {
       }}
     >
       BUILDING WORLD…
+    </div>
+  );
+}
+
+// Names the legendary break the surfer has reached — appears/updates as you roam
+// between spots. Purely a label; the landmark itself lives in the 3D scene.
+function SpotLabel({ spot }: { spot: SurfSpot }) {
+  return (
+    <div
+      style={{
+        position: "fixed",
+        top: 120,
+        left: "50%",
+        transform: "translateX(-50%)",
+        zIndex: 45,
+        width: "min(440px, calc(100vw - 32px))",
+        padding: "14px 20px",
+        background: "rgba(7,8,12,0.86)",
+        border: `2px solid ${spot.accent}`,
+        borderRadius: 12,
+        textAlign: "center",
+        backdropFilter: "blur(6px)",
+        pointerEvents: "none",
+        animation: "captionIn .45s ease",
+      }}
+    >
+      <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: 2, color: spot.accent, marginBottom: 5 }}>
+        🌊 LEGENDARY BREAK
+      </div>
+      <div style={{ fontSize: 25, fontWeight: 900, letterSpacing: 0.4, color: "#fff", marginBottom: 4 }}>
+        {spot.name}
+      </div>
+      <div style={{ fontSize: 12.5, color: "#c4c8d2", lineHeight: 1.5 }}>{spot.blurb}</div>
     </div>
   );
 }
