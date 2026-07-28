@@ -9,7 +9,7 @@ import { useSyncExternalStore } from "react";
 const KEY = "pmworld.sound.v1";
 const EVENT = "pmworld:sound";
 
-export type SfxName = "enter" | "travel" | "open" | "close" | "read" | "egg" | "toggle" | "coin";
+type SfxName = "enter" | "travel" | "open" | "close" | "read" | "egg" | "toggle" | "coin";
 
 interface Ambient {
   stop: () => void;
@@ -283,11 +283,7 @@ export const sfx = {
   },
 };
 
-export function isMuted(): boolean {
-  return muted;
-}
-
-export function setMuted(next: boolean) {
+function setMuted(next: boolean) {
   muted = next;
   try {
     localStorage.setItem(KEY, next ? "off" : "on");
@@ -304,7 +300,7 @@ export function setMuted(next: boolean) {
   notify();
 }
 
-export function toggleMuted() {
+function toggleMuted() {
   setMuted(!muted);
 }
 

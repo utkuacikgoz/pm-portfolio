@@ -15,6 +15,7 @@
     "test": "vitest",
     "test:run": "vitest run",
     "coverage": "vitest run --coverage",
+    "knip": "npx --yes knip@5",
     "gen:avatars": "node scripts/gen-avatars.mjs"
   },
   "dependencies": {

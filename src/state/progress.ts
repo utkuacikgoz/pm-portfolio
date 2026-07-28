@@ -7,7 +7,7 @@ import { useSyncExternalStore } from "react";
 const KEY = "pmworld.progress.v1";
 const EVENT = "pmworld:progress";
 
-export interface Progress {
+interface Progress {
   read: Set<string>;
   egg: boolean; // legacy: the surfboard egg (kept for back-compat)
   eggs: Set<string>; // all found egg ids (includes "surf")
