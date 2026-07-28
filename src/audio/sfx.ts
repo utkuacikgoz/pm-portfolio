@@ -2,10 +2,9 @@ import { useSyncExternalStore } from "react";
 
 // Tiny Web-Audio sound layer: all SFX + the ambient waterfall are synthesized
 // (oscillators / filtered noise) so there is ZERO asset payload. Sound is OFF by
-// default — it starts only when the visitor chooses "enter the universe" (with
-// sound), via enableSound(). State persists in localStorage and there's an
-// always-visible toggle. The AudioContext is also suspended while the tab is
-// hidden so a backgrounded tab makes no sound and does no audio work.
+// default; it turns on only via the in-world toggle (SoundToggle). State persists
+// in localStorage. The AudioContext is suspended while the tab is hidden so a
+// backgrounded tab makes no sound and does no audio work.
 
 const KEY = "pmworld.sound.v1";
 const EVENT = "pmworld:sound";
@@ -45,6 +44,7 @@ function ensureCtx(): AudioContext | null {
     master.connect(ctx.destination);
   }
   if (ctx.state === "suspended") void ctx.resume();
+  bindVisibility(); // ensure the tab-hidden suspend guard is active once audio exists
   return ctx;
 }
 
@@ -248,22 +248,6 @@ function bindVisibility() {
     if (document.hidden) void ctx.suspend();
     else if (!muted) void ctx.resume();
   });
-}
-
-// Called when the visitor enters the world WITH sound: unmute, persist the
-// choice, start the ambient bed, and bind the tab-visibility guard. Entering
-// muted simply never calls this, so nothing plays.
-export function enableSound() {
-  muted = false;
-  try {
-    localStorage.setItem(KEY, "on");
-  } catch {
-    // private mode / quota — sound is non-essential, fail silently.
-  }
-  ensureCtx();
-  startAmbient();
-  bindVisibility();
-  notify();
 }
 
 export const sfx = {
