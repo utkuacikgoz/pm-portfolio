@@ -203,13 +203,21 @@ export default function SurfController({
     pos.current.x += Math.sin(heading.current) * speed.current * d;
     pos.current.z += Math.cos(heading.current) * speed.current * d;
 
-    // ── Walls: bounce off the ocean bounds so you can't wedge into a corner ──
-    let hitWall = false;
-    if (pos.current.x < -60) { pos.current.x = -60; heading.current = -heading.current; hitWall = true; }
-    else if (pos.current.x > 220) { pos.current.x = 220; heading.current = -heading.current; hitWall = true; }
-    if (pos.current.z < -130) { pos.current.z = -130; heading.current = Math.PI - heading.current; hitWall = true; }
-    else if (pos.current.z > 130) { pos.current.z = 130; heading.current = Math.PI - heading.current; hitWall = true; }
-    if (hitWall) speed.current *= 0.55;
+    // ── Walls: reflect off the ocean bounds, but ONLY when heading into them.
+    // (Reflecting unconditionally oscillates and pins you against the edge.) ──
+    const reflectWall = (nx: number, nz: number) => {
+      const vx = Math.sin(heading.current);
+      const vz = Math.cos(heading.current);
+      const dot = vx * nx + vz * nz;
+      if (dot < 0) {
+        heading.current = Math.atan2(vx - 2 * dot * nx, vz - 2 * dot * nz);
+        speed.current *= 0.5;
+      }
+    };
+    if (pos.current.x <= -60) { pos.current.x = -60; reflectWall(1, 0); }
+    else if (pos.current.x >= 220) { pos.current.x = 220; reflectWall(-1, 0); }
+    if (pos.current.z <= -130) { pos.current.z = -130; reflectWall(0, 1); }
+    else if (pos.current.z >= 130) { pos.current.z = 130; reflectWall(0, -1); }
 
     // ── Collision: bounce the board off solid landmasses (no ghosting) ───────
     for (const col of SURF_COLLIDERS) {

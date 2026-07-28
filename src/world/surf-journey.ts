@@ -1,4 +1,4 @@
-import { WATER_Y } from "./geometry";
+import { WATER_Y, islandPosition, EMP_COUNT, INDIE_INDEX } from "./geometry";
 import { T } from "../theme";
 
 // The free-surf "journey": solid obstacles you can't pass through, a trail of
@@ -11,15 +11,32 @@ export interface Collider {
   r: number;
 }
 
-// Solid landmass footprints per break (approx world coords). The board resolves
-// against these each frame so you stop clipping through cliffs/reefs/beaches.
-export const SURF_COLLIDERS: Collider[] = [
+// Solid landmass footprints per break (approx world coords).
+const BREAK_COLLIDERS: Collider[] = [
   { x: 145, z: -74, r: 8 }, // Nazare cliff
   { x: 112, z: 56, r: 5 }, // Pipeline sand cay
   { x: 49, z: 64, r: 4 }, // Teahupoo reef rock
   { x: -36, z: 25, r: 7 }, // Impossibles limestone
   { x: 0, z: -65, r: 7 }, // Bondi beach
 ];
+
+// The career islands (BiLira tower ... Upshift) + the indie island sit right in
+// the surf area, so they need colliders too — otherwise you wedge straight
+// through the monuments.
+function islandColliders(): Collider[] {
+  const arr: Collider[] = [];
+  for (let i = 0; i < EMP_COUNT; i++) {
+    const [x, , z] = islandPosition(i);
+    arr.push({ x, z, r: 6 });
+  }
+  const [ix, , iz] = islandPosition(INDIE_INDEX);
+  arr.push({ x: ix, z: iz, r: 5.5 });
+  return arr;
+}
+
+// The board resolves against all of these each frame → it bounces instead of
+// ghosting through cliffs/reefs/beaches and the career monuments.
+export const SURF_COLLIDERS: Collider[] = [...BREAK_COLLIDERS, ...islandColliders()];
 
 export interface Coin {
   id: number;

@@ -258,9 +258,9 @@ function Nazare() {
         </mesh>
         <LighthouseBeam />
       </group>
-      {/* the giant wave */}
-      <group position={[7, 0, 1]} rotation={[0, Math.PI, 0]}>
-        <Barrel spotId="nazare" width={30} radius={11} mat={M.waveBody} phase={0} />
+      {/* the giant wave — Nazare is THE big one: one enormous barrel */}
+      <group position={[9, 0, 2]} rotation={[0, Math.PI, 0]}>
+        <Barrel spotId="nazare" width={42} radius={18} mat={M.waveBody} phase={0} />
       </group>
     </group>
   );
