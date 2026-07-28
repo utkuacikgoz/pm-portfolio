@@ -1,6 +1,9 @@
-import { useMemo, useState } from "react";
-import { Canvas } from "@react-three/fiber";
+import { useMemo, useRef, useState } from "react";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import * as THREE from "three";
 import { Instances, Instance, AdaptiveDpr, PerformanceMonitor, Stars } from "@react-three/drei";
+import { usePrefersReducedMotion } from "../ui/hooks/useReducedMotion";
+import { daylight } from "./daylight";
 import { PUBLISHED_PROJECTS } from "../projects/projects";
 import { buildWorld } from "./geometry";
 import CameraRig from "./CameraRig";
@@ -16,6 +19,68 @@ import { T } from "../theme";
 // the CSS sky gradient behind the (transparent) canvas so the world melts into it.
 const HORIZON = T.fog;
 
+// Dusk <-> daytime cross-fade colors.
+const FOG_DUSK = new THREE.Color(T.fog);
+const FOG_DAY = new THREE.Color("#bfe3ec");
+const SKY_DUSK = new THREE.Color(T.skyBounce);
+const SKY_DAY = new THREE.Color("#dff0ff");
+const SUN_DUSK = new THREE.Color(T.sunLight);
+const SUN_DAY = new THREE.Color("#fff3e0");
+const mlerp = THREE.MathUtils.lerp;
+
+// Eases the scene lighting + fog toward bright daytime while surfing (back to dusk
+// otherwise), and publishes the level to `daylight.v` so the water can brighten too.
+function DaylightRig({ surfing }: { surfing: boolean }) {
+  const reduced = usePrefersReducedMotion();
+  const scene = useThree((s) => s.scene);
+  const amb = useRef<THREE.AmbientLight>(null);
+  const hemi = useRef<THREE.HemisphereLight>(null);
+  const dir = useRef<THREE.DirectionalLight>(null);
+  const day = useRef(0);
+  useFrame((_, dt) => {
+    const target = surfing ? 1 : 0;
+    day.current += (target - day.current) * (reduced ? 1 : 1 - Math.exp(-2.5 * dt));
+    const v = day.current;
+    daylight.v = v;
+    const fog = scene.fog as THREE.Fog | null;
+    if (fog) fog.color.lerpColors(FOG_DUSK, FOG_DAY, v);
+    if (amb.current) amb.current.intensity = mlerp(1.15, 1.75, v);
+    if (hemi.current) {
+      hemi.current.intensity = mlerp(1.5, 2.3, v);
+      hemi.current.color.lerpColors(SKY_DUSK, SKY_DAY, v);
+    }
+    if (dir.current) {
+      dir.current.intensity = mlerp(2.4, 3.3, v);
+      dir.current.color.lerpColors(SUN_DUSK, SUN_DAY, v);
+    }
+  });
+  return (
+    <>
+      <ambientLight ref={amb} intensity={1.15} />
+      <hemisphereLight ref={hemi} args={[T.skyBounce, T.ground, 1.5]} />
+      {/* Warm key light angled in from the sun's end of the rail (+X, low). */}
+      <directionalLight ref={dir} position={[70, 14, -24]} intensity={2.4} color={T.sunLight} />
+    </>
+  );
+}
+
+// Stars belong to the dusk rail, not to the bright free-surf daytime. drei's
+// starfield computes its alpha inside the shader (no opacity uniform to lerp), so
+// rather than patch their material we just drop the field once the sky is
+// meaningfully bright. The stars are additively blended against a brightening
+// backdrop by then, so they have already washed out and the cut does not read.
+function StarField() {
+  const g = useRef<THREE.Group>(null);
+  useFrame(() => {
+    if (g.current) g.current.visible = daylight.v < 0.5;
+  });
+  return (
+    <group ref={g}>
+      <Stars radius={120} depth={40} count={700} factor={3} saturation={0} fade speed={0.6} />
+    </group>
+  );
+}
+
 interface Props {
   activeIndex: number;
   entered: boolean;
@@ -24,7 +89,7 @@ interface Props {
   onNearSpot?: (spot: SurfSpot | null) => void;
   onCoin?: (count: number) => void;
   onCheckpoint?: (cp: Checkpoint | null) => void;
-  onStamina?: (v: number) => void;
+  onComplete?: () => void;
   // "never" parks the render loop (hidden tab) so a backgrounded world does no
   // GPU/CPU work; "always" runs it while the world is active + visible.
   frameloop?: "always" | "never";
@@ -35,7 +100,7 @@ interface Props {
  * across every island lives in a single <Instances> (one draw call, per-instance
  * color) — no per-cube draw calls. Lazy-loaded so three.js only ships here.
  */
-export default function World({ activeIndex, entered, surfing, onOpen, onNearSpot, onCoin, onCheckpoint, onStamina, frameloop = "always" }: Props) {
+export default function World({ activeIndex, entered, surfing, onOpen, onNearSpot, onCoin, onCheckpoint, onComplete, frameloop = "always" }: Props) {
   const cubes = useMemo(() => buildWorld(PUBLISHED_PROJECTS), []);
   const accent = PUBLISHED_PROJECTS[activeIndex]?.accent ?? "#6E86D6";
   const [dpr, setDpr] = useState(1.5);
@@ -59,13 +124,10 @@ export default function World({ activeIndex, entered, surfing, onOpen, onNearSpo
 
       {/* Tropical-dusk lighting: teal sky bounce + a warm low sun. PBR intensities
           (r3f v9 / three r155+) — ambient + hemisphere carry base visibility. */}
-      <ambientLight intensity={1.15} />
-      <hemisphereLight args={[T.skyBounce, T.ground, 1.5]} />
-      {/* Warm key light angled in from the sun's end of the rail (+X, low). */}
-      <directionalLight position={[70, 14, -24]} intensity={2.4} color={T.sunLight} />
+      <DaylightRig surfing={surfing} />
 
       {/* A few faint stars in the upper dusk sky. */}
-      <Stars radius={120} depth={40} count={700} factor={3} saturation={0} fade speed={0.6} />
+      <StarField />
       <SunDisc />
       <DistantMountains />
 
@@ -90,7 +152,7 @@ export default function World({ activeIndex, entered, surfing, onOpen, onNearSpo
       <Emblems active={activeIndex} onOpen={onOpen} />
       {/* Legendary breaks only exist while surfing → the rail diorama stays clean. */}
       {surfing && <SurfSpots />}
-      <SurfController active={surfing} onNearSpot={onNearSpot} onCoin={onCoin} onCheckpoint={onCheckpoint} onStamina={onStamina} />
+      <SurfController active={surfing} onNearSpot={onNearSpot} onCoin={onCoin} onCheckpoint={onCheckpoint} onComplete={onComplete} />
       <CameraRig activeIndex={activeIndex} accent={accent} entered={entered} surfing={surfing} />
     </Canvas>
   );
