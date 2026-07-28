@@ -10,14 +10,15 @@ import { usePrefersReducedMotion } from "../ui/hooks/useReducedMotion";
 // drawn to a CanvasTexture on a camera-facing sprite (always readable), over a
 // soft accent halo. Cheap: a couple of sprites per island, textures cached.
 
-// Hover height per structure so the icon sits just above each silhouette.
+// Hover height per structure: just above each silhouette, kept modest so a tall
+// tower's icon doesn't clip at the top of the frame.
 const HOVER_BY_STRUCTURE: Record<StructureType, number> = {
-  tower: 13,
-  market: 6,
-  campus: 6,
-  arcade: 9,
+  tower: 11,
+  market: 7,
+  campus: 7,
+  arcade: 8,
   bridge: 8,
-  beacon: 9,
+  beacon: 8,
 };
 
 function mix(a: string, b: string, t: number) {
@@ -27,24 +28,37 @@ function mix(a: string, b: string, t: number) {
 }
 
 // ── Cached canvas textures ───────────────────────────────────────────────────
+const ICON_SIZE = 256;
+function drawGlyph(ctx: CanvasRenderingContext2D, char: string, color: string) {
+  ctx.clearRect(0, 0, ICON_SIZE, ICON_SIZE);
+  ctx.font = `${Math.floor(ICON_SIZE * 0.74)}px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  // fillStyle colors plain glyphs (e.g. the bitcoin symbol); color emoji ignore it.
+  ctx.fillStyle = color;
+  ctx.fillText(char, ICON_SIZE / 2, ICON_SIZE * 0.54);
+}
+
 const iconCache = new Map<string, THREE.Texture>();
 function iconTexture(char: string, color: string): THREE.Texture {
   const key = char + color;
   const hit = iconCache.get(key);
   if (hit) return hit;
-  const size = 128;
   const c = document.createElement("canvas");
-  c.width = c.height = size;
+  c.width = c.height = ICON_SIZE;
   const ctx = c.getContext("2d")!;
-  ctx.font = `${Math.floor(size * 0.72)}px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", serif`;
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  // fillStyle colors plain glyphs (e.g. the bitcoin symbol); color emoji ignore it.
-  ctx.fillStyle = color;
-  ctx.fillText(char, size / 2, size * 0.56);
+  drawGlyph(ctx, char, color);
   const tex = new THREE.CanvasTexture(c);
   tex.colorSpace = THREE.SRGBColorSpace;
   tex.anisotropy = 4;
+  // Emoji fonts often aren't ready on first paint → the glyph draws blank. Redraw
+  // once fonts load so icons like the cart actually appear.
+  if (typeof document !== "undefined" && document.fonts?.ready) {
+    document.fonts.ready.then(() => {
+      drawGlyph(ctx, char, color);
+      tex.needsUpdate = true;
+    });
+  }
   iconCache.set(key, tex);
   return tex;
 }
@@ -58,8 +72,8 @@ function haloTexture(color: string): THREE.Texture {
   c.width = c.height = size;
   const ctx = c.getContext("2d")!;
   const g = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
-  g.addColorStop(0, color + "cc");
-  g.addColorStop(0.4, color + "44");
+  g.addColorStop(0, color + "ee");
+  g.addColorStop(0.35, color + "66");
   g.addColorStop(1, color + "00");
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, size, size);
@@ -85,10 +99,10 @@ function EmojiEmblem({ project, index, active, reduced }: { project: Project; in
 
   return (
     <group ref={ref} position={[px, hoverY, pz]}>
-      <sprite scale={[8, 8, 1]} position={[0, 0, -0.1]} raycast={() => null}>
-        <spriteMaterial map={halo} transparent depthWrite={false} opacity={active ? 0.95 : 0.6} blending={THREE.AdditiveBlending} />
+      <sprite scale={[11, 11, 1]} position={[0, 0, -0.1]} raycast={() => null}>
+        <spriteMaterial map={halo} transparent depthWrite={false} opacity={active ? 1 : 0.72} blending={THREE.AdditiveBlending} />
       </sprite>
-      <sprite scale={[4.6, 4.6, 1]} raycast={() => null}>
+      <sprite scale={[6.2, 6.2, 1]} raycast={() => null}>
         <spriteMaterial map={tex} transparent depthWrite={false} />
       </sprite>
     </group>

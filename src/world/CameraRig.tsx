@@ -24,9 +24,10 @@ const ISO = new THREE.Vector3(1, 0.82, 1).normalize();
 const ISO_DIST = 42;
 const LOOK_Y = 2.5;
 // Spring that carries the camera between islands: underdamped so travel gives a
-// little bounce (the "3D universe" feel) rather than a flat glide.
-const STIFF = 110;
-const DAMP = 15;
+// little bounce (the "3D universe" feel) rather than a flat glide. Softened so
+// the crossing is unhurried — you can actually see the surfer riding the gap.
+const STIFF = 68;
+const DAMP = 12;
 
 /**
  * On-rails camera at a fixed 45-degree angle, with a springy bounce between
@@ -93,10 +94,11 @@ export default function CameraRig({ activeIndex, accent, entered, surfing }: Pro
       lightRef.current.intensity = 240 + (reduced ? 0 : e * Math.sin(t * 2.5) * 55);
     }
 
-    // Surfboard rides the water while crossing the gap to the indie island.
+    // Surfboard rides the water while crossing the gap to the indie island —
+    // scaled up + shown a touch earlier so you can tell someone's surfing there.
     if (boardRef.current) {
-      const overWater = cx > (EMP_COUNT - 1) * SPACING + 3;
-      boardRef.current.visible = overWater && e > 0.6;
+      const overWater = cx > (EMP_COUNT - 1) * SPACING - 2;
+      boardRef.current.visible = overWater && e > 0.5;
       boardRef.current.position.set(cx, WATER_Y + 0.3 + Math.sin(t * 2.2) * 0.18, cz);
       boardRef.current.rotation.set(Math.sin(t * 1.3) * 0.06, Math.PI / 2, Math.sin(t * 1.7) * 0.1);
     }
@@ -109,6 +111,7 @@ export default function CameraRig({ activeIndex, accent, entered, surfing }: Pro
       <group
         ref={boardRef}
         visible={false}
+        scale={1.5}
         onClick={(e) => {
           e.stopPropagation();
           markEgg();
