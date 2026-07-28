@@ -145,6 +145,97 @@ function startAmbient() {
   };
 }
 
+// A mellow, dreamy surf loop for free-surf mode. Original melody (NOT the
+// copyrighted "California Dreamin'" recording — everything here is synthesized,
+// zero asset payload); a soft Am / F / C / G pad with a gentle sine lead over the
+// top, evoking that hazy west-coast mood. Scheduled a bar ahead so it never
+// stutters, and it sits low under the SFX + waterfall bed.
+let music: { stop: () => void } | null = null;
+
+export function startSurfMusic() {
+  const c = ensureCtx();
+  if (!c || !master || music || muted) return;
+
+  const out = c.createGain();
+  out.gain.value = 0.0001;
+  out.connect(master);
+  const t0 = c.currentTime;
+  out.gain.linearRampToValueAtTime(0.1, t0 + 2); // ease in
+
+  // Chord roots + thirds/fifths for the pad, per bar.
+  const bars: number[][] = [
+    [220.0, 261.63, 329.63], // Am
+    [174.61, 220.0, 261.63], // F
+    [261.63, 329.63, 392.0], // C
+    [196.0, 246.94, 293.66], // G
+  ];
+  const BAR = 2.6; // seconds per chord — unhurried
+  let bar = 0;
+  let nextTime = t0 + 0.15;
+  let stopped = false;
+  let timer = 0;
+
+  const scheduleBar = (freqs: number[], at: number) => {
+    // Warm pad an octave down.
+    freqs.forEach((f) => {
+      const o = c.createOscillator();
+      const g = c.createGain();
+      o.type = "triangle";
+      o.frequency.value = f / 2;
+      g.gain.setValueAtTime(0.0001, at);
+      g.gain.linearRampToValueAtTime(0.05, at + 0.5);
+      g.gain.linearRampToValueAtTime(0.0001, at + BAR);
+      o.connect(g).connect(out);
+      o.start(at);
+      o.stop(at + BAR + 0.05);
+    });
+    // Gentle sine lead: four plucks tracing the chord.
+    const lead = [freqs[2], freqs[1] * 2, freqs[2], freqs[0] * 2];
+    lead.forEach((f, i) => {
+      const o = c.createOscillator();
+      const g = c.createGain();
+      o.type = "sine";
+      o.frequency.value = f;
+      const mt = at + i * (BAR / lead.length);
+      g.gain.setValueAtTime(0.0001, mt);
+      g.gain.linearRampToValueAtTime(0.045, mt + 0.04);
+      g.gain.exponentialRampToValueAtTime(0.0001, mt + 0.6);
+      o.connect(g).connect(out);
+      o.start(mt);
+      o.stop(mt + 0.65);
+    });
+  };
+
+  const loop = () => {
+    if (stopped || !ctx) return;
+    const now = ctx.currentTime;
+    while (nextTime < now + 1.6) {
+      scheduleBar(bars[bar % bars.length], nextTime);
+      nextTime += BAR;
+      bar++;
+    }
+    timer = window.setTimeout(loop, 700);
+  };
+  loop();
+
+  music = {
+    stop: () => {
+      stopped = true;
+      window.clearTimeout(timer);
+      const now = c.currentTime;
+      out.gain.cancelScheduledValues(now);
+      out.gain.setValueAtTime(out.gain.value, now);
+      out.gain.linearRampToValueAtTime(0.0001, now + 1); // fade out, let notes ring
+      window.setTimeout(() => out.disconnect(), 1500);
+      music = null;
+    },
+  };
+}
+
+export function stopSurfMusic() {
+  music?.stop();
+}
+
 // Sound is on by default, but a browser won't let the AudioContext start until
 // the user interacts. Start the waterfall on the first gesture (if not muted).
 let armed = false;
@@ -206,8 +297,10 @@ export function setMuted(next: boolean) {
   } catch {
     // private mode / quota — sound is non-essential, fail silently.
   }
-  if (next) ambient?.stop();
-  else {
+  if (next) {
+    ambient?.stop();
+    stopSurfMusic(); // muting kills the surf loop too
+  } else {
     ensureCtx();
     startAmbient();
   }
