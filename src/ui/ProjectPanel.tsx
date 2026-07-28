@@ -3,6 +3,7 @@ import type { Project } from "../projects/projects";
 import { Metrics, Decisions, Initiatives, Stakeholders } from "./viz";
 import { CONTACT } from "../content/contact";
 import { markRead } from "../state/progress";
+import { sfx } from "../audio/sfx";
 
 const SECTION_LABELS = ["Problem", "Constraints", "Approach", "Results", "Learnings"];
 
@@ -25,7 +26,10 @@ export default function ProjectPanel({ project, onClose }: Props) {
 
   // Reaching the final beat (Learnings) counts the study as "read" → ✓ stamp.
   useEffect(() => {
-    if (content && beat === content.beats.length - 1) markRead(project.id);
+    if (content && beat === content.beats.length - 1) {
+      markRead(project.id);
+      sfx.play("read");
+    }
   }, [beat, content, project.id]);
 
   // Scroll the panel back to the top whenever the beat changes (respecting motion prefs).

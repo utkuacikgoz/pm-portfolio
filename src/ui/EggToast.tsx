@@ -1,22 +1,75 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useProgress } from "../state/progress";
 import { CONTACT } from "../content/contact";
+import { sfx } from "../audio/sfx";
+
+function EggLink({ children }: { children: ReactNode }) {
+  return (
+    <a
+      href={CONTACT.calendar}
+      target="_blank"
+      rel="noopener"
+      style={{ color: "#00E5A0", fontWeight: 800, textDecoration: "underline" }}
+    >
+      {children}
+    </a>
+  );
+}
+
+// One reward per egg id. Copy is dash-free and plain-Latin by house style.
+const EGG_MESSAGES: Record<string, { tag: string; body: ReactNode }> = {
+  surf: {
+    tag: "SECRET FOUND",
+    body: (
+      <>
+        You actually went looking. That&apos;s the trait I hire for. Utku&apos;s surfed in a dozen
+        of those 53 countries. <EggLink>Now go book the call →</EggLink>
+      </>
+    ),
+  },
+  konami: {
+    tag: "↑ ↑ ↓ ↓ ← → ← → B A",
+    body: (
+      <>
+        You speak fluent nerd. Thirty years of muscle memory, still sharp. Exactly the kind of
+        person I like building with. <EggLink>Let&apos;s build something →</EggLink>
+      </>
+    ),
+  },
+  hire: {
+    tag: "MESSAGE RECEIVED",
+    body: (
+      <>
+        You typed &quot;hire&quot;. Bold, direct, and a little cheeky. I like all three.{" "}
+        <EggLink>Book a call →</EggLink>
+      </>
+    ),
+  },
+};
 
 /**
- * Reward for finding the hidden easter egg. Shows once, only when the egg flips
- * false→true during this session (returning visitors who already found it aren't
- * re-toasted). Dismissible, no sound — a small personal beat that nudges the CTA.
+ * Reward toast for finding an easter egg. Shows once per egg, only for eggs
+ * discovered during THIS session (returning visitors who already found one
+ * aren't re-toasted). Plays the reward sound on reveal (if sound is on).
  */
 export default function EggToast() {
-  const { egg } = useProgress();
-  const alreadyFound = useRef(egg); // egg state at mount; true ⇒ don't re-toast
-  const [show, setShow] = useState(false);
+  const { eggs } = useProgress();
+  const seen = useRef<Set<string>>(new Set(eggs)); // eggs known at mount
+  const [current, setCurrent] = useState<string | null>(null);
 
   useEffect(() => {
-    if (egg && !alreadyFound.current) setShow(true);
-  }, [egg]);
+    for (const id of eggs) {
+      if (!seen.current.has(id) && EGG_MESSAGES[id]) {
+        seen.current.add(id);
+        setCurrent(id);
+        sfx.play("egg");
+        break;
+      }
+    }
+  }, [eggs]);
 
-  if (!show) return null;
+  if (!current) return null;
+  const msg = EGG_MESSAGES[current];
 
   return (
     <div
@@ -45,23 +98,12 @@ export default function EggToast() {
       </span>
       <div style={{ flex: 1 }}>
         <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1, color: "#00E5A0", marginBottom: 4 }}>
-          SECRET FOUND
+          {msg.tag}
         </div>
-        <p style={{ fontSize: 13.5, lineHeight: 1.55, color: "#e7e9ee", margin: 0 }}>
-          You actually went looking — that's the trait I hire for. Utku's surfed in a dozen of those 53
-          countries.{" "}
-          <a
-            href={CONTACT.calendar}
-            target="_blank"
-            rel="noopener"
-            style={{ color: "#00E5A0", fontWeight: 800, textDecoration: "underline" }}
-          >
-            Now go book the call →
-          </a>
-        </p>
+        <p style={{ fontSize: 13.5, lineHeight: 1.55, color: "#e7e9ee", margin: 0 }}>{msg.body}</p>
       </div>
       <button
-        onClick={() => setShow(false)}
+        onClick={() => setCurrent(null)}
         aria-label="Dismiss"
         style={{
           flexShrink: 0,

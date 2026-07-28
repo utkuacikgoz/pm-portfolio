@@ -69,6 +69,31 @@ h1, h2, h3, h4, h5, h6 {
   to { transform: translateX(0); opacity: 1; }
 }
 
+/* Hero: each line rises + sharpens into place. Staggered via inline delay. */
+@keyframes heroRise {
+  from { transform: translateY(24px); opacity: 0; filter: blur(7px); }
+  to { transform: translateY(0); opacity: 1; filter: blur(0); }
+}
+
+/* CTA: slow neon breathe (cyan halo + magenta core). */
+@keyframes ctaGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0, 255, 255, 0), 0 8px 30px rgba(255, 0, 128, 0.35); }
+  50% { box-shadow: 0 0 34px 3px rgba(0, 255, 255, 0.5), 0 8px 30px rgba(255, 0, 128, 0.6); }
+}
+
+/* Begin → camera dive punctuation: a quick accent wash that clears to the world. */
+@keyframes diveFlash {
+  from { opacity: 0.85; }
+  to { opacity: 0; }
+}
+
+/* Konami reward: a rainbow wash that hue-sweeps across the scene, then clears. */
+@keyframes konamiSweep {
+  0% { opacity: 0; filter: hue-rotate(0deg); }
+  22% { opacity: 0.5; }
+  100% { opacity: 0; filter: hue-rotate(320deg); }
+}
+
 /* Respect reduced-motion: the app already falls back to the flat map, but kill
    any residual transitions/animations for users who ask for it. */
 @media (prefers-reduced-motion: reduce) {

@@ -5,7 +5,7 @@ import { PUBLISHED_PROJECTS } from "../projects/projects";
 import { buildWorld } from "./geometry";
 import CameraRig from "./CameraRig";
 import Emblems from "./Emblems";
-import { Water, IndieIsland } from "./Ocean";
+import { Water, IndieIsland, Ripples, LightShaft } from "./Ocean";
 
 interface Props {
   activeIndex: number;
@@ -26,6 +26,9 @@ export default function World({ activeIndex, entered, onOpen }: Props) {
   return (
     <Canvas
       dpr={dpr}
+      // Let r3f drop internal resolution while the camera moves, then snap back
+      // to crisp when it settles — keeps orbit/travel smooth on weaker GPUs.
+      performance={{ min: 0.5 }}
       camera={{ position: [0, 7, 16], fov: 45 }}
       gl={{ antialias: true, powerPreference: "high-performance" }}
       style={{ position: "fixed", inset: 0 }}
@@ -55,6 +58,8 @@ export default function World({ activeIndex, entered, onOpen }: Props) {
       </Instances>
 
       <Water />
+      <Ripples active={activeIndex} />
+      <LightShaft active={activeIndex} />
       <IndieIsland />
       <Emblems active={activeIndex} onOpen={onOpen} />
       <CameraRig activeIndex={activeIndex} accent={accent} entered={entered} />

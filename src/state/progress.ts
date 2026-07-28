@@ -9,23 +9,29 @@ const EVENT = "pmworld:progress";
 
 export interface Progress {
   read: Set<string>;
-  egg: boolean;
+  egg: boolean; // legacy: the surfboard egg (kept for back-compat)
+  eggs: Set<string>; // all found egg ids (includes "surf")
 }
 
 interface Stored {
   read: string[];
   egg: boolean;
+  eggs: string[];
 }
 
 function readStored(): Stored {
-  if (typeof localStorage === "undefined") return { read: [], egg: false };
+  const empty: Stored = { read: [], egg: false, eggs: [] };
+  if (typeof localStorage === "undefined") return empty;
   try {
     const raw = localStorage.getItem(KEY);
-    if (!raw) return { read: [], egg: false };
+    if (!raw) return empty;
     const p = JSON.parse(raw) as Partial<Stored>;
-    return { read: Array.isArray(p.read) ? p.read : [], egg: !!p.egg };
+    const egg = !!p.egg;
+    // Migrate legacy data: an old `egg:true` with no `eggs` array = surfboard.
+    const eggs = Array.isArray(p.eggs) ? p.eggs : egg ? ["surf"] : [];
+    return { read: Array.isArray(p.read) ? p.read : [], egg, eggs };
   } catch {
-    return { read: [], egg: false };
+    return empty;
   }
 }
 
@@ -45,10 +51,15 @@ export function markRead(id: string) {
   writeStored({ ...cur, read: [...cur.read, id] });
 }
 
-export function markEgg() {
+// Record a found egg by id. `markEgg()` remains the surfboard for back-compat.
+export function markEggId(id: string) {
   const cur = readStored();
-  if (cur.egg) return;
-  writeStored({ ...cur, egg: true });
+  if (cur.eggs.includes(id)) return;
+  writeStored({ ...cur, egg: cur.egg || id === "surf", eggs: [...cur.eggs, id] });
+}
+
+export function markEgg() {
+  markEggId("surf");
 }
 
 // ── useSyncExternalStore wiring ──────────────────────────────────────────────
@@ -59,15 +70,15 @@ let cacheKey = "";
 
 function getSnapshot(): Progress {
   const s = readStored();
-  const key = `${s.read.join(",")}|${s.egg}`;
+  const key = `${s.read.join(",")}|${s.egg}|${s.eggs.join(",")}`;
   if (!cache || key !== cacheKey) {
-    cache = { read: new Set(s.read), egg: s.egg };
+    cache = { read: new Set(s.read), egg: s.egg, eggs: new Set(s.eggs) };
     cacheKey = key;
   }
   return cache;
 }
 
-const SERVER_SNAPSHOT: Progress = { read: new Set(), egg: false };
+const SERVER_SNAPSHOT: Progress = { read: new Set(), egg: false, eggs: new Set() };
 
 function subscribe(cb: () => void) {
   window.addEventListener(EVENT, cb);
