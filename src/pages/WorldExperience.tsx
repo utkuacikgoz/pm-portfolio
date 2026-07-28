@@ -14,7 +14,7 @@ import StoryCaption from "../ui/StoryCaption";
 import AvatarSelect from "../ui/AvatarSelect";
 import { readAvatar } from "../ui/avatars";
 import type { SurfSpot } from "../world/surf-spots";
-import { sfx, armAudio } from "../audio/sfx";
+import { sfx, armAudio, startSurfMusic, stopSurfMusic } from "../audio/sfx";
 import { useKeySequence, KONAMI, HIRE } from "../ui/hooks/useKeySequence";
 import { markEggId } from "../state/progress";
 import FlatMap from "./FlatMap";
@@ -79,6 +79,14 @@ export default function WorldExperience() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
+  }, [surfing]);
+
+  // The dreamy surf loop plays only in free-surf mode (covers enter, exit via
+  // button/Esc, and unmount). Muting stops it from inside the audio layer.
+  useEffect(() => {
+    if (surfing) startSurfMusic();
+    else stopSurfMusic();
+    return () => stopSurfMusic();
   }, [surfing]);
 
   // Begin: punctuate the camera dive with a quick accent wash, then enter.
@@ -381,8 +389,9 @@ function WorldLoading() {
   );
 }
 
-// Names the legendary break the surfer has reached — appears/updates as you roam
-// between spots. Purely a label; the landmark itself lives in the 3D scene.
+// The reward for catching a wave: names the legendary break you just dropped in
+// on. Only appears once you jump on a spot and ride it — the breaks are otherwise
+// unlabelled, so finding and catching them is the discovery.
 function SpotLabel({ spot }: { spot: SurfSpot }) {
   return (
     <div
@@ -404,7 +413,7 @@ function SpotLabel({ spot }: { spot: SurfSpot }) {
       }}
     >
       <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: 2, color: spot.accent, marginBottom: 5 }}>
-        🌊 LEGENDARY BREAK
+        🤙 DROPPING IN
       </div>
       <div style={{ fontSize: 25, fontWeight: 900, letterSpacing: 0.4, color: "#fff", marginBottom: 4 }}>
         {spot.name}
