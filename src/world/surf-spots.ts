@@ -21,7 +21,7 @@ export const SURF_SPOTS: SurfSpot[] = [
     blurb: "Tahiti. A slab that breaks below sea level.",
     pos: [40, 58],
     take: [40, 58],
-    accent: "#FF0080",
+    accent: "#6E86D6",
   },
   {
     id: "bondi",
@@ -29,7 +29,7 @@ export const SURF_SPOTS: SurfSpot[] = [
     blurb: "Sydney, Australia. Where half the world learns to surf.",
     pos: [0, -58],
     take: [0, -55],
-    accent: "#00FF88",
+    accent: "#3FA46A",
   },
   {
     id: "impossibles",
@@ -37,7 +37,7 @@ export const SURF_SPOTS: SurfSpot[] = [
     blurb: "Bali, Indonesia. A long peeling limestone wall.",
     pos: [-25, 25],
     take: [-22, 27],
-    accent: "#FFD700",
+    accent: "#E0A45C",
   },
   {
     id: "pipeline",
@@ -45,7 +45,7 @@ export const SURF_SPOTS: SurfSpot[] = [
     blurb: "Oahu, Hawaii. The heaviest reef barrel on Earth.",
     pos: [120, 48],
     take: [122, 46],
-    accent: "#FF6B35",
+    accent: "#E7684A",
   },
   {
     id: "nazare",
@@ -53,7 +53,7 @@ export const SURF_SPOTS: SurfSpot[] = [
     blurb: "Portugal. The biggest wave anyone has paddled.",
     pos: [155, -72],
     take: [162, -71],
-    accent: "#00CFFF",
+    accent: "#6E86D6",
   },
 ];
 

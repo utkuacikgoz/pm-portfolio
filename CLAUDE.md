@@ -41,11 +41,17 @@ where each island = a project, with the narrative + metrics in a fast DOM overla
   optional **free surf mode** (`SurfController`) lets you hop on a board and roam the
   ocean with WASD/arrows; it's a bonus, the rails remain the default path.
 - **Stylized low-poly / flat-shaded** (subtle voxel nod), NOT literal Minecraft.
-- **Palette:** the **entrance (character-select + hero) stays neon-on-black**; the
-  **world itself is tropical dusk** (teal/indigo CSS sky behind a transparent canvas,
-  warm low sun, turquoise water). Neon accents throughout.
-- **Sound is ON by default** (synth waterfall bed + SFX, `armAudio` starts it on the
-  first gesture); persisted mute toggle.
+- **Palette:** **logo-derived** (see `src/theme.ts`) — accents green `#3FA46A`, coral
+  `#E7684A`, periwinkle `#6E86D6`, mauve `#CB7BC7`, sand `#E0A45C`. The **entrance/hero
+  stays on black** with a faint coral/periwinkle glow; the **world is a logo dusk**
+  (green-navy → periwinkle → coral CSS sky behind a transparent canvas, warm low sun,
+  periwinkle-dusk water). `theme.ts` `T` owns the atmosphere; per-project `accent` lives
+  in `projects.ts`. (Old neon palette retired; `og-image.png` still shows the old colors,
+  regenerate when tooling allows.)
+- **Sound is OFF by default**; it turns on only via the in-world `SoundToggle`. The
+  AudioContext suspends while the tab is hidden. Entering the world no longer starts sound.
+- **Entrance flow:** static hero first (no Canvas mounted) → Enter → character-select →
+  camera dive. The 3D world (and three.js) mounts only on entering or a deep link.
 - **Character-select gate** (`AvatarSelect`: HR / Hiring Manager / Stalker) is **fun
   label only** — cosmetic badge, no copy/story branching.
 - **No dashes in visible copy, ever** (house style): no em/en dashes or minus signs in
@@ -118,10 +124,9 @@ the quantified outcomes are the gold.
 - **Lighting is physically-based** (r3f v9): light intensities are intentionally large
   (point light ~240 with inverse-square decay; ambient/hemisphere carry base visibility).
   Don't "fix" them down to old 0.5–2 values or the scene goes black.
-- Styling: **inline styles**, neon accents (black entrance, tropical-dusk world; see Locked
-  decisions). Palette: `#FF0080` magenta, `#00FFFF` cyan,
-  `#FFD700` gold, `#FF6B35` orange, `#00FF88`/`#00FF00` green. Font: Plus Jakarta Sans,
-  headings weight 900.
+- Styling: **inline styles**, logo-derived accents (see Locked decisions + `src/theme.ts`):
+  periwinkle `#6E86D6`, coral `#E7684A`, green `#3FA46A`, mauve `#CB7BC7`, sand `#E0A45C`.
+  Atmosphere tokens live in `theme.ts` `T`. Font: Plus Jakarta Sans, headings weight 900.
 - `src/global.d.ts` has a permissive JSX intrinsic shim so r3f elements type-check —
   leave it.
 - `npm run build` runs **vite only (no tsc)** — type-check separately with

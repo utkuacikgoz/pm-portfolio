@@ -3,9 +3,9 @@ import { PUBLISHED_PROJECTS, INDIE_PROJECTS } from "../projects/projects";
 import { useProgress } from "../state/progress";
 
 const CONTACTS = [
-  { label: "EMAIL", href: "mailto:hello@utkuacikgoz.com", color: "#FFD700" },
-  { label: "LINKEDIN", href: "https://linkedin.com/in/utkuacikgoz", color: "#FF0080" },
-  { label: "WEBSITE", href: "https://utkuacikgoz.com", color: "#00FFFF" },
+  { label: "EMAIL", href: "mailto:hello@utkuacikgoz.com", color: "#E0A45C" },
+  { label: "LINKEDIN", href: "https://linkedin.com/in/utkuacikgoz", color: "#6E86D6" },
+  { label: "WEBSITE", href: "https://utkuacikgoz.com", color: "#CB7BC7" },
 ];
 
 const EMPLOYMENT = PUBLISHED_PROJECTS;
@@ -36,8 +36,9 @@ export default function Resume() {
       </Link>
 
       <header style={{ marginTop: 24, marginBottom: 12 }}>
+        <img src="/utku-logo.svg" alt="" width={48} height={48} style={{ marginBottom: 14 }} />
         <h1 style={{ fontSize: "clamp(34px, 8vw, 48px)", fontWeight: 900 }}>Utku Acikgoz</h1>
-        <p style={{ color: "#FF0080", fontSize: 18, fontWeight: 700, marginTop: 6 }}>
+        <p style={{ color: "#6E86D6", fontSize: 18, fontWeight: 700, marginTop: 6 }}>
           Senior Product Manager
         </p>
         <p style={{ color: "#c4c8d2", fontSize: 15, marginTop: 12, lineHeight: 1.75 }}>

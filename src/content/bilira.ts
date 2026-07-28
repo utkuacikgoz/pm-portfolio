@@ -52,10 +52,10 @@ export const bilira: CaseStudy = {
         "Releases went quarterly → bi-weekly. We could absorb a rule change in days instead of a quarter, which, in this market, is most of the advantage.",
       ],
       metrics: [
-        { label: "OTC Latency", before: 500, after: 275, unit: "ms", color: "#FF0080" },
-        { label: "Release Cadence", before: 90, after: 14, unit: " days", color: "#00FFFF" },
-        { label: "Detection Accuracy", before: 95, after: 99.7, unit: "%", color: "#FFD700" },
-        { label: "Manual Review Time", before: 100, after: 65, unit: "", color: "#FF6B35" },
+        { label: "OTC Latency", before: 500, after: 275, unit: "ms", color: "#6E86D6" },
+        { label: "Release Cadence", before: 90, after: 14, unit: " days", color: "#CB7BC7" },
+        { label: "Detection Accuracy", before: 95, after: 99.7, unit: "%", color: "#E0A45C" },
+        { label: "Manual Review Time", before: 100, after: 65, unit: "", color: "#E7684A" },
       ],
     },
     {

@@ -50,7 +50,7 @@ function Limb({
   );
 }
 
-const Surfer = forwardRef<THREE.Group, { accent?: string }>(function Surfer({ accent = "#FF0080" }, riderRef) {
+const Surfer = forwardRef<THREE.Group, { accent?: string }>(function Surfer({ accent = "#6E86D6" }, riderRef) {
   return (
     <group>
       {/* ── Shortboard (smooth, rounded nose + tail) ── */}

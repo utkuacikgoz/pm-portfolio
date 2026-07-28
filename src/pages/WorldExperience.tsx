@@ -14,6 +14,7 @@ import StoryCaption from "../ui/StoryCaption";
 import AvatarSelect from "../ui/AvatarSelect";
 import { readAvatar } from "../ui/avatars";
 import type { SurfSpot } from "../world/surf-spots";
+import { T } from "../theme";
 import { sfx, startSurfMusic, stopSurfMusic } from "../audio/sfx";
 import { useKeySequence, KONAMI, HIRE } from "../ui/hooks/useKeySequence";
 import { markEggId } from "../state/progress";
@@ -198,8 +199,7 @@ export default function WorldExperience() {
         minHeight: "100vh",
         // Tropical-dusk sky: shows through the transparent WebGL canvas as the
         // backdrop. Deep indigo up top → teal → warm turquoise at the horizon.
-        background:
-          "linear-gradient(180deg, #0a0e24 0%, #0f2a3f 44%, #14495a 74%, #1f6f74 100%)",
+        background: T.sky,
       }}
     >
       <Link to="/resume" className="skip-link">
@@ -244,7 +244,7 @@ export default function WorldExperience() {
             inset: 0,
             zIndex: 65,
             pointerEvents: "none",
-            background: `radial-gradient(circle at 50% 45%, ${projects[active]?.accent ?? "#FF0080"}, transparent 70%)`,
+            background: `radial-gradient(circle at 50% 45%, ${projects[active]?.accent ?? "#6E86D6"}, transparent 70%)`,
             animation: "diveFlash .42s ease-out forwards",
           }}
         />
@@ -260,7 +260,7 @@ export default function WorldExperience() {
             pointerEvents: "none",
             mixBlendMode: "screen",
             background:
-              "conic-gradient(from 0deg, #FF0080, #FFD700, #00FF88, #00FFFF, #FF6B35, #FF0080)",
+              "conic-gradient(from 0deg, #6E86D6, #E0A45C, #3FA46A, #CB7BC7, #E7684A, #6E86D6)",
             animation: "konamiSweep 1.6s ease-out forwards",
           }}
         />
@@ -310,8 +310,8 @@ export default function WorldExperience() {
               zIndex: 44,
               padding: "11px 18px",
               background: "rgba(7,8,12,0.85)",
-              border: "2px solid #00E5A0",
-              color: "#00E5A0",
+              border: "2px solid #3FA46A",
+              color: "#3FA46A",
               fontSize: 13,
               fontWeight: 800,
               cursor: "pointer",
@@ -334,8 +334,8 @@ export default function WorldExperience() {
             zIndex: 44,
             padding: "10px 16px",
             background: "rgba(7,8,12,0.85)",
-            border: "2px solid #00CFFF",
-            color: "#00CFFF",
+            border: "2px solid #6E86D6",
+            color: "#6E86D6",
             fontSize: 13,
             fontWeight: 800,
             cursor: "pointer",
@@ -383,8 +383,8 @@ export default function WorldExperience() {
               zIndex: 44,
               padding: "11px 20px",
               background: "rgba(7,8,12,0.85)",
-              border: "2px solid #00CFFF",
-              color: "#00CFFF",
+              border: "2px solid #6E86D6",
+              color: "#6E86D6",
               fontSize: 13,
               fontWeight: 800,
               cursor: "pointer",
@@ -466,13 +466,13 @@ function IndieOverlay({ onBack }: { onBack: () => void }) {
         zIndex: 44,
         width: "min(560px, calc(100vw - 32px))",
         background: "rgba(7,8,12,0.92)",
-        border: "2px solid #00E5A0",
+        border: "2px solid #3FA46A",
         backdropFilter: "blur(8px)",
         padding: "20px 22px",
         textAlign: "center",
       }}
     >
-      <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.5, color: "#00E5A0", marginBottom: 8 }}>
+      <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.5, color: "#3FA46A", marginBottom: 8 }}>
         🏄 WHAT I'M BUILDING
       </div>
       <p style={{ fontSize: 13.5, color: "#c4c8d2", lineHeight: 1.55, marginBottom: 16 }}>
@@ -506,8 +506,8 @@ function IndieOverlay({ onBack }: { onBack: () => void }) {
         style={{
           padding: "10px 20px",
           background: "transparent",
-          border: "2px solid #00E5A0",
-          color: "#00E5A0",
+          border: "2px solid #3FA46A",
+          color: "#3FA46A",
           fontSize: 13,
           fontWeight: 800,
           cursor: "pointer",

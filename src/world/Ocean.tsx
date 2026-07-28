@@ -4,6 +4,7 @@ import * as THREE from "three";
 import { INDIE_PROJECTS, PUBLISHED_PROJECTS } from "../projects/projects";
 import { islandPosition, INDIE_INDEX, WATER_Y, EMP_COUNT, SPACING } from "./geometry";
 import { usePrefersReducedMotion } from "../ui/hooks/useReducedMotion";
+import { T } from "../theme";
 
 // The sea the islands float on, and the separate "what I'm building" island you
 // surf to — indie products as gently bobbing, NON-clickable coming-soon bubbles.
@@ -51,9 +52,9 @@ export function Water() {
   return (
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[60, WATER_Y, 0]} raycast={() => null}>
       <planeGeometry args={[600, 320, 96, 64]} />
-      {/* Dusk turquoise, reflective enough to catch the warm sun + neon accents. */}
+      {/* Periwinkle-dusk sea (logo palette), reflective enough to catch the sun. */}
       <meshStandardMaterial
-        color="#0c3a44"
+        color={T.water}
         roughness={0.12}
         metalness={0.5}
         transparent
@@ -72,11 +73,11 @@ export function SunDisc() {
     <group position={[cx, 4, -120]}>
       <mesh raycast={() => null}>
         <circleGeometry args={[14, 48]} />
-        <meshBasicMaterial color="#ffb066" />
+        <meshBasicMaterial color="#F0A06A" />
       </mesh>
       <mesh position={[0, 0, -1]} raycast={() => null}>
         <circleGeometry args={[26, 48]} />
-        <meshBasicMaterial color="#ff8a5c" transparent opacity={0.28} blending={THREE.AdditiveBlending} />
+        <meshBasicMaterial color="#E7684A" transparent opacity={0.28} blending={THREE.AdditiveBlending} />
       </mesh>
     </group>
   );
@@ -114,7 +115,7 @@ export function Ripples({ active }: { active: number }) {
   const meshes = useRef<(THREE.Mesh | null)[]>([]);
   const slots = useRef(Array.from({ length: 3 }, () => ({ born: -99, x: 0, z: 0 })));
   const cursor = useRef(0);
-  const accent = PUBLISHED_PROJECTS[active]?.accent ?? "#00FFFF";
+  const accent = PUBLISHED_PROJECTS[active]?.accent ?? "#CB7BC7";
 
   useEffect(() => {
     if (reduced) return;
@@ -178,7 +179,7 @@ export function Ripples({ active }: { active: number }) {
 export function LightShaft({ active }: { active: number }) {
   const ref = useRef<THREE.Mesh>(null);
   const reduced = usePrefersReducedMotion();
-  const accent = PUBLISHED_PROJECTS[active]?.accent ?? "#00FFFF";
+  const accent = PUBLISHED_PROJECTS[active]?.accent ?? "#CB7BC7";
   const target = useRef(new THREE.Vector3());
 
   useFrame((_, dt) => {
