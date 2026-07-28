@@ -92,15 +92,19 @@ export function DistantMountains() {
   const cx = ((EMP_COUNT - 1) / 2) * SPACING;
   const peaks = useMemo(() => {
     const arr: { x: number; z: number; h: number; w: number }[] = [];
-    const N = 18;
+    const N = 26;
     for (let i = 0; i < N; i++) {
-      const a = (i / N) * Math.PI * 2 + (Math.random() - 0.5) * 0.18;
-      const r = 108 + Math.random() * 34;
+      const a = (i / N) * Math.PI * 2 + (Math.random() - 0.5) * 0.16;
+      const ang = Math.atan2(Math.sin(a), Math.cos(a)); // normalize to [-PI, PI]
+      // Leave the +X corridor clear — that's where you travel to the indie island
+      // and where the sun sits, so peaks there would cut across the view.
+      if (Math.abs(ang) < 0.7) continue;
+      const r = 155 + Math.random() * 50;
       arr.push({
         x: cx + Math.cos(a) * r,
         z: Math.sin(a) * r,
-        h: 24 + Math.random() * 30,
-        w: 26 + Math.random() * 22,
+        h: 26 + Math.random() * 32,
+        w: 28 + Math.random() * 24,
       });
     }
     return arr;

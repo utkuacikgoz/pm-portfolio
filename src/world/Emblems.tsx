@@ -31,12 +31,19 @@ function mix(a: string, b: string, t: number) {
 const ICON_SIZE = 256;
 function drawGlyph(ctx: CanvasRenderingContext2D, char: string, color: string) {
   ctx.clearRect(0, 0, ICON_SIZE, ICON_SIZE);
-  ctx.font = `${Math.floor(ICON_SIZE * 0.74)}px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
+  ctx.font = `${Math.floor(ICON_SIZE * 0.72)}px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
+  // A soft dark shadow so the glyph reads against the glowing halo + bright sky.
+  ctx.shadowColor = "rgba(0,0,0,0.6)";
+  ctx.shadowBlur = ICON_SIZE * 0.06;
+  ctx.shadowOffsetY = ICON_SIZE * 0.02;
   // fillStyle colors plain glyphs (e.g. the bitcoin symbol); color emoji ignore it.
   ctx.fillStyle = color;
   ctx.fillText(char, ICON_SIZE / 2, ICON_SIZE * 0.54);
+  ctx.shadowColor = "transparent";
+  ctx.shadowBlur = 0;
+  ctx.shadowOffsetY = 0;
 }
 
 const iconCache = new Map<string, THREE.Texture>();
@@ -99,10 +106,10 @@ function EmojiEmblem({ project, index, active, reduced }: { project: Project; in
 
   return (
     <group ref={ref} position={[px, hoverY, pz]}>
-      <sprite scale={[11, 11, 1]} position={[0, 0, -0.1]} raycast={() => null}>
-        <spriteMaterial map={halo} transparent depthWrite={false} opacity={active ? 1 : 0.72} blending={THREE.AdditiveBlending} />
+      <sprite scale={[10, 10, 1]} position={[0, 0, -0.1]} raycast={() => null}>
+        <spriteMaterial map={halo} transparent depthWrite={false} opacity={active ? 0.8 : 0.5} blending={THREE.AdditiveBlending} />
       </sprite>
-      <sprite scale={[6.2, 6.2, 1]} raycast={() => null}>
+      <sprite scale={[7, 7, 1]} raycast={() => null}>
         <spriteMaterial map={tex} transparent depthWrite={false} />
       </sprite>
     </group>

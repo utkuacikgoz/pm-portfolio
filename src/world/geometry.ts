@@ -9,6 +9,21 @@ export const WATER_GAP = 46; // ocean you surf across to reach the indie island
 export const WATER_Y = -3.4;
 export const INDIE_INDEX = EMP_COUNT; // the separate indie island sits past the gap
 
+// Wave height (world Y offset above WATER_Y) at a world (x,z) — mirrors the Water
+// vertex shader's waveH (in Ocean.tsx) so things (the surfboard) ride the moving
+// surface instead of clipping under it. KEEP IN SYNC with that GLSL. The water
+// plane is centered at x=60 and rotated -90deg about X (plane-local y maps to
+// -worldZ), hence the offsets.
+export function seaHeight(wx: number, wz: number, t: number): number {
+  const px = wx - 60;
+  const py = -wz;
+  return (
+    Math.sin(px * 0.06 + t * 0.8) * 0.6 +
+    Math.sin(py * 0.09 - t * 0.6) * 0.4 +
+    Math.sin((px + py) * 0.05 + t * 0.5) * 0.3
+  );
+}
+
 export interface Cube {
   position: [number, number, number];
   scale: [number, number, number];

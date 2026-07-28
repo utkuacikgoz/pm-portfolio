@@ -46,6 +46,9 @@ export default function WorldExperience() {
   // Journey HUD: coins collected + the checkpoint card currently showing.
   const [coins, setCoins] = useState(0);
   const [checkpoint, setCheckpoint] = useState<Checkpoint | null>(null);
+  // The surf controls hint auto-hides (it eats real estate) after a few seconds
+  // or the moment you start moving.
+  const [surfHint, setSurfHint] = useState(true);
   // Playful "who's looking?" gate. Shown AFTER the hero (once you choose to
   // enter), not as the first screen. Fun label only — no story branching.
   const [avatar, setAvatar] = useState<string | null>(() => readAvatar());
@@ -83,8 +86,24 @@ export default function WorldExperience() {
     setSurfing(true);
     setCoins(0);
     setCheckpoint(null);
+    setSurfHint(true);
     sfx.play("enter");
   }, []);
+
+  // Hide the surf hint after a few seconds, or as soon as the surfer moves.
+  useEffect(() => {
+    if (!surfing) return;
+    const timer = setTimeout(() => setSurfHint(false), 5000);
+    const onMove = (e: KeyboardEvent) => {
+      const k = e.key.toLowerCase();
+      if (["w", "a", "s", "d", "arrowup", "arrowdown", "arrowleft", "arrowright"].includes(k)) setSurfHint(false);
+    };
+    window.addEventListener("keydown", onMove);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("keydown", onMove);
+    };
+  }, [surfing]);
   const exitSurf = useCallback(() => setSurfing(false), []);
   useEffect(() => {
     if (!surfing) return;
@@ -361,26 +380,28 @@ export default function WorldExperience() {
 
       {mode === "world" && surfing && (
         <>
-          <div
-            style={{
-              position: "fixed",
-              top: 76,
-              left: "50%",
-              transform: "translateX(-50%)",
-              zIndex: 45,
-              padding: "8px 16px",
-              background: "rgba(7,8,12,0.8)",
-              border: "1px solid #23283a",
-              borderRadius: 999,
-              fontSize: 12.5,
-              fontWeight: 600,
-              color: "#c4c8d2",
-              whiteSpace: "nowrap",
-              pointerEvents: "none",
-            }}
-          >
-            🏄 WASD or arrows to surf · move mouse to look · Esc to come back
-          </div>
+          {surfHint && (
+            <div
+              style={{
+                position: "fixed",
+                top: 76,
+                left: "50%",
+                transform: "translateX(-50%)",
+                zIndex: 45,
+                padding: "8px 16px",
+                background: "rgba(7,8,12,0.8)",
+                border: "1px solid #23283a",
+                borderRadius: 999,
+                fontSize: 12.5,
+                fontWeight: 600,
+                color: "#c4c8d2",
+                whiteSpace: "nowrap",
+                pointerEvents: "none",
+              }}
+            >
+              🏄 WASD or arrows to surf · move mouse to look · Esc to come back
+            </div>
+          )}
           <div
             style={{
               position: "fixed",

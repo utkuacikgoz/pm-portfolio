@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
-import { SPACING, EMP_COUNT, INDIE_INDEX, WATER_Y, islandX, islandBaseZ } from "./geometry";
+import { SPACING, EMP_COUNT, INDIE_INDEX, WATER_Y, islandX, islandBaseZ, seaHeight } from "./geometry";
 import { markEgg } from "../state/progress";
 import { usePrefersReducedMotion } from "../ui/hooks/useReducedMotion";
 import Surfer from "./Surfer";
@@ -99,7 +99,7 @@ export default function CameraRig({ activeIndex, accent, entered, surfing }: Pro
     if (boardRef.current) {
       const overWater = cx > (EMP_COUNT - 1) * SPACING - 2;
       boardRef.current.visible = overWater && e > 0.5;
-      boardRef.current.position.set(cx, WATER_Y + 0.3 + Math.sin(t * 2.2) * 0.18, cz);
+      boardRef.current.position.set(cx, WATER_Y + seaHeight(cx, cz, t) + 0.45, cz);
       boardRef.current.rotation.set(Math.sin(t * 1.3) * 0.06, Math.PI / 2, Math.sin(t * 1.7) * 0.1);
     }
   });
