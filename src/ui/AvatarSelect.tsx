@@ -102,7 +102,7 @@ export default function AvatarSelect({ onPick }: { onPick: (id: string) => void 
                 ...rise(0.14 + i * 0.08),
               }}
             >
-              {/* Portrait */}
+              {/* Portrait: crisp pixel-art, framed like an RPG roster slot. */}
               <div
                 style={{
                   width: 84,
@@ -110,14 +110,21 @@ export default function AvatarSelect({ onPick }: { onPick: (id: string) => void 
                   margin: "0 auto 12px",
                   display: "grid",
                   placeItems: "center",
-                  fontSize: 44,
                   borderRadius: 16,
-                  background: `radial-gradient(circle at 50% 40%, ${a.accent}22, transparent 70%)`,
-                  border: `1.5px solid ${a.accent}66`,
+                  overflow: "hidden",
+                  background: `radial-gradient(circle at 50% 40%, ${a.accent}26, #05060a 72%)`,
+                  border: `1.5px solid ${active ? a.accent : a.accent + "66"}`,
+                  boxShadow: active ? `inset 0 0 22px ${a.accent}22` : "none",
                 }}
                 aria-hidden
               >
-                {a.emoji}
+                <img
+                  src={a.portrait}
+                  alt=""
+                  width={72}
+                  height={72}
+                  style={{ imageRendering: "pixelated", display: "block" }}
+                />
               </div>
               <div style={{ fontSize: 18, fontWeight: 900, letterSpacing: 0.5, color: a.accent }}>
                 {a.label}

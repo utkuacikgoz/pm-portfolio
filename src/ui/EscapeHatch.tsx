@@ -23,7 +23,7 @@ export default function EscapeHatch() {
         textDecoration: "none",
       }}
     >
-      RESUME / SKIP →
+      RESUME →
     </Link>
   );
 }

@@ -14,7 +14,8 @@
     "typecheck": "tsc --noEmit -p tsconfig.app.json",
     "test": "vitest",
     "test:run": "vitest run",
-    "coverage": "vitest run --coverage"
+    "coverage": "vitest run --coverage",
+    "gen:avatars": "node scripts/gen-avatars.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.7",
@@ -26,7 +27,10 @@
     "three": "^0.185.1"
   },
   "devDependencies": {
+    "@dicebear/core": "^9.4.3",
+    "@dicebear/pixel-art": "^9.4.2",
     "@eslint/js": "^9.39.5",
+    "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^7.0.0",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
