@@ -40,7 +40,7 @@ export default function FlatMap({ projects, onOpen }: Props) {
         >
           Utku Acikgoz
         </h1>
-        <p style={{ color: "#FF0080", fontSize: 16, fontWeight: 700, marginTop: 6 }}>
+        <p style={{ color: "#6E86D6", fontSize: 16, fontWeight: 700, marginTop: 6 }}>
           Senior Technical Product Manager
         </p>
         <p style={{ color: "#c4c8d2", fontSize: 14, marginTop: 12, lineHeight: 1.7, maxWidth: 560, marginInline: "auto" }}>
@@ -152,8 +152,8 @@ export default function FlatMap({ projects, onOpen }: Props) {
         style={{
           marginTop: 44,
           padding: "26px 22px",
-          background: "#FF008012",
-          border: "1.5px solid #FF0080",
+          background: "#6E86D612",
+          border: "1.5px solid #6E86D6",
           borderRadius: 12,
           textAlign: "center",
         }}
@@ -167,7 +167,7 @@ export default function FlatMap({ projects, onOpen }: Props) {
             href={CONTACT.calendar}
             target="_blank"
             rel="noopener"
-            style={{ padding: "12px 22px", background: "#FF0080", color: "#000", fontSize: 14, fontWeight: 800 }}
+            style={{ padding: "12px 22px", background: "#6E86D6", color: "#000", fontSize: 14, fontWeight: 800 }}
           >
             Book a 20-min call →
           </a>
@@ -180,7 +180,7 @@ export default function FlatMap({ projects, onOpen }: Props) {
           </a>
           <Link
             to="/resume"
-            style={{ padding: "12px 22px", border: "2px solid #00FFFF", color: "#00FFFF", fontSize: 14, fontWeight: 800 }}
+            style={{ padding: "12px 22px", border: "2px solid #CB7BC7", color: "#CB7BC7", fontSize: 14, fontWeight: 800 }}
           >
             Full resume
           </Link>

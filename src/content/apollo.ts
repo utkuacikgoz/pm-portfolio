@@ -15,11 +15,11 @@ export const apollo: CaseStudy = {
       insight:
         "Three departments that don't share data aren't slow because of bad software, they're slow because no one designed them to work as one.",
       stakeholders: [
-        { name: "Hospital Management", role: "Clinical Leadership", color: "#FF0080" },
-        { name: "Pharmacy Directors", role: "Operations", color: "#00FFFF" },
-        { name: "IT Leadership", role: "Legacy System Owners", color: "#FFD700" },
-        { name: "Inventory Managers", role: "Supply Chain", color: "#FF6B35" },
-        { name: "Patient Services", role: "Customer Advocacy", color: "#00FF00" },
+        { name: "Hospital Management", role: "Clinical Leadership", color: "#6E86D6" },
+        { name: "Pharmacy Directors", role: "Operations", color: "#CB7BC7" },
+        { name: "IT Leadership", role: "Legacy System Owners", color: "#E0A45C" },
+        { name: "Inventory Managers", role: "Supply Chain", color: "#E7684A" },
+        { name: "Patient Services", role: "Customer Advocacy", color: "#3FA46A" },
       ],
     },
     {
@@ -31,9 +31,9 @@ export const apollo: CaseStudy = {
         "Language and culture sat on top of all of it. The miscommunications were about authority and trust, not vocabulary. We had to prove we were there to enable them, not replace them.",
       ],
       decisions: [
-        { label: "Legacy + Gradual Updates", speed: 20, risk: 15, isChosen: false, color: "#FF6B35" },
-        { label: "Rip-and-Replace Modernization", speed: 92, risk: 85, isChosen: false, color: "#FFD700" },
-        { label: "Phased Modernization with Trust-Building", speed: 75, risk: 38, isChosen: true, color: "#FF0080" },
+        { label: "Legacy + Gradual Updates", speed: 20, risk: 15, isChosen: false, color: "#E7684A" },
+        { label: "Rip-and-Replace Modernization", speed: 92, risk: 85, isChosen: false, color: "#E0A45C" },
+        { label: "Phased Modernization with Trust-Building", speed: 75, risk: 38, isChosen: true, color: "#6E86D6" },
       ],
     },
     {
@@ -47,10 +47,10 @@ export const apollo: CaseStudy = {
       insight:
         "A win you can ship in three weeks buys more trust than a six-month roadmap you can only promise.",
       initiatives: [
-        { label: "User Research & Design", effort: 70, impact: 92, timeToValue: 25, color: "#FF0080" },
-        { label: "Microservices Architecture", effort: 85, impact: 88, timeToValue: 90, color: "#00FFFF" },
-        { label: "Real-time Inventory System", effort: 75, impact: 90, timeToValue: 60, color: "#FFD700" },
-        { label: "Change Management & Training", effort: 65, impact: 85, timeToValue: 40, color: "#FF6B35" },
+        { label: "User Research & Design", effort: 70, impact: 92, timeToValue: 25, color: "#6E86D6" },
+        { label: "Microservices Architecture", effort: 85, impact: 88, timeToValue: 90, color: "#CB7BC7" },
+        { label: "Real-time Inventory System", effort: 75, impact: 90, timeToValue: 60, color: "#E0A45C" },
+        { label: "Change Management & Training", effort: 65, impact: 85, timeToValue: 40, color: "#E7684A" },
       ],
     },
     {
@@ -61,10 +61,10 @@ export const apollo: CaseStudy = {
         "The team that started out hostile ended up owning it, within six months they shipped four new features on their own, which is the only real proof the knowledge transfer worked. Patients felt it immediately: scan a prescription from the app, find a pharmacy with live stock, pull history across facilities. 50K+ interactions in month one, 89% reporting a better experience.",
       ],
       metrics: [
-        { label: "Patient Satisfaction", before: 2.3, after: 4.6, unit: "/5", color: "#FF0080" },
-        { label: "Medication Fulfillment Time", before: 360, after: 45, unit: "mins", color: "#00FFFF" },
-        { label: "Stockout Reduction", before: 0, after: 60, unit: "%", color: "#FFD700" },
-        { label: "Annual Cost Savings", before: 0, after: 2, unit: "M$", color: "#FF6B35" },
+        { label: "Patient Satisfaction", before: 2.3, after: 4.6, unit: "/5", color: "#6E86D6" },
+        { label: "Medication Fulfillment Time", before: 360, after: 45, unit: "mins", color: "#CB7BC7" },
+        { label: "Stockout Reduction", before: 0, after: 60, unit: "%", color: "#E0A45C" },
+        { label: "Annual Cost Savings", before: 0, after: 2, unit: "M$", color: "#E7684A" },
       ],
     },
     {

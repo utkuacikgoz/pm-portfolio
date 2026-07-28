@@ -11,11 +11,11 @@ export const mona = {
         "It was inefficent and created resentment among a distributed team that deserved better. As we scaled toward 150+ employees, the lack of structure threatened compliance, created payroll errors that damaged trust, and made HR processes so opaque that managers couldn't make informed staffing decisions. Leadership recognized that fixing this wasn't optional but an existential one."
       ],
       stakeholders: [
-        { name: "HR Lead", role: "Operations & Compliance", color: "#FF0080" },
-        { name: "Finance Controller", role: "Payroll & Budget", color: "#00FFFF" },
-        { name: "Regional Managers", role: "Team Leadership", color: "#FFD700" },
-        { name: "CEO/Founder", role: "Growth & Culture", color: "#FF6B35" },
-        { name: "Employee Reps", role: "Distributed Team Voice", color: "#00FF00" }
+        { name: "HR Lead", role: "Operations & Compliance", color: "#6E86D6" },
+        { name: "Finance Controller", role: "Payroll & Budget", color: "#CB7BC7" },
+        { name: "Regional Managers", role: "Team Leadership", color: "#E0A45C" },
+        { name: "CEO/Founder", role: "Growth & Culture", color: "#E7684A" },
+        { name: "Employee Reps", role: "Distributed Team Voice", color: "#3FA46A" }
       ]
     },
     {
@@ -31,21 +31,21 @@ export const mona = {
           speed: 60,
           risk: 40,
           isChosen: false,
-          color: "#FFD700"
+          color: "#E0A45C"
         },
         {
           label: "Build Custom with Engineers",
           speed: 30,
           risk: 60,
           isChosen: false,
-          color: "#FF6B35"
+          color: "#E7684A"
         },
         {
           label: "Build with No-Code & Consultants",
           speed: 85,
           risk: 25,
           isChosen: true,
-          color: "#FF0080"
+          color: "#6E86D6"
         }
       ]
     },
@@ -63,28 +63,28 @@ export const mona = {
           effort: 30,
           impact: 75,
           timeToValue: 10,
-          color: "#FF0080"
+          color: "#6E86D6"
         },
         {
           label: "Vacation Tracking & Accrual Rules",
           effort: 35,
           impact: 80,
           timeToValue: 15,
-          color: "#00FFFF"
+          color: "#CB7BC7"
         },
         {
           label: "Payroll Data Integration",
           effort: 50,
           impact: 90,
           timeToValue: 25,
-          color: "#FFD700"
+          color: "#E0A45C"
         },
         {
           label: "Progression Framework & Performance Reviews",
           effort: 45,
           impact: 85,
           timeToValue: 30,
-          color: "#FF6B35"
+          color: "#E7684A"
         }
       ]
     },
@@ -97,10 +97,10 @@ export const mona = {
 
       ],
       metrics: [
-        { label: "HR Admin Hours/Week", before: 15, after: 3, unit: "hours", color: "#FF0080" },
-        { label: "Payroll Errors", before: 12, after: 0, unit: "/year", color: "#00FFFF" },
-        { label: "Cost vs Enterprise", before: 25, after: 12, unit: "K$/yr", color: "#FFD700" },
-        { label: "Employee Retention Lift", before: 82, after: 94, unit: "%", color: "#FF6B35" }
+        { label: "HR Admin Hours/Week", before: 15, after: 3, unit: "hours", color: "#6E86D6" },
+        { label: "Payroll Errors", before: 12, after: 0, unit: "/year", color: "#CB7BC7" },
+        { label: "Cost vs Enterprise", before: 25, after: 12, unit: "K$/yr", color: "#E0A45C" },
+        { label: "Employee Retention Lift", before: 82, after: 94, unit: "%", color: "#E7684A" }
       ]
     },
     {

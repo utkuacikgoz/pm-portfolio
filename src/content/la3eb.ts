@@ -15,11 +15,11 @@ export const la3eb: CaseStudy = {
       insight:
         "If no one opens the app, there's no one to sell to. Engagement isn't the opposite of revenue, it's the top of the funnel.",
       stakeholders: [
-        { name: "Gaming Community", role: "Users & Evangelists", color: "#FF0080" },
-        { name: "Leadership/Business", role: "Revenue & Strategy", color: "#00FFFF" },
-        { name: "Engineering Team", role: "Product Execution", color: "#FFD700" },
-        { name: "Marketing", role: "User Acquisition", color: "#FF6B35" },
-        { name: "Finance", role: "Budget & Metrics", color: "#00FF00" },
+        { name: "Gaming Community", role: "Users & Evangelists", color: "#6E86D6" },
+        { name: "Leadership/Business", role: "Revenue & Strategy", color: "#CB7BC7" },
+        { name: "Engineering Team", role: "Product Execution", color: "#E0A45C" },
+        { name: "Marketing", role: "User Acquisition", color: "#E7684A" },
+        { name: "Finance", role: "Budget & Metrics", color: "#3FA46A" },
       ],
     },
     {
@@ -30,9 +30,9 @@ export const la3eb: CaseStudy = {
         "Leadership kept pulling everything back to revenue: 'how does this drive transactions?' Convincing them to spend 10 weeks on engagement meant proving engagement was the unlock for revenue, not a detour from it, with a team of three (two engineers, one designer, me) against a transaction side with five times the headcount.",
       ],
       decisions: [
-        { label: "Perfect Planning (6 months)", speed: 20, risk: 30, isChosen: false, color: "#FF6B35" },
-        { label: "Full Replatform (High Risk)", speed: 50, risk: 80, isChosen: false, color: "#FFD700" },
-        { label: "Rapid Iteration (Weekly Releases)", speed: 95, risk: 35, isChosen: true, color: "#FF0080" },
+        { label: "Perfect Planning (6 months)", speed: 20, risk: 30, isChosen: false, color: "#E7684A" },
+        { label: "Full Replatform (High Risk)", speed: 50, risk: 80, isChosen: false, color: "#E0A45C" },
+        { label: "Rapid Iteration (Weekly Releases)", speed: 95, risk: 35, isChosen: true, color: "#6E86D6" },
       ],
     },
     {
@@ -46,10 +46,10 @@ export const la3eb: CaseStudy = {
       insight:
         "Your 50 most engaged users out-research any dashboard, if you treat them like partners instead of survey rows.",
       initiatives: [
-        { label: "Community Feed & Content", effort: 40, impact: 90, timeToValue: 10, color: "#FF0080" },
-        { label: "In-App Chat & Squad Finding", effort: 50, impact: 92, timeToValue: 15, color: "#00FFFF" },
-        { label: "PS5 Launch Lobby", effort: 35, impact: 88, timeToValue: 20, color: "#FFD700" },
-        { label: "Analytics & User Insights", effort: 30, impact: 85, timeToValue: 5, color: "#FF6B35" },
+        { label: "Community Feed & Content", effort: 40, impact: 90, timeToValue: 10, color: "#6E86D6" },
+        { label: "In-App Chat & Squad Finding", effort: 50, impact: 92, timeToValue: 15, color: "#CB7BC7" },
+        { label: "PS5 Launch Lobby", effort: 35, impact: 88, timeToValue: 20, color: "#E0A45C" },
+        { label: "Analytics & User Insights", effort: 30, impact: 85, timeToValue: 5, color: "#E7684A" },
       ],
     },
     {
@@ -61,10 +61,10 @@ export const la3eb: CaseStudy = {
         "The launch itself was a moment for La3eb: 2,000+ buyer connections, a virtual launch party with 5,000+ attendees, the hub for PS5 talk in the region. Competitors had better stock and pricing; we had the community, and community is stickier than a transaction.",
       ],
       metrics: [
-        { label: "Daily Active Users", before: 3, after: 18, unit: "k", color: "#FF0080" },
-        { label: "15-Day Retention", before: 8, after: 34, unit: "%", color: "#00FFFF" },
-        { label: "NPS Score", before: 22, after: 58, unit: "pts", color: "#FFD700" },
-        { label: "Chat User Conversion", before: 1, after: 6, unit: "x lift", color: "#FF6B35" },
+        { label: "Daily Active Users", before: 3, after: 18, unit: "k", color: "#6E86D6" },
+        { label: "15-Day Retention", before: 8, after: 34, unit: "%", color: "#CB7BC7" },
+        { label: "NPS Score", before: 22, after: 58, unit: "pts", color: "#E0A45C" },
+        { label: "Chat User Conversion", before: 1, after: 6, unit: "x lift", color: "#E7684A" },
       ],
     },
     {

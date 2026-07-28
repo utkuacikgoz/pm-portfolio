@@ -28,7 +28,7 @@ export const AVATARS: Avatar[] = [
     label: "HR",
     title: "The Culture Keeper",
     pun: "Here for the culture fit.",
-    accent: "#00FF88",
+    accent: "#3FA46A",
     stats: [
       { label: "Empathy", value: 9 },
       { label: "Process", value: 8 },
@@ -42,7 +42,7 @@ export const AVATARS: Avatar[] = [
     label: "Hiring Manager",
     title: "The Decision Maker",
     pun: "Show me the outcomes.",
-    accent: "#FFD700",
+    accent: "#E0A45C",
     stats: [
       { label: "Outcomes", value: 10 },
       { label: "Skepticism", value: 8 },
@@ -56,7 +56,7 @@ export const AVATARS: Avatar[] = [
     label: "Stalker",
     title: "The Deep Diver",
     pun: "I already read your LinkedIn.",
-    accent: "#FF0080",
+    accent: "#6E86D6",
     stats: [
       { label: "Recon", value: 10 },
       { label: "Persistence", value: 9 },

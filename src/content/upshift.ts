@@ -15,11 +15,11 @@ export const upshift: CaseStudy = {
       insight:
         "A company can have product-market fit and still be quietly losing its best customers, because nobody owns the product.",
       stakeholders: [
-        { name: "VP Sales", role: "Growth & Revenue", color: "#FF0080" },
-        { name: "CTO", role: "Technical Strategy", color: "#00FFFF" },
-        { name: "Operations Lead", role: "Worker & Client Ops", color: "#FFD700" },
-        { name: "Finance", role: "Unit Economics", color: "#FF6B35" },
-        { name: "Design", role: "User Experience", color: "#00FF00" },
+        { name: "VP Sales", role: "Growth & Revenue", color: "#6E86D6" },
+        { name: "CTO", role: "Technical Strategy", color: "#CB7BC7" },
+        { name: "Operations Lead", role: "Worker & Client Ops", color: "#E0A45C" },
+        { name: "Finance", role: "Unit Economics", color: "#E7684A" },
+        { name: "Design", role: "User Experience", color: "#3FA46A" },
       ],
     },
     {
@@ -30,9 +30,9 @@ export const upshift: CaseStudy = {
         "And the behavioural one: leadership was skeptical of product management. They'd never worked with PMs, saw them as overhead, and weren't especially technical, so I had to explain the value of product discipline with zero jargon.",
       ],
       decisions: [
-        { label: "Slow Rollout (Safety)", speed: 30, risk: 15, isChosen: false, color: "#FF6B35" },
-        { label: "Aggressive Change (Risk)", speed: 90, risk: 80, isChosen: false, color: "#FFD700" },
-        { label: "Gradual Institutionalization (our choice)", speed: 70, risk: 35, isChosen: true, color: "#FF0080" },
+        { label: "Slow Rollout (Safety)", speed: 30, risk: 15, isChosen: false, color: "#E7684A" },
+        { label: "Aggressive Change (Risk)", speed: 90, risk: 80, isChosen: false, color: "#E0A45C" },
+        { label: "Gradual Institutionalization (our choice)", speed: 70, risk: 35, isChosen: true, color: "#6E86D6" },
       ],
     },
     {
@@ -45,10 +45,10 @@ export const upshift: CaseStudy = {
       insight:
         "You don't win skeptics with a framework. You win them by tying one feature to one number they already care about.",
       initiatives: [
-        { label: "Product & Design Team Build", effort: 60, impact: 90, timeToValue: 60, color: "#FF0080" },
-        { label: "AI Retention Features", effort: 75, impact: 85, timeToValue: 45, color: "#00FFFF" },
-        { label: "Prioritization Framework", effort: 40, impact: 80, timeToValue: 15, color: "#FFD700" },
-        { label: "Cross-functional Rituals", effort: 35, impact: 75, timeToValue: 10, color: "#FF6B35" },
+        { label: "Product & Design Team Build", effort: 60, impact: 90, timeToValue: 60, color: "#6E86D6" },
+        { label: "AI Retention Features", effort: 75, impact: 85, timeToValue: 45, color: "#CB7BC7" },
+        { label: "Prioritization Framework", effort: 40, impact: 80, timeToValue: 15, color: "#E0A45C" },
+        { label: "Cross-functional Rituals", effort: 35, impact: 75, timeToValue: 10, color: "#E7684A" },
       ],
     },
     {
@@ -60,10 +60,10 @@ export const upshift: CaseStudy = {
         "And the mindset shifted. The CEO went from 'PM is overhead' to putting Product on the board agenda. That change mattered more than any single metric for the next phase of scaling.",
       ],
       metrics: [
-        { label: "Monthly Churn", before: 8.0, after: 4.0, unit: "%", color: "#FF0080" },
-        { label: "Lead Conversion", before: 8.2, after: 9.2, unit: "%", color: "#00FFFF" },
-        { label: "Engineering Efficiency", before: 70, after: 80, unit: "% allocated", color: "#FFD700" },
-        { label: "NPS Score", before: 32, after: 50, unit: "pts", color: "#FF6B35" },
+        { label: "Monthly Churn", before: 8.0, after: 4.0, unit: "%", color: "#6E86D6" },
+        { label: "Lead Conversion", before: 8.2, after: 9.2, unit: "%", color: "#CB7BC7" },
+        { label: "Engineering Efficiency", before: 70, after: 80, unit: "% allocated", color: "#E0A45C" },
+        { label: "NPS Score", before: 32, after: 50, unit: "pts", color: "#E7684A" },
       ],
     },
     {

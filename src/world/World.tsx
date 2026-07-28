@@ -9,10 +9,11 @@ import SurfController from "./SurfController";
 import SurfSpots from "./SurfSpots";
 import type { SurfSpot } from "./surf-spots";
 import { Water, IndieIsland, Ripples, LightShaft, SunDisc } from "./Ocean";
+import { T } from "../theme";
 
-// Horizon color the fog fades islands into — matches the bottom of the CSS dusk
-// gradient behind the (transparent) canvas so the world melts into the sky.
-const HORIZON = "#164e5a";
+// Horizon color the fog fades islands into — the logo-derived dusk haze, matching
+// the CSS sky gradient behind the (transparent) canvas so the world melts into it.
+const HORIZON = T.fog;
 
 interface Props {
   activeIndex: number;
@@ -32,7 +33,7 @@ interface Props {
  */
 export default function World({ activeIndex, entered, surfing, onOpen, onNearSpot, frameloop = "always" }: Props) {
   const cubes = useMemo(() => buildWorld(PUBLISHED_PROJECTS), []);
-  const accent = PUBLISHED_PROJECTS[activeIndex]?.accent ?? "#FF0080";
+  const accent = PUBLISHED_PROJECTS[activeIndex]?.accent ?? "#6E86D6";
   const [dpr, setDpr] = useState(1.5);
 
   return (
@@ -55,8 +56,8 @@ export default function World({ activeIndex, entered, surfing, onOpen, onNearSpo
       {/* Tropical-dusk lighting: teal sky bounce + a warm low sun. PBR intensities
           (r3f v9 / three r155+) — ambient + hemisphere carry base visibility. */}
       <ambientLight intensity={1.15} />
-      <hemisphereLight args={["#bfe6e0", "#0a1a1e", 1.5]} />
-      <directionalLight position={[-14, 8, 8]} intensity={2.4} color="#ffcfa0" />
+      <hemisphereLight args={[T.skyBounce, T.ground, 1.5]} />
+      <directionalLight position={[-14, 8, 8]} intensity={2.4} color={T.sunLight} />
 
       {/* A few faint stars in the upper dusk sky. */}
       <Stars radius={120} depth={40} count={700} factor={3} saturation={0} fade speed={0.6} />

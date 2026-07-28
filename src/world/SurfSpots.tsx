@@ -315,9 +315,9 @@ function Bondi() {
       <Slab pos={[0, 0.6, -7]} size={[22, 1.2, 7]} mat={M.sand} />
       <Slab pos={[-10, 0.6, -4]} size={[7, 1.2, 6]} mat={M.sand} rot={[0, 0.5, 0]} />
       <Slab pos={[10, 0.6, -4]} size={[7, 1.2, 6]} mat={M.sand} rot={[0, -0.5, 0]} />
-      <Cabana pos={[-4, 1.2, -6]} color="#FF0080" />
-      <Cabana pos={[0, 1.2, -7]} color="#00CFFF" />
-      <Cabana pos={[4, 1.2, -6]} color="#FFD700" />
+      <Cabana pos={[-4, 1.2, -6]} color="#6E86D6" />
+      <Cabana pos={[0, 1.2, -7]} color="#6E86D6" />
+      <Cabana pos={[4, 1.2, -6]} color="#E0A45C" />
       {/* gentle rolling wave */}
       <group position={[0, 0, 3]}>
         <Barrel spotId="bondi" width={22} radius={4} mat={M.waveGentle} phase={0.9} />
