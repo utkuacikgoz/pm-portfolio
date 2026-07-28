@@ -75,16 +75,29 @@ function buildCoins(): Coin[] {
   return coins;
 }
 
-export const COINS: Coin[] = buildCoins();
+// 42 coins (the answer to everything), sampled EVENLY across the built trail so
+// every leg of the loop carries some. A head slice (`.slice(0, 42)`) looked
+// equivalent but starved the tail: the last waypoint segment ended up with zero
+// coins, so the ride home paid nothing.
+const COIN_GOAL = 42;
+function spread(raw: Coin[]): Coin[] {
+  if (raw.length <= COIN_GOAL) return raw;
+  const out: Coin[] = [];
+  for (let i = 0; i < COIN_GOAL; i++) {
+    out.push(raw[Math.round((i * (raw.length - 1)) / (COIN_GOAL - 1))]);
+  }
+  return out;
+}
+
+export const COINS: Coin[] = spread(buildCoins());
 export const COIN_TOTAL = COINS.length;
 export const COIN_Y = WATER_Y + 1.4;
 
 // Collected coins live here (module state) so the controller (collection) and the
-// visuals (hide) share it without routing per-frame data through React.
+// visuals (hide) share it without routing per-frame data through React. Module
+// scope is deliberately the session: it survives leaving and re-entering surf
+// mode (so the run cannot be farmed) and resets on page load.
 export const collectedCoins = new Set<number>();
-export function resetJourney() {
-  collectedCoins.clear();
-}
 
 export interface Checkpoint {
   id: number;
