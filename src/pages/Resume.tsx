@@ -18,7 +18,7 @@ const INDIE = INDIE_PROJECTS;
 export default function Resume() {
   const { read } = useProgress();
   return (
-    <div style={{ minHeight: "100vh", padding: "64px 24px 96px", maxWidth: 800, margin: "0 auto" }}>
+    <div className="page-in" style={{ minHeight: "100vh", padding: "64px 24px 96px", maxWidth: 800, margin: "0 auto" }}>
       <Link
         to="/"
         style={{

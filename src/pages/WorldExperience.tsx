@@ -14,7 +14,7 @@ import StoryCaption from "../ui/StoryCaption";
 import AvatarSelect from "../ui/AvatarSelect";
 import { readAvatar } from "../ui/avatars";
 import type { SurfSpot } from "../world/surf-spots";
-import { sfx, armAudio, startSurfMusic, stopSurfMusic } from "../audio/sfx";
+import { sfx, enableSound, startSurfMusic, stopSurfMusic } from "../audio/sfx";
 import { useKeySequence, KONAMI, HIRE } from "../ui/hooks/useKeySequence";
 import { markEggId } from "../state/progress";
 import FlatMap from "./FlatMap";
@@ -40,10 +40,12 @@ export default function WorldExperience() {
   // The legendary break the surfer is nearest to (or null in open water) — driven
   // by SurfController, surfaced as a small DOM HUD label while surfing.
   const [nearSpot, setNearSpot] = useState<SurfSpot | null>(null);
-  // Playful "who's looking?" gate, shown once before the experience (skipped on
-  // deep links). Fun label only — surfaces as a small badge, no story branching.
+  // Playful "who's looking?" gate. Shown AFTER the hero (once you choose to
+  // enter), not as the first screen. Fun label only — no story branching.
   const [avatar, setAvatar] = useState<string | null>(() => readAvatar());
-  const needAvatar = avatar === null && openIndex < 0;
+  const [choosingAvatar, setChoosingAvatar] = useState(false);
+  // Park the render loop while the tab is backgrounded (no idle GPU/CPU heat).
+  const [visible, setVisible] = useState(true);
   const opener = useRef<HTMLElement | null>(null);
   const prevActive = useRef(active);
   const suppressTravel = useRef(false);
@@ -63,8 +65,12 @@ export default function WorldExperience() {
     useCallback(() => markEggId("hire"), [])
   );
 
-  // Sound is on by default; start the waterfall on the first user gesture.
-  useEffect(() => armAudio(), []);
+  // Track tab visibility → drives the Canvas frameloop (parked when hidden).
+  useEffect(() => {
+    const onVis = () => setVisible(!document.hidden);
+    document.addEventListener("visibilitychange", onVis);
+    return () => document.removeEventListener("visibilitychange", onVis);
+  }, []);
 
   // Free surf mode: hop on the board and roam the ocean; Esc comes back.
   const enterSurf = useCallback(() => {
@@ -89,13 +95,33 @@ export default function WorldExperience() {
     return () => stopSurfMusic();
   }, [surfing]);
 
-  // Begin: punctuate the camera dive with a quick accent wash, then enter.
+  // Dive the camera into the world with a quick accent wash.
   const beginJourney = useCallback(() => {
     sfx.play("enter");
     setEntered(true);
     setFlashing(true);
     setTimeout(() => setFlashing(false), 420);
   }, []);
+
+  // Enter from the hero: sound turns on ONLY down the "with sound" path. First-
+  // time visitors pick a character next; returning ones dive straight in.
+  const onEnter = useCallback(
+    (withSound: boolean) => {
+      if (withSound) enableSound();
+      if (avatar === null) setChoosingAvatar(true);
+      else beginJourney();
+    },
+    [avatar, beginJourney]
+  );
+
+  const onPickAvatar = useCallback(
+    (id: string) => {
+      setAvatar(id);
+      setChoosingAvatar(false);
+      beginJourney();
+    },
+    [beginJourney]
+  );
 
   // Whoosh when travelling between islands — but not when a click opened one
   // (that gets its own "open" sound) and not on the initial mount.
@@ -184,24 +210,34 @@ export default function WorldExperience() {
         Skip to resume
       </Link>
       <EscapeHatch />
-      <SoundToggle />
+      {/* Sound only exists inside the world (off by default, chosen at entry). */}
+      {entered && <SoundToggle />}
       <EggToast />
       <WorldNav projects={projects} active={active} onFocus={setActive} onOpen={open} />
 
-      {mode === "world" ? (
+      {/* Static-until-enter: the heavy WebGL world (and three.js) mounts only once
+          you enter (or deep-link a project). The bare landing stays pure DOM. */}
+      {mode === "world" && (entered || panelOpen) ? (
         <ErrorBoundary fallback={<FlatMap projects={projects} onOpen={open} />}>
           <Suspense fallback={<WorldLoading />}>
-            <World activeIndex={active} entered={entered} surfing={surfing} onOpen={open} onNearSpot={setNearSpot} />
+            <World
+              activeIndex={active}
+              entered={entered}
+              surfing={surfing}
+              onOpen={open}
+              onNearSpot={setNearSpot}
+              frameloop={visible ? "always" : "never"}
+            />
           </Suspense>
         </ErrorBoundary>
-      ) : (
+      ) : mode === "flat" ? (
         <FlatMap projects={projects} onOpen={open} />
-      )}
+      ) : null}
 
-      {needAvatar && <AvatarSelect onPick={setAvatar} />}
+      {mode === "world" && choosingAvatar && !entered && <AvatarSelect onPick={onPickAvatar} />}
 
-      {mode === "world" && !entered && !panelOpen && !needAvatar && (
-        <HeroIntro onBegin={beginJourney} />
+      {mode === "world" && !entered && !panelOpen && !choosingAvatar && (
+        <HeroIntro onBegin={onEnter} />
       )}
 
       {flashing && (

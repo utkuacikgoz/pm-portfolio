@@ -20,6 +20,9 @@ interface Props {
   surfing: boolean;
   onOpen: (i: number) => void;
   onNearSpot?: (spot: SurfSpot | null) => void;
+  // "never" parks the render loop (hidden tab) so a backgrounded world does no
+  // GPU/CPU work; "always" runs it while the world is active + visible.
+  frameloop?: "always" | "never";
 }
 
 /**
@@ -27,7 +30,7 @@ interface Props {
  * across every island lives in a single <Instances> (one draw call, per-instance
  * color) — no per-cube draw calls. Lazy-loaded so three.js only ships here.
  */
-export default function World({ activeIndex, entered, surfing, onOpen, onNearSpot }: Props) {
+export default function World({ activeIndex, entered, surfing, onOpen, onNearSpot, frameloop = "always" }: Props) {
   const cubes = useMemo(() => buildWorld(PUBLISHED_PROJECTS), []);
   const accent = PUBLISHED_PROJECTS[activeIndex]?.accent ?? "#FF0080";
   const [dpr, setDpr] = useState(1.5);
@@ -35,6 +38,7 @@ export default function World({ activeIndex, entered, surfing, onOpen, onNearSpo
   return (
     <Canvas
       dpr={dpr}
+      frameloop={frameloop}
       // Let r3f drop internal resolution while the camera moves, then snap back
       // to crisp when it settles — keeps orbit/travel smooth on weaker GPUs.
       performance={{ min: 0.5 }}
