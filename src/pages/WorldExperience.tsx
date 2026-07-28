@@ -338,7 +338,7 @@ export default function WorldExperience() {
               pointerEvents: "none",
             }}
           >
-            🏄 WASD or arrows to surf · Esc to come back
+            🏄 WASD or arrows to surf · move mouse to look · Esc to come back
           </div>
           {nearSpot && <SpotLabel key={nearSpot.id} spot={nearSpot} />}
           <button
