@@ -4,6 +4,7 @@ import * as THREE from "three";
 import { SPACING, EMP_COUNT, INDIE_INDEX, WATER_Y, islandX, islandBaseZ } from "./geometry";
 import { markEgg } from "../state/progress";
 import { usePrefersReducedMotion } from "../ui/hooks/useReducedMotion";
+import Surfer from "./Surfer";
 
 interface Props {
   activeIndex: number;
@@ -155,17 +156,12 @@ export default function CameraRig({ activeIndex, accent, entered, surfing }: Pro
           gl.domElement.style.cursor = "grab";
         }}
       >
-        <mesh>
-          <boxGeometry args={[0.9, 0.18, 3.4]} />
-          <meshStandardMaterial color="#ffce54" flatShading />
-        </mesh>
-        <mesh position={[0, 0.75, -0.2]}>
-          <boxGeometry args={[0.5, 1.1, 0.5]} />
-          <meshStandardMaterial color="#FF0080" flatShading />
-        </mesh>
-        <mesh position={[0, 1.5, -0.2]}>
-          <boxGeometry args={[0.42, 0.42, 0.42]} />
-          <meshStandardMaterial color="#f0c19c" flatShading />
+        <Surfer />
+        {/* Invisible hitbox so the group still catches the egg click (the Surfer
+            meshes opt out of raycast). */}
+        <mesh position={[0, 0.8, 0]}>
+          <boxGeometry args={[1.4, 2, 3.6]} />
+          <meshBasicMaterial transparent opacity={0} depthWrite={false} />
         </mesh>
       </group>
     </>

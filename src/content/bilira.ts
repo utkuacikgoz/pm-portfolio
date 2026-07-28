@@ -3,7 +3,7 @@ import type { CaseStudy } from "./types";
 export const bilira: CaseStudy = {
   id: "bilira",
   title: "BiLira, Technical Product Management",
-  sentimentScores: [15, 28, 45, 82, 95], // Problem → Constraints → Approach → Results → Learnings
+  sentimentScores: [15, 28, 45, 60, 82, 95], // Problem, Constraints, Approach, Stablecoin & DeFi, Results, Learnings
   beats: [
     {
       id: "problem",
@@ -32,6 +32,17 @@ export const bilira: CaseStudy = {
       ],
       insight:
         "Automate the 90% that's obvious; spend your humans on the 10% that's ambiguous. The machine buys the time, the people catch what the machine can't.",
+    },
+    {
+      id: "defi",
+      label: "Stablecoin & DeFi",
+      body: [
+        "I was Senior PM for TRYB, BiLira's Turkish Lira stablecoin, and I owned its onchain surface: mint and redeem infrastructure, exchange integrations, DeFi vault partnerships, and institutional onboarding. TRYB stayed fully backed by reserves and redeemable one to one, live for mint and redeem across six chains: Ethereum, Avalanche, Solana, Polygon, BNB Smart Chain and Base.",
+        "On the DeFi side I opened up liquidity and distribution: DEX liquidity on Curve, institutional liquidity with B2C2, curated yield vaults with Piku Finance and Morini Capital, and onboarding work with Circle (Arc live, StableFX in discussion). Onchain supply sat around $10M with roughly $2M to $3M in monthly onchain volume.",
+        "The vaults were the point. Morini curated delta neutral strategies on Turkish Lira exposure: USD/TRY arbitrage, a BIST basis trade, and a leveraged TRY carry trade, running native strategy APYs of 8.71%, 19.30% and 45.31%. Combined TRY vault TVL reached $21.85M ($3.51M, $5.24M and $13.10M across the three) inside a $30.02M Piku platform. It held because the guardrails were real: Fireblocks MPC custody under regulated HSM procedures, independent reserve verification at a 100.14% collateral ratio checked every 15 minutes, and zkTLS NAV proofs via vlayer for vault transparency.",
+      ],
+      insight:
+        "A stablecoin is only as useful as the places you can put it to work, so the vaults were the product, not a feature.",
     },
     {
       id: "results",
