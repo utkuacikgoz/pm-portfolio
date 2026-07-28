@@ -8,7 +8,7 @@ import Emblems from "./Emblems";
 import SurfController from "./SurfController";
 import SurfSpots from "./SurfSpots";
 import type { SurfSpot } from "./surf-spots";
-import { Water, IndieIsland, Ripples, LightShaft, SunDisc } from "./Ocean";
+import { Water, IndieIsland, Ripples, LightShaft, SunDisc, DistantMountains } from "./Ocean";
 import { T } from "../theme";
 
 // Horizon color the fog fades islands into — the logo-derived dusk haze, matching
@@ -57,11 +57,13 @@ export default function World({ activeIndex, entered, surfing, onOpen, onNearSpo
           (r3f v9 / three r155+) — ambient + hemisphere carry base visibility. */}
       <ambientLight intensity={1.15} />
       <hemisphereLight args={[T.skyBounce, T.ground, 1.5]} />
-      <directionalLight position={[-14, 8, 8]} intensity={2.4} color={T.sunLight} />
+      {/* Warm key light angled in from the sun's end of the rail (+X, low). */}
+      <directionalLight position={[70, 14, -24]} intensity={2.4} color={T.sunLight} />
 
       {/* A few faint stars in the upper dusk sky. */}
       <Stars radius={120} depth={40} count={700} factor={3} saturation={0} fade speed={0.6} />
       <SunDisc />
+      <DistantMountains />
 
       <PerformanceMonitor
         onDecline={() => setDpr(1)}
