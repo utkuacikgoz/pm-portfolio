@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { INDIE_PROJECTS, PUBLISHED_PROJECTS } from "../projects/projects";
@@ -65,20 +65,54 @@ export function Water() {
   );
 }
 
-// A low, warm sun sinking into the sea behind the islands — anchors the
-// tropical-dusk mood. Pure emissive disc + a soft additive glow halo.
+// A low, warm sun on the horizon at the TIMELINE'S END — placed past the last
+// (newest) island in +X, so travelling forward through the work heads into the
+// sun (the closer you get to now, the closer to the sun — an Icarus read). Pure
+// emissive disc + soft glow; fog is disabled on it so it stays vivid at the edge.
 export function SunDisc() {
-  const cx = ((EMP_COUNT - 1) / 2) * SPACING;
+  const endX = islandPosition(INDIE_INDEX)[0] + 90; // beyond the indie island
   return (
-    <group position={[cx, 4, -120]}>
+    <group position={[endX, 12, -55]}>
       <mesh raycast={() => null}>
-        <circleGeometry args={[14, 48]} />
-        <meshBasicMaterial color="#F0A06A" />
+        <circleGeometry args={[22, 48]} />
+        <meshBasicMaterial color="#F0A06A" fog={false} />
       </mesh>
       <mesh position={[0, 0, -1]} raycast={() => null}>
-        <circleGeometry args={[26, 48]} />
-        <meshBasicMaterial color="#E7684A" transparent opacity={0.28} blending={THREE.AdditiveBlending} />
+        <circleGeometry args={[42, 48]} />
+        <meshBasicMaterial color="#E7684A" transparent opacity={0.3} blending={THREE.AdditiveBlending} fog={false} />
       </mesh>
+    </group>
+  );
+}
+
+// A ring of faint low-poly peaks near the fog's edge, so the horizon reads as
+// distant misty mountains rather than a bare cutoff line. Colored just under the
+// fog haze so they dissolve into it. Static (cheap; reduced-motion friendly).
+export function DistantMountains() {
+  const cx = ((EMP_COUNT - 1) / 2) * SPACING;
+  const peaks = useMemo(() => {
+    const arr: { x: number; z: number; h: number; w: number }[] = [];
+    const N = 18;
+    for (let i = 0; i < N; i++) {
+      const a = (i / N) * Math.PI * 2 + (Math.random() - 0.5) * 0.18;
+      const r = 108 + Math.random() * 34;
+      arr.push({
+        x: cx + Math.cos(a) * r,
+        z: Math.sin(a) * r,
+        h: 24 + Math.random() * 30,
+        w: 26 + Math.random() * 22,
+      });
+    }
+    return arr;
+  }, [cx]);
+  return (
+    <group>
+      {peaks.map((p, i) => (
+        <mesh key={i} position={[p.x, WATER_Y + p.h / 2 - 2, p.z]} raycast={() => null}>
+          <coneGeometry args={[p.w, p.h, 4]} />
+          <meshStandardMaterial color="#3a3550" flatShading />
+        </mesh>
+      ))}
     </group>
   );
 }

@@ -14,13 +14,17 @@ export default function StoryCaption({ project }: { project: Project }) {
       aria-live="polite"
       style={{
         position: "fixed",
-        top: "17%",
+        top: "11%",
         left: "50%",
         transform: "translateX(-50%)",
         zIndex: 38,
-        width: "min(680px, calc(100vw - 40px))",
+        width: "min(860px, calc(100vw - 24px))",
+        padding: "26px 32px 46px",
         textAlign: "center",
         pointerEvents: "none",
+        // Half-elliptic scrim so the title/description never vanish into the world.
+        background:
+          "radial-gradient(120% 130% at 50% 0%, rgba(6,7,12,0.74) 0%, rgba(6,7,12,0.44) 42%, transparent 72%)",
         animation: reduced ? undefined : "captionIn .7s cubic-bezier(.22,.61,.36,1) both",
       }}
     >

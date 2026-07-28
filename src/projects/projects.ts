@@ -18,8 +18,9 @@ export interface Project {
   tagline: string;
   kind: "employment" | "indie";
   published: boolean;
-  accent: string; // neon accent (matches brand palette)
+  accent: string; // logo-family accent (see src/theme.ts)
   structure: StructureType;
+  icon?: string; // emoji floating over the island (conveys the domain at a glance)
   content?: CaseStudy; // omitted for indie glimpses (no full case study yet)
   glimpse?: string; // teaser line shown on the glimpse panel for indie products
   story?: string; // one-line narrative caption for the fly-through tour
@@ -37,6 +38,7 @@ export const PROJECTS: Project[] = [
     published: true,
     accent: "#6E86D6",
     structure: "tower",
+    icon: "₿",
     content: C.bilira,
     story: "The one where I made compliance fast enough to actually ship.",
   },
@@ -48,6 +50,7 @@ export const PROJECTS: Project[] = [
     published: true,
     accent: "#E0A45C",
     structure: "market",
+    icon: "🛒",
     content: C.mestores,
     story: "The one where a broken store started printing money again.",
   },
@@ -59,6 +62,7 @@ export const PROJECTS: Project[] = [
     published: true,
     accent: "#E7684A",
     structure: "campus",
+    icon: "🏥",
     content: C.apollo,
     story: "The one where healthcare ops stopped bleeding two million a year.",
   },
@@ -70,6 +74,7 @@ export const PROJECTS: Project[] = [
     published: true,
     accent: "#CB7BC7",
     structure: "arcade",
+    icon: "🎮",
     content: C.la3eb,
     story: "The one where a gaming app found six times its players in ten weeks.",
   },
@@ -81,6 +86,7 @@ export const PROJECTS: Project[] = [
     published: true,
     accent: "#3FA46A",
     structure: "bridge",
+    icon: "📈",
     content: C.upshift,
     story: "The one where I built the entire product function from scratch.",
   },
