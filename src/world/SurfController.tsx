@@ -5,6 +5,8 @@ import { WATER_Y } from "./geometry";
 import Surfer from "./Surfer";
 import { nearestTakeoff, type SurfSpot } from "./surf-spots";
 import { surfSignal } from "./surf-signal";
+import { SURF_COLLIDERS, COINS, CHECKPOINTS, collectedCoins, resetJourney, type Checkpoint } from "./surf-journey";
+import { sfx } from "../audio/sfx";
 
 // Free-roam surf mode: hop on a board and steer around the ocean with WASD /
 // arrow keys, third-person chase camera. Active only while `active` is true;
@@ -27,9 +29,13 @@ const MAX_PITCH = 0.45;
 export default function SurfController({
   active,
   onNearSpot,
+  onCoin,
+  onCheckpoint,
 }: {
   active: boolean;
   onNearSpot?: (spot: SurfSpot | null) => void;
+  onCoin?: (count: number) => void;
+  onCheckpoint?: (cp: Checkpoint | null) => void;
 }) {
   const board = useRef<THREE.Group>(null);
   const rider = useRef<THREE.Group>(null);
@@ -59,6 +65,14 @@ export default function SurfController({
   onNearSpotRef.current = onNearSpot;
   const shownSpotId = useRef<string | null>(null);
   const revealUntil = useRef(0);
+  // Journey: coin count + the checkpoint currently shown.
+  const onCoinRef = useRef(onCoin);
+  onCoinRef.current = onCoin;
+  const onCheckpointRef = useRef(onCheckpoint);
+  onCheckpointRef.current = onCheckpoint;
+  const coinCount = useRef(0);
+  const shownCpId = useRef<number | null>(null);
+  const cpRevealUntil = useRef(0);
 
   useEffect(() => {
     if (!active) return;
@@ -109,13 +123,20 @@ export default function SurfController({
     cursor.current.y = 0;
     lookYaw.current = 0;
     lookPitch.current = 0;
+    // Fresh run: coins reappear, count resets.
+    resetJourney();
+    coinCount.current = 0;
+    shownCpId.current = null;
+    onCoinRef.current?.(0);
   }, [active, camera]);
 
-  // Leaving surf mode clears the HUD label + spray signal.
+  // Leaving surf mode clears the HUD labels + spray signal.
   useEffect(() => {
     if (!active) {
       shownSpotId.current = null;
       onNearSpotRef.current?.(null);
+      shownCpId.current = null;
+      onCheckpointRef.current?.(null);
       surfSignal.rideSpotId = null;
     }
   }, [active]);
@@ -180,6 +201,54 @@ export default function SurfController({
     // Keep the surfer within a generous ocean bound.
     pos.current.x = THREE.MathUtils.clamp(pos.current.x, -60, 220);
     pos.current.z = THREE.MathUtils.clamp(pos.current.z, -130, 130);
+
+    // ── Collision: push the board out of solid landmasses ────────────────────
+    for (const col of SURF_COLLIDERS) {
+      const dx = pos.current.x - col.x;
+      const dz = pos.current.z - col.z;
+      const dist = Math.hypot(dx, dz);
+      const min = col.r + 1.6; // + board half-width
+      if (dist < min && dist > 1e-4) {
+        const push = (min - dist) / dist;
+        pos.current.x += dx * push;
+        pos.current.z += dz * push;
+        speed.current *= 0.35; // bleed speed on impact
+      }
+    }
+
+    // ── Coins: collect on proximity ──────────────────────────────────────────
+    for (const coin of COINS) {
+      if (collectedCoins.has(coin.id)) continue;
+      const dx = pos.current.x - coin.x;
+      const dz = pos.current.z - coin.z;
+      if (dx * dx + dz * dz < 9) {
+        collectedCoins.add(coin.id);
+        coinCount.current += 1;
+        onCoinRef.current?.(coinCount.current);
+        sfx.play("coin");
+      }
+    }
+
+    // ── Checkpoints: show a "how I work" card while inside, hold after ───────
+    let cp: Checkpoint | null = null;
+    for (const c of CHECKPOINTS) {
+      const dx = pos.current.x - c.x;
+      const dz = pos.current.z - c.z;
+      if (dx * dx + dz * dz < 196) {
+        cp = c;
+        break;
+      }
+    }
+    if (cp) {
+      if (cp.id !== shownCpId.current) {
+        shownCpId.current = cp.id;
+        onCheckpointRef.current?.(cp);
+      }
+      cpRevealUntil.current = t + 4;
+    } else if (shownCpId.current !== null && t > cpRevealUntil.current) {
+      shownCpId.current = null;
+      onCheckpointRef.current?.(null);
+    }
 
     const bobY = WATER_Y + 0.3 + Math.sin(t * 2.4) * 0.14;
     board.current.position.set(pos.current.x, bobY + airY.current, pos.current.z);

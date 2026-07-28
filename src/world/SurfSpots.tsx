@@ -5,6 +5,8 @@ import { WATER_Y } from "./geometry";
 import { usePrefersReducedMotion } from "../ui/hooks/useReducedMotion";
 import { SURF_SPOTS } from "./surf-spots";
 import { surfSignal } from "./surf-signal";
+import { COINS, COIN_Y, collectedCoins, CHECKPOINTS } from "./surf-journey";
+import { T } from "../theme";
 
 // Low-poly landmarks for the legendary breaks the free-surf ocean tours. Mounted
 // by World only while surfing, so the on-rails diorama stays clean and the extra
@@ -45,6 +47,8 @@ const M = {
 const LAMP = new THREE.MeshStandardMaterial({ color: "#ffe08a", emissive: "#ffe08a", emissiveIntensity: 1.3 });
 const SPRAY_GEO = new THREE.SphereGeometry(0.34, 6, 6);
 const SPRAY_N = 10;
+const COIN_GEO = new THREE.CylinderGeometry(0.9, 0.9, 0.16, 16);
+const COIN_MAT = new THREE.MeshStandardMaterial({ color: T.sand, emissive: T.sand, emissiveIntensity: 0.5, metalness: 0.6, roughness: 0.3 });
 
 type Vec3 = [number, number, number];
 
@@ -343,6 +347,60 @@ function Landmark({ id }: { id: string }) {
   }
 }
 
+// Collectible coins strewn along the journey; spin, and hide once collected
+// (SurfController owns collection via the shared collectedCoins set).
+function Coins() {
+  const ref = useRef<THREE.Group>(null);
+  const reduced = usePrefersReducedMotion();
+  useFrame((s) => {
+    if (!ref.current) return;
+    const t = s.clock.elapsedTime;
+    const kids = ref.current.children;
+    for (let i = 0; i < kids.length; i++) {
+      const g = kids[i];
+      g.visible = !collectedCoins.has(COINS[i].id);
+      if (!reduced) g.rotation.y = t * 2.5 + i * 0.7;
+    }
+  });
+  return (
+    <group ref={ref}>
+      {COINS.map((c) => (
+        <group key={c.id} position={[c.x, COIN_Y, c.z]}>
+          <mesh rotation={[Math.PI / 2, 0, 0]} geometry={COIN_GEO} material={COIN_MAT} raycast={() => null} />
+        </group>
+      ))}
+    </group>
+  );
+}
+
+// Checkpoint gates: two glowing posts + a beam, marking a "how I work" card.
+function Checkpoints() {
+  return (
+    <group>
+      {CHECKPOINTS.map((c) => (
+        <group key={c.id} position={[c.x, WATER_Y, c.z]}>
+          <mesh position={[-3.6, 4, 0]} raycast={() => null}>
+            <cylinderGeometry args={[0.4, 0.4, 8, 8]} />
+            <meshStandardMaterial color={c.accent} emissive={c.accent} emissiveIntensity={0.7} flatShading />
+          </mesh>
+          <mesh position={[3.6, 4, 0]} raycast={() => null}>
+            <cylinderGeometry args={[0.4, 0.4, 8, 8]} />
+            <meshStandardMaterial color={c.accent} emissive={c.accent} emissiveIntensity={0.7} flatShading />
+          </mesh>
+          <mesh position={[0, 8, 0]} raycast={() => null}>
+            <boxGeometry args={[7.6, 0.5, 0.5]} />
+            <meshStandardMaterial color={c.accent} emissive={c.accent} emissiveIntensity={0.6} flatShading />
+          </mesh>
+          <mesh position={[0, 14, 0]} raycast={() => null}>
+            <cylinderGeometry args={[0.5, 0.5, 28, 6]} />
+            <meshBasicMaterial color={c.accent} transparent opacity={0.09} depthWrite={false} blending={THREE.AdditiveBlending} />
+          </mesh>
+        </group>
+      ))}
+    </group>
+  );
+}
+
 export default function SurfSpots() {
   return (
     <>
@@ -354,6 +412,8 @@ export default function SurfSpots() {
           <Landmark id={s.id} />
         </group>
       ))}
+      <Coins />
+      <Checkpoints />
     </>
   );
 }

@@ -14,6 +14,8 @@ import StoryCaption from "../ui/StoryCaption";
 import AvatarSelect from "../ui/AvatarSelect";
 import { readAvatar } from "../ui/avatars";
 import type { SurfSpot } from "../world/surf-spots";
+import type { Checkpoint } from "../world/surf-journey";
+import { COIN_TOTAL } from "../world/surf-journey";
 import { T } from "../theme";
 import { sfx, startSurfMusic, stopSurfMusic } from "../audio/sfx";
 import { useKeySequence, KONAMI, HIRE } from "../ui/hooks/useKeySequence";
@@ -41,6 +43,9 @@ export default function WorldExperience() {
   // The legendary break the surfer is nearest to (or null in open water) — driven
   // by SurfController, surfaced as a small DOM HUD label while surfing.
   const [nearSpot, setNearSpot] = useState<SurfSpot | null>(null);
+  // Journey HUD: coins collected + the checkpoint card currently showing.
+  const [coins, setCoins] = useState(0);
+  const [checkpoint, setCheckpoint] = useState<Checkpoint | null>(null);
   // Playful "who's looking?" gate. Shown AFTER the hero (once you choose to
   // enter), not as the first screen. Fun label only — no story branching.
   const [avatar, setAvatar] = useState<string | null>(() => readAvatar());
@@ -76,6 +81,8 @@ export default function WorldExperience() {
   // Free surf mode: hop on the board and roam the ocean; Esc comes back.
   const enterSurf = useCallback(() => {
     setSurfing(true);
+    setCoins(0);
+    setCheckpoint(null);
     sfx.play("enter");
   }, []);
   const exitSurf = useCallback(() => setSurfing(false), []);
@@ -222,6 +229,8 @@ export default function WorldExperience() {
               surfing={surfing}
               onOpen={open}
               onNearSpot={setNearSpot}
+              onCoin={setCoins}
+              onCheckpoint={setCheckpoint}
               frameloop={visible ? "always" : "never"}
             />
           </Suspense>
@@ -372,7 +381,27 @@ export default function WorldExperience() {
           >
             🏄 WASD or arrows to surf · move mouse to look · Esc to come back
           </div>
+          <div
+            style={{
+              position: "fixed",
+              top: 20,
+              left: 24,
+              zIndex: 45,
+              padding: "9px 15px",
+              background: "rgba(7,8,12,0.85)",
+              border: `2px solid ${T.sand}`,
+              color: T.sand,
+              fontSize: 14,
+              fontWeight: 800,
+              letterSpacing: 0.3,
+              backdropFilter: "blur(6px)",
+              pointerEvents: "none",
+            }}
+          >
+            🪙 {coins} / {COIN_TOTAL}
+          </div>
           {nearSpot && <SpotLabel key={nearSpot.id} spot={nearSpot} />}
+          {checkpoint && <CheckpointCard key={checkpoint.id} cp={checkpoint} />}
           <button
             onClick={exitSurf}
             style={{
@@ -451,6 +480,33 @@ function SpotLabel({ spot }: { spot: SurfSpot }) {
         {spot.name}
       </div>
       <div style={{ fontSize: 12.5, color: "#c4c8d2", lineHeight: 1.5 }}>{spot.blurb}</div>
+    </div>
+  );
+}
+
+// A checkpoint you surf through pops a short "how I work" principle.
+function CheckpointCard({ cp }: { cp: Checkpoint }) {
+  return (
+    <div
+      style={{
+        position: "fixed",
+        bottom: "calc(92px + env(safe-area-inset-bottom))",
+        left: "50%",
+        transform: "translateX(-50%)",
+        zIndex: 45,
+        width: "min(520px, calc(100vw - 32px))",
+        padding: "16px 22px",
+        background: "rgba(7,8,12,0.9)",
+        border: `2px solid ${cp.accent}`,
+        borderRadius: 12,
+        textAlign: "center",
+        backdropFilter: "blur(6px)",
+        pointerEvents: "none",
+        animation: "captionIn .45s ease",
+      }}
+    >
+      <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: 2, color: cp.accent, marginBottom: 7 }}>🧭 HOW I WORK</div>
+      <div style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.5, color: "#eceef2" }}>{cp.text}</div>
     </div>
   );
 }
