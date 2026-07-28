@@ -84,6 +84,10 @@ export default function SurfController({
   onStaminaRef.current = onStamina;
   const stamina = useRef(1);
   const staminaBucket = useRef(10);
+  // Paddle-in intro (prone -> pop-up) + smoothed turning + eased rider pitch.
+  const introStart = useRef(-1);
+  const turnVel = useRef(0);
+  const riderPitch = useRef(0);
   // Trick-on-jump: air spin + a board-local spray burst.
   const jumpStart = useRef(0);
   const spinning = useRef(false);
@@ -159,6 +163,9 @@ export default function SurfController({
     spinning.current = false;
     spraySpawn.current = -99;
     onStaminaRef.current?.(1);
+    introStart.current = -1; // begin the paddle-in intro on the first frame
+    turnVel.current = 0;
+    riderPitch.current = -1.5; // start prone
   }, [active, camera]);
 
   // Leaving surf mode clears the HUD labels + spray signal.
@@ -182,24 +189,37 @@ export default function SurfController({
 
     // Carve harder the faster you go, and get a little drive out of a hard turn
     // (a cutback pump) — it's a surfer's world.
+    // ── Paddle-in intro: prone paddle, then pop up. Controls locked until then.
+    if (introStart.current < 0) introStart.current = t;
+    const introP = Math.min(1, (t - introStart.current) / 1.6); // 0..1
+    const intro = introP < 1;
+    const fwdIn = intro ? 0.5 : fwd; // auto-glide while paddling
+    const turnIn = intro ? 0 : turn;
+    // Rider pose: prone while paddling, pops up over the last third.
+    const pitchTarget = introP < 0.66 ? -1.5 : THREE.MathUtils.lerp(-1.5, 0, (introP - 0.66) / 0.34);
+    riderPitch.current += (pitchTarget - riderPitch.current) * (1 - Math.exp(-9 * d));
+
+    // Smoothed turning: ease angular velocity toward the target rate (no twitch).
     const bite = 0.6 + Math.min(1, Math.abs(speed.current) / 24) * 0.8;
-    heading.current += turn * 2.6 * bite * d;
+    const targetTurnRate = turnIn * 2.6 * bite;
+    turnVel.current += (targetTurnRate - turnVel.current) * (1 - Math.exp(-8 * d));
+    heading.current += turnVel.current * d;
     // Boost / pump: hold Shift for a burst while stamina lasts; recharge otherwise.
-    const boosting = !!k["shift"] && stamina.current > 0.02 && fwd > 0;
+    const boosting = !intro && !!k["shift"] && stamina.current > 0.02 && fwd > 0;
     stamina.current = THREE.MathUtils.clamp(stamina.current + (boosting ? -0.5 : 0.28) * d, 0, 1);
     const sb = Math.round(stamina.current * 10);
     if (sb !== staminaBucket.current) {
       staminaBucket.current = sb;
       onStaminaRef.current?.(stamina.current);
     }
-    let targetSpeed = fwd * 24 * (boosting ? 1.6 : 1); // units / sec
-    if (turn !== 0 && speed.current > 6) targetSpeed += Math.min(8, speed.current * 0.35);
+    let targetSpeed = fwdIn * (intro ? 9 : 24) * (boosting ? 1.6 : 1); // units / sec
+    if (turnIn !== 0 && speed.current > 6) targetSpeed += Math.min(8, speed.current * 0.35);
     speed.current += (targetSpeed - speed.current) * (1 - Math.exp(-3 * d));
 
     // ── Jump (ollie) + trick spin ────────────────────────────────────────────
     if (jumpQueued.current) {
       jumpQueued.current = false;
-      if (airY.current <= 0.05 && !riding.current) {
+      if (!intro && airY.current <= 0.05 && !riding.current) {
         vy.current = JUMP_V;
         jumpStart.current = t; // wind up a spin
         spinning.current = true;
@@ -331,12 +351,16 @@ export default function SurfController({
     board.current.rotation.set(
       Math.sin(t * 1.4) * 0.05 - airPitch,
       heading.current + trickSpin,
-      turn * -0.26 + Math.sin(t * 1.8) * 0.04 + carveRoll
+      turnIn * -0.26 + Math.sin(t * 1.8) * 0.04 + carveRoll
     );
-    // Rider leans hard into the carve (independent of the board roll).
-    const leanTarget = turn * 0.45 + carveRoll * 0.6;
+    // Rider leans into the carve (z) and is pitched prone during the paddle-in (x).
+    // A gentle paddle sway while prone sells the stroke.
+    const leanTarget = turnIn * 0.45 + carveRoll * 0.6 + (intro ? Math.sin(t * 6) * 0.12 : 0);
     lean.current += (leanTarget - lean.current) * (1 - Math.exp(-6 * d));
-    if (rider.current) rider.current.rotation.z = lean.current;
+    if (rider.current) {
+      rider.current.rotation.z = lean.current;
+      rider.current.rotation.x = riderPitch.current;
+    }
 
     // Trick spray burst (takeoff + landing): little foam flecks off the board.
     if (trickSpray.current) {
@@ -379,7 +403,7 @@ export default function SurfController({
       pos.current.z
     );
     camera.lookAt(lookTarget.current);
-    if (Math.abs(speed.current) > 0.5 || turn !== 0 || airY.current > 0.05) regress();
+    if (Math.abs(speed.current) > 0.5 || turnIn !== 0 || intro || airY.current > 0.05) regress();
 
     // Fade the reward label a few seconds after the ride.
     if (shownSpotId.current && t > revealUntil.current) {
