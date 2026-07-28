@@ -5,7 +5,7 @@ import { WATER_Y, seaHeight } from "./geometry";
 import Surfer from "./Surfer";
 import { nearestTakeoff, type SurfSpot } from "./surf-spots";
 import { surfSignal } from "./surf-signal";
-import { SURF_COLLIDERS, COINS, CHECKPOINTS, collectedCoins, resetJourney, type Checkpoint } from "./surf-journey";
+import { SURF_COLLIDERS, COINS, COIN_TOTAL, CHECKPOINTS, collectedCoins, type Checkpoint } from "./surf-journey";
 import { sfx } from "../audio/sfx";
 
 // Free-roam surf mode: hop on a board and steer around the ocean with WASD /
@@ -35,13 +35,13 @@ export default function SurfController({
   onNearSpot,
   onCoin,
   onCheckpoint,
-  onStamina,
+  onComplete,
 }: {
   active: boolean;
   onNearSpot?: (spot: SurfSpot | null) => void;
   onCoin?: (count: number) => void;
   onCheckpoint?: (cp: Checkpoint | null) => void;
-  onStamina?: (v: number) => void;
+  onComplete?: () => void;
 }) {
   const board = useRef<THREE.Group>(null);
   const rider = useRef<THREE.Group>(null);
@@ -79,11 +79,11 @@ export default function SurfController({
   const coinCount = useRef(0);
   const shownCpId = useRef<number | null>(null);
   const cpRevealUntil = useRef(0);
-  // Boost/pump stamina (0..1) + throttled reporting to the HUD.
-  const onStaminaRef = useRef(onStamina);
-  onStaminaRef.current = onStamina;
+  const onCompleteRef = useRef(onComplete);
+  onCompleteRef.current = onComplete;
+  // Boost/pump stamina (0..1). Internal only — it gates the boost, and there is
+  // no longer a meter in the HUD reading it.
   const stamina = useRef(1);
-  const staminaBucket = useRef(10);
   // Paddle-in intro (prone -> pop-up) + smoothed turning + eased rider pitch.
   const introStart = useRef(-1);
   const turnVel = useRef(0);
@@ -153,19 +153,18 @@ export default function SurfController({
     cursor.current.y = 0;
     lookYaw.current = 0;
     lookPitch.current = 0;
-    // Fresh run: coins reappear, count resets.
-    resetJourney();
-    coinCount.current = 0;
+    // One run per visit: coins do NOT reappear when you re-enter surf mode, so
+    // the loop can actually be finished instead of farmed. Resume the count from
+    // what's already collected; a page refresh starts a fresh run.
+    coinCount.current = collectedCoins.size;
     shownCpId.current = null;
-    onCoinRef.current?.(0);
+    onCoinRef.current?.(coinCount.current);
     stamina.current = 1;
-    staminaBucket.current = 10;
     spinning.current = false;
     spraySpawn.current = -99;
-    onStaminaRef.current?.(1);
     introStart.current = -1; // begin the paddle-in intro on the first frame
     turnVel.current = 0;
-    riderPitch.current = -1.5; // start prone
+    riderPitch.current = 1.5; // start prone (belly down, head toward the nose)
   }, [active, camera]);
 
   // Leaving surf mode clears the HUD labels + spray signal.
@@ -207,11 +206,6 @@ export default function SurfController({
     // Boost / pump: hold Shift for a burst while stamina lasts; recharge otherwise.
     const boosting = !intro && !!k["shift"] && stamina.current > 0.02 && fwd > 0;
     stamina.current = THREE.MathUtils.clamp(stamina.current + (boosting ? -0.5 : 0.28) * d, 0, 1);
-    const sb = Math.round(stamina.current * 10);
-    if (sb !== staminaBucket.current) {
-      staminaBucket.current = sb;
-      onStaminaRef.current?.(stamina.current);
-    }
     let targetSpeed = fwdIn * (intro ? 9 : 24) * (boosting ? 1.6 : 1); // units / sec
     if (turnIn !== 0 && speed.current > 6) targetSpeed += Math.min(8, speed.current * 0.35);
     speed.current += (targetSpeed - speed.current) * (1 - Math.exp(-3 * d));
@@ -318,6 +312,9 @@ export default function SurfController({
         coinCount.current += 1;
         onCoinRef.current?.(coinCount.current);
         sfx.play("coin");
+        // Last coin of the run: hand the moment to the page so it can offer a
+        // reason to stop surfing and start talking.
+        if (coinCount.current >= COIN_TOTAL) onCompleteRef.current?.();
       }
     }
 

@@ -16,6 +16,7 @@ import { readAvatar } from "../ui/avatars";
 import type { SurfSpot } from "../world/surf-spots";
 import type { Checkpoint } from "../world/surf-journey";
 import { COIN_TOTAL } from "../world/surf-journey";
+import { CONTACT } from "../content/contact";
 import { T } from "../theme";
 import { sfx, startSurfMusic, stopSurfMusic } from "../audio/sfx";
 import { useKeySequence, KONAMI, HIRE } from "../ui/hooks/useKeySequence";
@@ -46,7 +47,16 @@ export default function WorldExperience() {
   // Journey HUD: coins collected + the checkpoint card currently showing.
   const [coins, setCoins] = useState(0);
   const [checkpoint, setCheckpoint] = useState<Checkpoint | null>(null);
-  const [stamina, setStamina] = useState(1); // boost/pump reserve, 0..1
+  // Finishing the run (all 42) earns the one real ask of the whole experience.
+  // Once per visit: re-entering surf must not re-fire it.
+  const [runComplete, setRunComplete] = useState(false);
+  const completedOnce = useRef(false);
+  const onRunComplete = useCallback(() => {
+    if (completedOnce.current) return;
+    completedOnce.current = true;
+    setRunComplete(true);
+    sfx.play("egg"); // the existing reward sound
+  }, []);
   // The surf controls hint auto-hides (it eats real estate) after a few seconds
   // or the moment you start moving.
   const [surfHint, setSurfHint] = useState(true);
@@ -85,9 +95,9 @@ export default function WorldExperience() {
   // Free surf mode: hop on the board and roam the ocean; Esc comes back.
   const enterSurf = useCallback(() => {
     setSurfing(true);
-    setCoins(0);
+    // Coins are NOT reset here: the run persists for the visit, and the
+    // controller reports the resumed count on entry.
     setCheckpoint(null);
-    setStamina(1);
     setSurfHint(true);
     sfx.play("enter");
   }, []);
@@ -225,9 +235,10 @@ export default function WorldExperience() {
     <div
       style={{
         minHeight: "100vh",
-        // Tropical-dusk sky: shows through the transparent WebGL canvas as the
-        // backdrop. Deep indigo up top → teal → warm turquoise at the horizon.
-        background: T.sky,
+        // Sky behind the transparent WebGL canvas. Dusk on the rail; a bright,
+        // cheerful daytime while free-surfing (cross-fades with the 3D lighting).
+        background: surfing ? T.daySky : T.sky,
+        transition: "background 1s ease",
       }}
     >
       <Link to="/resume" className="skip-link">
@@ -252,7 +263,7 @@ export default function WorldExperience() {
               onNearSpot={setNearSpot}
               onCoin={setCoins}
               onCheckpoint={setCheckpoint}
-              onStamina={setStamina}
+              onComplete={onRunComplete}
               frameloop={visible ? "always" : "never"}
             />
           </Suspense>
@@ -424,24 +435,18 @@ export default function WorldExperience() {
           >
             🪙 {coins} / {COIN_TOTAL}
           </div>
-          {/* Boost meter (Shift to pump). */}
-          <div
-            style={{
-              position: "fixed",
-              top: 62,
-              left: 24,
-              zIndex: 45,
-              width: 132,
-              height: 6,
-              background: "rgba(7,8,12,0.7)",
-              border: "1px solid #23283a",
-              pointerEvents: "none",
-            }}
-          >
-            <div style={{ width: `${Math.round(stamina * 100)}%`, height: "100%", background: T.peri, transition: "width .12s linear" }} />
-          </div>
           {nearSpot && <SpotLabel key={nearSpot.id} spot={nearSpot} />}
           {checkpoint && <CheckpointCard key={checkpoint.id} cp={checkpoint} />}
+          {runComplete && (
+            <RunCompleteCard
+              onCases={() => {
+                setRunComplete(false);
+                exitSurf();
+                open(0); // strongest-signal case study first (BiLira)
+              }}
+              onDismiss={() => setRunComplete(false)}
+            />
+          )}
           <button
             onClick={exitSurf}
             style={{
@@ -554,6 +559,90 @@ function CheckpointCard({ cp }: { cp: Checkpoint }) {
     >
       <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: 2, color: cp.accent, marginBottom: 7 }}>🧭 HOW I WORK</div>
       <div style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.5, color: "#eceef2" }}>{cp.text}</div>
+    </div>
+  );
+}
+
+// Finishing the run is the one moment we know the visitor is engaged and out of
+// things to collect. Rather than let them surf in circles forever, hand them the
+// two things that actually matter: a call, or the work. Non-blocking on purpose,
+// the ocean keeps running behind it and the card can be dismissed.
+function RunCompleteCard({ onCases, onDismiss }: { onCases: () => void; onDismiss: () => void }) {
+  return (
+    <div
+      role="dialog"
+      aria-label="Run complete"
+      style={{
+        position: "fixed",
+        left: "50%",
+        bottom: "calc(28px + env(safe-area-inset-bottom))",
+        transform: "translateX(-50%)",
+        zIndex: 46,
+        width: "min(560px, calc(100vw - 32px))",
+        background: "rgba(7,8,12,0.92)",
+        border: "2px solid #3FA46A",
+        borderRadius: 12,
+        backdropFilter: "blur(8px)",
+        padding: "20px 22px",
+        textAlign: "center",
+        animation: "captionIn .45s ease",
+      }}
+    >
+      <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.5, color: "#3FA46A", marginBottom: 8 }}>
+        🏄 RUN COMPLETE · {COIN_TOTAL} / {COIN_TOTAL}
+      </div>
+      <div style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.55, color: "#eceef2", marginBottom: 16 }}>
+        You surfed the whole loop and picked up every last coin. That is the same stubbornness I
+        bring to shipping product. Want the real version?
+      </div>
+      <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
+        <a
+          href={CONTACT.calendar}
+          target="_blank"
+          rel="noopener"
+          style={{
+            padding: "12px 22px",
+            background: "#3FA46A",
+            color: "#07080c",
+            fontSize: 14,
+            fontWeight: 800,
+            borderRadius: 8,
+            textDecoration: "none",
+          }}
+        >
+          Book a 20 min call →
+        </a>
+        <button
+          onClick={onCases}
+          style={{
+            padding: "12px 22px",
+            background: "transparent",
+            border: "2px solid #3FA46A",
+            color: "#3FA46A",
+            fontSize: 14,
+            fontWeight: 800,
+            borderRadius: 8,
+            cursor: "pointer",
+          }}
+        >
+          See the case studies
+        </button>
+      </div>
+      <button
+        onClick={onDismiss}
+        aria-label="Dismiss"
+        style={{
+          marginTop: 12,
+          background: "none",
+          border: "none",
+          color: "#8b90a0",
+          fontSize: 12,
+          fontWeight: 700,
+          cursor: "pointer",
+        }}
+      >
+        Keep surfing
+      </button>
     </div>
   );
 }

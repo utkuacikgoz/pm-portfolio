@@ -1,12 +1,11 @@
 import { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { WATER_Y } from "./geometry";
+import { WATER_Y, rng } from "./geometry";
 import { usePrefersReducedMotion } from "../ui/hooks/useReducedMotion";
 import { SURF_SPOTS } from "./surf-spots";
 import { surfSignal } from "./surf-signal";
 import { COINS, COIN_Y, collectedCoins, CHECKPOINTS } from "./surf-journey";
-import { T } from "../theme";
 
 // Low-poly landmarks for the legendary breaks the free-surf ocean tours. Mounted
 // by World only while surfing, so the on-rails diorama stays clean and the extra
@@ -47,8 +46,28 @@ const M = {
 const LAMP = new THREE.MeshStandardMaterial({ color: "#ffe08a", emissive: "#ffe08a", emissiveIntensity: 1.3 });
 const SPRAY_GEO = new THREE.SphereGeometry(0.34, 6, 6);
 const SPRAY_N = 10;
-const COIN_GEO = new THREE.CylinderGeometry(0.9, 0.9, 0.16, 16);
-const COIN_MAT = new THREE.MeshStandardMaterial({ color: T.sand, emissive: T.sand, emissiveIntensity: 0.5, metalness: 0.6, roughness: 0.3 });
+// Bitcoin coins: a gold-orange disc with a white ₿ stamped on each face.
+const COIN_GEO = new THREE.CylinderGeometry(0.9, 0.9, 0.18, 20);
+const COIN_MAT = new THREE.MeshStandardMaterial({ color: "#f2a900", emissive: "#f2a900", emissiveIntensity: 0.35, metalness: 0.7, roughness: 0.35 });
+function btcTexture(): THREE.Texture {
+  const size = 128;
+  const c = document.createElement("canvas");
+  c.width = c.height = size;
+  const ctx = c.getContext("2d");
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = 4;
+  if (!ctx) return tex;
+  ctx.font = `bold ${Math.floor(size * 0.8)}px "Helvetica Neue", Arial, sans-serif`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillStyle = "#ffffff";
+  ctx.fillText("₿", size / 2, size * 0.55);
+  return tex;
+}
+const BTC_TEX = btcTexture();
+const BTC_GEO = new THREE.PlaneGeometry(1.2, 1.2);
+const BTC_MAT = new THREE.MeshBasicMaterial({ map: BTC_TEX, transparent: true });
 
 type Vec3 = [number, number, number];
 
@@ -57,6 +76,74 @@ function Slab({ pos, size, mat, rot }: { pos: Vec3; size: Vec3; mat: THREE.Mater
     <mesh position={pos} rotation={rot} material={mat} raycast={() => null}>
       <boxGeometry args={size} />
     </mesh>
+  );
+}
+
+// ── Sculpted landforms ───────────────────────────────────────────────────────
+// Natural masses (cliffs, reefs, sand banks) are warped icosahedra rather than
+// stacked boxes: organic silhouette, still hard-faceted so they belong to the
+// same flat-shaded world as the voxel career islands.
+//
+// The warp is a pure function of vertex POSITION (phases seeded per rock), not a
+// per-vertex random. IcosahedronGeometry is non-indexed, so neighbouring faces
+// repeat the same corner vertex — offsetting by position keeps those duplicates
+// in lockstep and avoids cracks along every shared edge.
+const rockCache = new Map<string, THREE.BufferGeometry>();
+function rockGeo(seed: number, detail = 0, ampScale = 1): THREE.BufferGeometry {
+  const key = `${seed}:${detail}:${ampScale}`;
+  const hit = rockCache.get(key);
+  if (hit) return hit;
+  const r = rng(seed);
+  const a = 0.6 + r() * 2.4;
+  const b = 0.6 + r() * 2.4;
+  const c = 0.6 + r() * 2.4;
+  const pa = r() * Math.PI * 2;
+  const pb = r() * Math.PI * 2;
+  const pc = r() * Math.PI * 2;
+  const amp = (0.16 + r() * 0.14) * ampScale;
+  const g = new THREE.IcosahedronGeometry(1, detail);
+  const p = g.attributes.position as THREE.BufferAttribute;
+  const v = new THREE.Vector3();
+  for (let i = 0; i < p.count; i++) {
+    v.fromBufferAttribute(p, i);
+    const n = Math.sin(v.x * a + pa) * Math.cos(v.y * b + pb) * Math.sin(v.z * c + pc);
+    const k = 1 + n * amp;
+    p.setXYZ(i, v.x * k, v.y * k, v.z * k);
+  }
+  p.needsUpdate = true;
+  g.computeVertexNormals();
+  rockCache.set(key, g);
+  return g;
+}
+
+// `size` is full extents, matching Slab, so a Slab can be swapped for a Rock
+// without moving anything — the unit geometry has radius 1, hence the halving.
+function Rock({
+  pos,
+  size,
+  mat,
+  rot,
+  seed,
+  detail = 0,
+  ampScale = 1,
+}: {
+  pos: Vec3;
+  size: Vec3;
+  mat: THREE.Material;
+  rot?: Vec3;
+  seed: number;
+  detail?: number;
+  ampScale?: number;
+}) {
+  return (
+    <mesh
+      position={pos}
+      rotation={rot}
+      scale={[size[0] / 2, size[1] / 2, size[2] / 2]}
+      geometry={rockGeo(seed, detail, ampScale)}
+      material={mat}
+      raycast={() => null}
+    />
   );
 }
 
@@ -247,9 +334,9 @@ function Nazare() {
   return (
     <group>
       <Shore radius={16} />
-      <Slab pos={[-10, 4, -2]} size={[10, 9, 10]} mat={M.rockMid} />
-      <Slab pos={[-10, 9, -2]} size={[7, 3, 7]} mat={M.rockLight} />
-      <Slab pos={[-13, 2, 3]} size={[5, 5, 6]} mat={M.rockDark} />
+      <Rock pos={[-10, 4, -2]} size={[10, 9, 10]} mat={M.rockMid} seed={11} detail={1} />
+      <Rock pos={[-10, 9, -2]} size={[7, 3, 7]} mat={M.rockLight} seed={12} />
+      <Rock pos={[-13, 2, 3]} size={[5, 5, 6]} mat={M.rockDark} seed={13} rot={[0, 0.6, 0]} />
       <group position={[-10, 11, -2]}>
         <Slab pos={[0, 2, 0]} size={[1.4, 4, 1.4]} mat={M.towerWhite} />
         <Slab pos={[0, 4.2, 0]} size={[1.8, 0.6, 1.8]} mat={M.towerRed} />
@@ -270,8 +357,8 @@ function Pipeline() {
   return (
     <group>
       <Shore radius={14} />
-      <Slab pos={[0, 0.2, 6]} size={[16, 0.6, 8]} mat={M.reef} />
-      <Slab pos={[-8, 0.8, 8]} size={[8, 1.4, 6]} mat={M.sand} />
+      <Rock pos={[0, 0.2, 6]} size={[16, 0.6, 8]} mat={M.reef} seed={21} ampScale={0.6} />
+      <Rock pos={[-8, 0.8, 8]} size={[8, 1.4, 6]} mat={M.sand} seed={22} ampScale={0.5} />
       <Palm pos={[-9.5, 1.4, 8]} phase={0} />
       <Palm pos={[-6.5, 1.4, 9.5]} phase={1.3} />
       {/* the barrel */}
@@ -286,8 +373,8 @@ function Teahupoo() {
   return (
     <group>
       <Shore radius={12} />
-      <Slab pos={[9, 0.4, 5]} size={[6, 1.2, 5]} mat={M.reefDark} />
-      <Slab pos={[10, 1.4, 6]} size={[3, 2.4, 3]} mat={M.rockDark} />
+      <Rock pos={[9, 0.4, 5]} size={[6, 1.2, 5]} mat={M.reefDark} seed={31} ampScale={0.6} />
+      <Rock pos={[10, 1.4, 6]} size={[3, 2.4, 3]} mat={M.rockDark} seed={32} />
       {/* the heavy slab */}
       <group position={[0, 0, -4]}>
         <Barrel spotId="teahupoo" width={22} radius={6.5} mat={M.waveSlab} phase={0.6} />
@@ -300,9 +387,9 @@ function Impossibles() {
   return (
     <group>
       <Shore radius={15} />
-      <Slab pos={[-11, 3.5, 0]} size={[8, 7, 9]} mat={M.rockLight} />
-      <Slab pos={[-7, 1.5, 4]} size={[5, 4, 6]} mat={M.rockMid} />
-      <Slab pos={[-14, 5.5, -3]} size={[5, 5, 5]} mat={M.rockMid} />
+      <Rock pos={[-11, 3.5, 0]} size={[8, 7, 9]} mat={M.rockLight} seed={41} detail={1} />
+      <Rock pos={[-7, 1.5, 4]} size={[5, 4, 6]} mat={M.rockMid} seed={42} rot={[0, -0.4, 0]} />
+      <Rock pos={[-14, 5.5, -3]} size={[5, 5, 5]} mat={M.rockMid} seed={43} />
       <Palm pos={[-9, 7.5, 1]} phase={0.7} />
       {/* the long peeling wall */}
       <group position={[4, 0, 3]} rotation={[0, -0.6, 0]}>
@@ -316,9 +403,9 @@ function Bondi() {
   return (
     <group>
       <Shore radius={16} />
-      <Slab pos={[0, 0.6, -7]} size={[22, 1.2, 7]} mat={M.sand} />
-      <Slab pos={[-10, 0.6, -4]} size={[7, 1.2, 6]} mat={M.sand} rot={[0, 0.5, 0]} />
-      <Slab pos={[10, 0.6, -4]} size={[7, 1.2, 6]} mat={M.sand} rot={[0, -0.5, 0]} />
+      <Rock pos={[0, 0.6, -7]} size={[22, 1.2, 7]} mat={M.sand} seed={51} ampScale={0.4} />
+      <Rock pos={[-10, 0.6, -4]} size={[7, 1.2, 6]} mat={M.sand} seed={52} rot={[0, 0.5, 0]} ampScale={0.4} />
+      <Rock pos={[10, 0.6, -4]} size={[7, 1.2, 6]} mat={M.sand} seed={53} rot={[0, -0.5, 0]} ampScale={0.4} />
       <Cabana pos={[-4, 1.2, -6]} color="#6E86D6" />
       <Cabana pos={[0, 1.2, -7]} color="#6E86D6" />
       <Cabana pos={[4, 1.2, -6]} color="#E0A45C" />
@@ -367,6 +454,8 @@ function Coins() {
       {COINS.map((c) => (
         <group key={c.id} position={[c.x, COIN_Y, c.z]}>
           <mesh rotation={[Math.PI / 2, 0, 0]} geometry={COIN_GEO} material={COIN_MAT} raycast={() => null} />
+          <mesh position={[0, 0, 0.11]} geometry={BTC_GEO} material={BTC_MAT} raycast={() => null} />
+          <mesh position={[0, 0, -0.11]} rotation={[0, Math.PI, 0]} geometry={BTC_GEO} material={BTC_MAT} raycast={() => null} />
         </group>
       ))}
     </group>
