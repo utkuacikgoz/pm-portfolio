@@ -119,6 +119,13 @@ h1, h2, h3, h4, h5, h6 {
   100% { opacity: 0; filter: hue-rotate(320deg); }
 }
 
+/* Route transition: the resume page fades + slides up as it mounts. */
+@keyframes pageIn {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.page-in { animation: pageIn .42s cubic-bezier(.22,.61,.36,1) both; }
+
 /* Respect reduced-motion: the app already falls back to the flat map, but kill
    any residual transitions/animations for users who ask for it. */
 @media (prefers-reduced-motion: reduce) {

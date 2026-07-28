@@ -1,10 +1,11 @@
 import { useSyncExternalStore } from "react";
 
 // Tiny Web-Audio sound layer: all SFX + the ambient waterfall are synthesized
-// (oscillators / filtered noise) so there is ZERO asset payload. Sound is ON by
-// default; state persists in localStorage and there's an always-visible toggle.
-// The AudioContext can't start without a user gesture, so `armAudio()` starts
-// the waterfall on the first pointer/key event — no autoplay-policy fights.
+// (oscillators / filtered noise) so there is ZERO asset payload. Sound is OFF by
+// default — it starts only when the visitor chooses "enter the universe" (with
+// sound), via enableSound(). State persists in localStorage and there's an
+// always-visible toggle. The AudioContext is also suspended while the tab is
+// hidden so a backgrounded tab makes no sound and does no audio work.
 
 const KEY = "pmworld.sound.v1";
 const EVENT = "pmworld:sound";
@@ -20,9 +21,9 @@ let master: GainNode | null = null;
 let ambient: Ambient | null = null;
 
 function readMuted(): boolean {
-  if (typeof localStorage === "undefined") return false;
+  if (typeof localStorage === "undefined") return true;
   const v = localStorage.getItem(KEY);
-  return v === null ? false : v !== "on"; // default ON (unmuted)
+  return v === null ? true : v !== "on"; // default OFF (muted) until the visitor opts in
 }
 
 let muted = readMuted();
@@ -236,24 +237,33 @@ export function stopSurfMusic() {
   music?.stop();
 }
 
-// Sound is on by default, but a browser won't let the AudioContext start until
-// the user interacts. Start the waterfall on the first gesture (if not muted).
-let armed = false;
-export function armAudio() {
-  if (armed || typeof window === "undefined") return;
-  armed = true;
-  const kick = () => {
-    window.removeEventListener("pointerdown", kick);
-    window.removeEventListener("keydown", kick);
-    window.removeEventListener("touchstart", kick);
-    if (!muted) {
-      ensureCtx();
-      startAmbient();
-    }
-  };
-  window.addEventListener("pointerdown", kick);
-  window.addEventListener("keydown", kick);
-  window.addEventListener("touchstart", kick);
+// Suspend the AudioContext while the tab is hidden (no background sound / work),
+// resume when it comes back — unless muted. Bound once, on first enableSound.
+let visibilityBound = false;
+function bindVisibility() {
+  if (visibilityBound || typeof document === "undefined") return;
+  visibilityBound = true;
+  document.addEventListener("visibilitychange", () => {
+    if (!ctx) return;
+    if (document.hidden) void ctx.suspend();
+    else if (!muted) void ctx.resume();
+  });
+}
+
+// Called when the visitor enters the world WITH sound: unmute, persist the
+// choice, start the ambient bed, and bind the tab-visibility guard. Entering
+// muted simply never calls this, so nothing plays.
+export function enableSound() {
+  muted = false;
+  try {
+    localStorage.setItem(KEY, "on");
+  } catch {
+    // private mode / quota — sound is non-essential, fail silently.
+  }
+  ensureCtx();
+  startAmbient();
+  bindVisibility();
+  notify();
 }
 
 export const sfx = {
