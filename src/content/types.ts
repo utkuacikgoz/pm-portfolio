@@ -3,13 +3,6 @@
 // slip through. Beats use the canonical 5-step arc; per-beat viz fields are
 // optional and rendered when present.
 
-export type BeatId =
-  | "problem"
-  | "constraints"
-  | "approach"
-  | "results"
-  | "learnings";
-
 export interface Metric {
   label: string;
   before: number;

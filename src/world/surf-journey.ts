@@ -5,7 +5,7 @@ import { T } from "../theme";
 // coins to collect, and checkpoints that surface how Utku works. Positions are in
 // the surf world (bounds x[-60,220], z[-130,130]) and are tunable.
 
-export interface Collider {
+interface Collider {
   x: number;
   z: number;
   r: number;
@@ -38,7 +38,7 @@ function islandColliders(): Collider[] {
 // ghosting through cliffs/reefs/beaches and the career monuments.
 export const SURF_COLLIDERS: Collider[] = [...BREAK_COLLIDERS, ...islandColliders()];
 
-export interface Coin {
+interface Coin {
   id: number;
   x: number;
   z: number;

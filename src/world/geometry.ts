@@ -24,7 +24,7 @@ export function seaHeight(wx: number, wz: number, t: number): number {
   );
 }
 
-export interface Cube {
+interface Cube {
   position: [number, number, number];
   scale: [number, number, number];
   color: string;

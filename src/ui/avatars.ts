@@ -6,12 +6,12 @@ import stalkerPortrait from "./avatars/stalker.svg";
 
 const AVATAR_KEY = "pmworld.avatar";
 
-export interface Stat {
+interface Stat {
   label: string;
   value: number; // 0..10
 }
 
-export interface Avatar {
+interface Avatar {
   id: string;
   portrait: string; // pixel-art SVG (generated offline by scripts/gen-avatars.mjs)
   label: string; // class name
@@ -80,8 +80,4 @@ export function writeAvatar(id: string) {
   } catch {
     // private mode — the gate just won't be remembered; harmless.
   }
-}
-
-export function avatarById(id: string | null): Avatar | undefined {
-  return AVATARS.find((a) => a.id === id);
 }

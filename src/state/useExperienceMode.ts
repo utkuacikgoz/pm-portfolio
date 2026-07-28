@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-export type ExperienceMode = "world" | "flat";
+type ExperienceMode = "world" | "flat";
 
 const SMALL_SCREEN = "(max-width: 768px)";
 const REDUCED_MOTION = "(prefers-reduced-motion: reduce)";
