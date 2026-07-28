@@ -53,7 +53,8 @@ where each island = a project, with the narrative + metrics in a fast DOM overla
 - **Entrance flow:** static hero first (no Canvas mounted) → Enter → character-select →
   camera dive. The 3D world (and three.js) mounts only on entering or a deep link.
 - **Character-select gate** (`AvatarSelect`: HR / Hiring Manager / Stalker) is **fun
-  label only** — cosmetic badge, no copy/story branching.
+  label only** — cosmetic, no copy/story branching. Persisted in **sessionStorage**
+  (not localStorage), so it re-asks every fresh launch; a same-tab refresh keeps the pick.
 - **No dashes in visible copy, ever** (house style): no em/en dashes or minus signs in
   any rendered string; plain-Latin ("resume", not the accented spelling). Comments are
   exempt. Metric ranges read as "X to Y".
