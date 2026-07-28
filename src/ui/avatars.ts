@@ -66,9 +66,11 @@ export const AVATARS: Avatar[] = [
   },
 ];
 
+// Session memory (NOT localStorage): the pick survives a same-tab refresh but a
+// fresh launch re-asks, so character-select shows every relaunch.
 export function readAvatar(): string | null {
   try {
-    return localStorage.getItem(AVATAR_KEY);
+    return sessionStorage.getItem(AVATAR_KEY);
   } catch {
     return null;
   }
@@ -76,7 +78,7 @@ export function readAvatar(): string | null {
 
 export function writeAvatar(id: string) {
   try {
-    localStorage.setItem(AVATAR_KEY, id);
+    sessionStorage.setItem(AVATAR_KEY, id);
   } catch {
     // private mode — the gate just won't be remembered; harmless.
   }
