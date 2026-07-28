@@ -46,6 +46,7 @@ export default function WorldExperience() {
   // Journey HUD: coins collected + the checkpoint card currently showing.
   const [coins, setCoins] = useState(0);
   const [checkpoint, setCheckpoint] = useState<Checkpoint | null>(null);
+  const [stamina, setStamina] = useState(1); // boost/pump reserve, 0..1
   // The surf controls hint auto-hides (it eats real estate) after a few seconds
   // or the moment you start moving.
   const [surfHint, setSurfHint] = useState(true);
@@ -86,6 +87,7 @@ export default function WorldExperience() {
     setSurfing(true);
     setCoins(0);
     setCheckpoint(null);
+    setStamina(1);
     setSurfHint(true);
     sfx.play("enter");
   }, []);
@@ -180,7 +182,7 @@ export default function WorldExperience() {
     const t = setTimeout(() => {
       setShowHint(false);
       sessionStorage.setItem("worldHint", "1");
-    }, 6000);
+    }, 5000);
     return () => clearTimeout(t);
   }, [mode, entered, panelOpen]);
 
@@ -250,6 +252,7 @@ export default function WorldExperience() {
               onNearSpot={setNearSpot}
               onCoin={setCoins}
               onCheckpoint={setCheckpoint}
+              onStamina={setStamina}
               frameloop={visible ? "always" : "never"}
             />
           </Suspense>
@@ -294,7 +297,7 @@ export default function WorldExperience() {
         />
       )}
 
-      {showHint && (
+      {showHint && !panelOpen && !surfing && (
         <div
           style={{
             position: "fixed",
@@ -421,6 +424,22 @@ export default function WorldExperience() {
           >
             🪙 {coins} / {COIN_TOTAL}
           </div>
+          {/* Boost meter (Shift to pump). */}
+          <div
+            style={{
+              position: "fixed",
+              top: 62,
+              left: 24,
+              zIndex: 45,
+              width: 132,
+              height: 6,
+              background: "rgba(7,8,12,0.7)",
+              border: "1px solid #23283a",
+              pointerEvents: "none",
+            }}
+          >
+            <div style={{ width: `${Math.round(stamina * 100)}%`, height: "100%", background: T.peri, transition: "width .12s linear" }} />
+          </div>
           {nearSpot && <SpotLabel key={nearSpot.id} spot={nearSpot} />}
           {checkpoint && <CheckpointCard key={checkpoint.id} cp={checkpoint} />}
           <button
@@ -446,7 +465,14 @@ export default function WorldExperience() {
         </>
       )}
 
-      {panelOpen && <ProjectPanel project={projects[openIndex]} onClose={close} />}
+      {panelOpen && (
+        <ProjectPanel
+          project={projects[openIndex]}
+          onClose={close}
+          nextTitle={projects[(openIndex + 1) % projects.length].title}
+          onNext={() => open((openIndex + 1) % projects.length)}
+        />
+      )}
     </div>
   );
 }

@@ -24,6 +24,7 @@ interface Props {
   onNearSpot?: (spot: SurfSpot | null) => void;
   onCoin?: (count: number) => void;
   onCheckpoint?: (cp: Checkpoint | null) => void;
+  onStamina?: (v: number) => void;
   // "never" parks the render loop (hidden tab) so a backgrounded world does no
   // GPU/CPU work; "always" runs it while the world is active + visible.
   frameloop?: "always" | "never";
@@ -34,7 +35,7 @@ interface Props {
  * across every island lives in a single <Instances> (one draw call, per-instance
  * color) — no per-cube draw calls. Lazy-loaded so three.js only ships here.
  */
-export default function World({ activeIndex, entered, surfing, onOpen, onNearSpot, onCoin, onCheckpoint, frameloop = "always" }: Props) {
+export default function World({ activeIndex, entered, surfing, onOpen, onNearSpot, onCoin, onCheckpoint, onStamina, frameloop = "always" }: Props) {
   const cubes = useMemo(() => buildWorld(PUBLISHED_PROJECTS), []);
   const accent = PUBLISHED_PROJECTS[activeIndex]?.accent ?? "#6E86D6";
   const [dpr, setDpr] = useState(1.5);
@@ -89,7 +90,7 @@ export default function World({ activeIndex, entered, surfing, onOpen, onNearSpo
       <Emblems active={activeIndex} onOpen={onOpen} />
       {/* Legendary breaks only exist while surfing → the rail diorama stays clean. */}
       {surfing && <SurfSpots />}
-      <SurfController active={surfing} onNearSpot={onNearSpot} onCoin={onCoin} onCheckpoint={onCheckpoint} />
+      <SurfController active={surfing} onNearSpot={onNearSpot} onCoin={onCoin} onCheckpoint={onCheckpoint} onStamina={onStamina} />
       <CameraRig activeIndex={activeIndex} accent={accent} entered={entered} surfing={surfing} />
     </Canvas>
   );
