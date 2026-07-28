@@ -8,12 +8,58 @@ import { usePrefersReducedMotion } from "../ui/hooks/useReducedMotion";
 // The sea the islands float on, and the separate "what I'm building" island you
 // surf to — indie products as gently bobbing, NON-clickable coming-soon bubbles.
 
+// The sea, now with real swell: a segmented plane displaced in the vertex shader
+// (sum of sines, GPU-cheap, no textures) so the surface heaves and catches the
+// sun instead of sitting dead flat. Normals are recomputed from the height
+// gradient so the warm sun still glints off the moving faces. Frozen (static
+// ripple, no motion) under reduced-motion.
 export function Water() {
+  const uTime = useRef({ value: 0 });
+  const reduced = usePrefersReducedMotion();
+  useFrame((s) => {
+    if (!reduced) uTime.current.value = s.clock.elapsedTime;
+  });
+
+  const onBeforeCompile = (shader: THREE.WebGLProgramParametersWithUniforms) => {
+    shader.uniforms.uTime = uTime.current;
+    shader.vertexShader = shader.vertexShader
+      .replace(
+        "#include <common>",
+        `#include <common>
+        uniform float uTime;
+        float waveH(vec2 p){
+          return sin(p.x*0.06 + uTime*0.8)*0.6
+               + sin(p.y*0.09 - uTime*0.6)*0.4
+               + sin((p.x+p.y)*0.05 + uTime*0.5)*0.3;
+        }`
+      )
+      .replace(
+        "#include <beginnormal_vertex>",
+        `#include <beginnormal_vertex>
+        float eps = 1.0;
+        float hx = waveH(position.xy + vec2(eps,0.0)) - waveH(position.xy - vec2(eps,0.0));
+        float hy = waveH(position.xy + vec2(0.0,eps)) - waveH(position.xy - vec2(0.0,eps));
+        objectNormal = normalize(vec3(-hx, -hy, 2.0*eps));`
+      )
+      .replace(
+        "#include <begin_vertex>",
+        `#include <begin_vertex>
+        transformed.z += waveH(position.xy);`
+      );
+  };
+
   return (
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[60, WATER_Y, 0]} raycast={() => null}>
-      <planeGeometry args={[600, 320]} />
+      <planeGeometry args={[600, 320, 96, 64]} />
       {/* Dusk turquoise, reflective enough to catch the warm sun + neon accents. */}
-      <meshStandardMaterial color="#0c3a44" roughness={0.16} metalness={0.4} transparent opacity={0.96} />
+      <meshStandardMaterial
+        color="#0c3a44"
+        roughness={0.12}
+        metalness={0.5}
+        transparent
+        opacity={0.96}
+        onBeforeCompile={onBeforeCompile}
+      />
     </mesh>
   );
 }
