@@ -1,5 +1,9 @@
 // Character-select data + persistence, kept separate from the component so the
 // component file only exports a component (react-refresh friendly).
+import hrPortrait from "./avatars/hr.svg";
+import managerPortrait from "./avatars/manager.svg";
+import stalkerPortrait from "./avatars/stalker.svg";
+
 const AVATAR_KEY = "pmworld.avatar";
 
 export interface Stat {
@@ -9,11 +13,10 @@ export interface Stat {
 
 export interface Avatar {
   id: string;
-  emoji: string;
-  label: string; // class name (also the in-world badge)
+  portrait: string; // pixel-art SVG (generated offline by scripts/gen-avatars.mjs)
+  label: string; // class name
   title: string; // epithet
   pun: string; // flavor line
-  move: string; // signature move
   accent: string;
   stats: Stat[];
 }
@@ -21,11 +24,10 @@ export interface Avatar {
 export const AVATARS: Avatar[] = [
   {
     id: "hr",
-    emoji: "📋",
+    portrait: hrPortrait,
     label: "HR",
     title: "The Culture Keeper",
     pun: "Here for the culture fit.",
-    move: "Vibe Check",
     accent: "#00FF88",
     stats: [
       { label: "Empathy", value: 9 },
@@ -36,11 +38,10 @@ export const AVATARS: Avatar[] = [
   },
   {
     id: "manager",
-    emoji: "📈",
+    portrait: managerPortrait,
     label: "Hiring Manager",
     title: "The Decision Maker",
     pun: "Show me the outcomes.",
-    move: "Offer or Hard Pass",
     accent: "#FFD700",
     stats: [
       { label: "Outcomes", value: 10 },
@@ -51,11 +52,10 @@ export const AVATARS: Avatar[] = [
   },
   {
     id: "stalker",
-    emoji: "🕵️",
+    portrait: stalkerPortrait,
     label: "Stalker",
     title: "The Deep Diver",
     pun: "I already read your LinkedIn.",
-    move: "Full Background Check",
     accent: "#FF0080",
     stats: [
       { label: "Recon", value: 10 },

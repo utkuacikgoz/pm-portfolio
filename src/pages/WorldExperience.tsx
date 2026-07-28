@@ -12,7 +12,7 @@ import EggToast from "../ui/EggToast";
 import SoundToggle from "../ui/SoundToggle";
 import StoryCaption from "../ui/StoryCaption";
 import AvatarSelect from "../ui/AvatarSelect";
-import { readAvatar, avatarById } from "../ui/avatars";
+import { readAvatar } from "../ui/avatars";
 import { sfx, armAudio } from "../audio/sfx";
 import { useKeySequence, KONAMI, HIRE } from "../ui/hooks/useKeySequence";
 import { markEggId } from "../state/progress";
@@ -40,7 +40,6 @@ export default function WorldExperience() {
   // deep links). Fun label only — surfaces as a small badge, no story branching.
   const [avatar, setAvatar] = useState<string | null>(() => readAvatar());
   const needAvatar = avatar === null && openIndex < 0;
-  const chosenAvatar = avatar ? avatarById(avatar) : undefined;
   const opener = useRef<HTMLElement | null>(null);
   const prevActive = useRef(active);
   const suppressTravel = useRef(false);
@@ -174,31 +173,6 @@ export default function WorldExperience() {
       </Link>
       <EscapeHatch />
       <SoundToggle />
-      {entered && chosenAvatar && (
-        <div
-          style={{
-            position: "fixed",
-            left: 72,
-            bottom: "calc(24px + env(safe-area-inset-bottom))",
-            zIndex: 50,
-            display: "flex",
-            alignItems: "center",
-            gap: 7,
-            padding: "7px 12px",
-            background: "rgba(7,8,12,0.72)",
-            border: `1px solid ${chosenAvatar.accent}55`,
-            borderRadius: 999,
-            fontSize: 12,
-            fontWeight: 700,
-            color: "#c4c8d2",
-            backdropFilter: "blur(6px)",
-            pointerEvents: "none",
-          }}
-        >
-          <span aria-hidden>{chosenAvatar.emoji}</span>
-          <span>{chosenAvatar.label} mode</span>
-        </div>
-      )}
       <EggToast />
       <WorldNav projects={projects} active={active} onFocus={setActive} onOpen={open} />
 
@@ -300,28 +274,32 @@ export default function WorldExperience() {
               backdropFilter: "blur(6px)",
             }}
           >
-            🏄 What I'm building →
-          </button>
-          <button
-            onClick={enterSurf}
-            style={{
-              position: "fixed",
-              bottom: "calc(74px + env(safe-area-inset-bottom))",
-              right: 24,
-              zIndex: 44,
-              padding: "11px 18px",
-              background: "rgba(7,8,12,0.85)",
-              border: "2px solid #00CFFF",
-              color: "#00CFFF",
-              fontSize: 13,
-              fontWeight: 800,
-              cursor: "pointer",
-              backdropFilter: "blur(6px)",
-            }}
-          >
-            🏄 Free surf
+            🚀 What I'm building →
           </button>
         </>
+      )}
+
+      {mode === "world" && entered && !panelOpen && !surfing && (
+        <button
+          onClick={enterSurf}
+          aria-label="Enter free surf mode"
+          style={{
+            position: "fixed",
+            top: 20,
+            left: 24,
+            zIndex: 44,
+            padding: "10px 16px",
+            background: "rgba(7,8,12,0.85)",
+            border: "2px solid #00CFFF",
+            color: "#00CFFF",
+            fontSize: 13,
+            fontWeight: 800,
+            cursor: "pointer",
+            backdropFilter: "blur(6px)",
+          }}
+        >
+          🏄 Free surf
+        </button>
       )}
 
       {mode === "world" && entered && !panelOpen && isIndie && !surfing && (

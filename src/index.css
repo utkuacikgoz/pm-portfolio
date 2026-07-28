@@ -94,6 +94,18 @@ h1, h2, h3, h4, h5, h6 {
   to { transform: scaleX(1); }
 }
 
+/* Arcade "PRESS ENTER" cursor blink. */
+@keyframes blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+/* Faint CRT flicker for the character-select scanline overlay. */
+@keyframes crtFlicker {
+  0%, 100% { opacity: 0.10; }
+  50% { opacity: 0.16; }
+}
+
 /* Story caption: fades + rises + sharpens in as the camera reaches an island. */
 @keyframes captionIn {
   from { opacity: 0; transform: translate(-50%, 10px); filter: blur(5px); }
