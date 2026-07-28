@@ -37,9 +37,20 @@ where each island = a project, with the narrative + metrics in a fast DOM overla
   the goods in <30s. Every feature is judged against that.
 
 ## Locked product decisions (don't relitigate without reason)
-- **On-rails diorama**, NOT a free-roam walkable world.
-- **Stylized low-poly / flat-shaded** (subtle voxel nod), NOT literal Minecraft —
-  protects senior-credibility brand. Neon-on-black palette (see below).
+- **On-rails diorama** is the spine, NOT a free-roam walkable world. Exception: an
+  optional **free surf mode** (`SurfController`) lets you hop on a board and roam the
+  ocean with WASD/arrows; it's a bonus, the rails remain the default path.
+- **Stylized low-poly / flat-shaded** (subtle voxel nod), NOT literal Minecraft.
+- **Palette:** the **entrance (character-select + hero) stays neon-on-black**; the
+  **world itself is tropical dusk** (teal/indigo CSS sky behind a transparent canvas,
+  warm low sun, turquoise water). Neon accents throughout.
+- **Sound is ON by default** (synth waterfall bed + SFX, `armAudio` starts it on the
+  first gesture); persisted mute toggle.
+- **Character-select gate** (`AvatarSelect`: HR / Hiring Manager / Stalker) is **fun
+  label only** — cosmetic badge, no copy/story branching.
+- **No dashes in visible copy, ever** (house style): no em/en dashes or minus signs in
+  any rendered string; plain-Latin ("resume", not the accented spelling). Comments are
+  exempt. Metric ranges read as "X to Y".
 - **Biomes now (visible):** BiLira, Mestores, Apollo, La3eb, Upshift (employment,
   strongest-signal first). **Hidden, ready to flip:** PassATS, Stats XI, Mona — set
   `published: true` in the registry to surface.
@@ -107,7 +118,8 @@ the quantified outcomes are the gold.
 - **Lighting is physically-based** (r3f v9): light intensities are intentionally large
   (point light ~240 with inverse-square decay; ambient/hemisphere carry base visibility).
   Don't "fix" them down to old 0.5–2 values or the scene goes black.
-- Styling: **inline styles**, neon-on-black. Palette: `#FF0080` magenta, `#00FFFF` cyan,
+- Styling: **inline styles**, neon accents (black entrance, tropical-dusk world; see Locked
+  decisions). Palette: `#FF0080` magenta, `#00FFFF` cyan,
   `#FFD700` gold, `#FF6B35` orange, `#00FF88`/`#00FF00` green. Font: Plus Jakarta Sans,
   headings weight 900.
 - `src/global.d.ts` has a permissive JSX intrinsic shim so r3f elements type-check —

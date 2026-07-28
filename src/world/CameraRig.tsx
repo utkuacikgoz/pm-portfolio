@@ -3,11 +3,13 @@ import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { SPACING, EMP_COUNT, INDIE_INDEX, WATER_Y, islandX, islandBaseZ } from "./geometry";
 import { markEgg } from "../state/progress";
+import { usePrefersReducedMotion } from "../ui/hooks/useReducedMotion";
 
 interface Props {
   activeIndex: number;
   accent: string;
   entered: boolean;
+  surfing: boolean;
 }
 
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
@@ -21,8 +23,10 @@ const ORBIT_HEIGHT = 7;
  * last employment island glides across the water gap to the indie island. While
  * over water, a surfboard (with a little rider) rides the surface for personality.
  */
-export default function CameraRig({ activeIndex, accent, entered }: Props) {
+export default function CameraRig({ activeIndex, accent, entered, surfing }: Props) {
   const gl = useThree((s) => s.gl);
+  const regress = useThree((s) => s.performance.regress);
+  const reduced = usePrefersReducedMotion();
   const lightRef = useRef<THREE.PointLight>(null);
   const boardRef = useRef<THREE.Group>(null);
   const progress = useRef(activeIndex);
@@ -53,6 +57,7 @@ export default function CameraRig({ activeIndex, accent, entered }: Props) {
       tilt.current = THREE.MathUtils.clamp(tilt.current + (e.clientY - lastY) * 0.02, -3, 5);
       lastX = e.clientX;
       lastY = e.clientY;
+      regress(); // drop resolution while dragging, restore when it settles
     };
     const up = () => {
       dragging = false;
@@ -62,6 +67,8 @@ export default function CameraRig({ activeIndex, accent, entered }: Props) {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "q" || e.key === "Q") orbit.current += 0.22;
       else if (e.key === "e" || e.key === "E") orbit.current -= 0.22;
+      else return;
+      regress();
     };
     el.addEventListener("pointerdown", down);
     window.addEventListener("pointermove", move);
@@ -73,12 +80,21 @@ export default function CameraRig({ activeIndex, accent, entered }: Props) {
       window.removeEventListener("pointerup", up);
       window.removeEventListener("keydown", onKey);
     };
-  }, [gl]);
+  }, [gl, regress]);
 
   useFrame((state, dt) => {
+    // Surf mode owns the camera; stand down so we don't fight over it.
+    if (surfing) return;
     const k = 1 - Math.exp(-3.5 * dt);
-    enterT.current += ((entered ? 1 : 0) - enterT.current) * (1 - Math.exp(-2.2 * dt));
+    // Slower enter easing → a more cinematic dive from the establishing shot.
+    enterT.current += ((entered ? 1 : 0) - enterT.current) * (1 - Math.exp(-1.5 * dt));
     progress.current += (activeIndex - progress.current) * k;
+
+    // While the camera is actually travelling or diving in, let r3f regress the
+    // resolution so the motion stays smooth; it snaps back to crisp when idle.
+    if (Math.abs(activeIndex - progress.current) > 0.01 || Math.abs((entered ? 1 : 0) - enterT.current) > 0.01) {
+      regress();
+    }
 
     const p = progress.current;
     const i0 = Math.floor(p);
@@ -94,7 +110,9 @@ export default function CameraRig({ activeIndex, accent, entered }: Props) {
       ORBIT_HEIGHT + tilt.current + Math.sin(t * 0.45) * 0.15,
       cz + Math.cos(a) * ORBIT_RADIUS
     );
-    wPos.current.set(CENTER_X + Math.sin(t * 0.1) * 3, 22, 50);
+    // Establishing shot: higher + further back so "Begin" descends further.
+    // Pulled back a touch for the roomier world.
+    wPos.current.set(CENTER_X + Math.sin(t * 0.1) * 3, 30, 64);
 
     const e = enterT.current;
     tPos.current.copy(wPos.current).lerp(iPos.current, e);
@@ -103,7 +121,11 @@ export default function CameraRig({ activeIndex, accent, entered }: Props) {
     look.current.lerp(tLook.current, k);
     state.camera.lookAt(look.current);
 
-    if (lightRef.current) lightRef.current.position.set(cx, 9, cz + 5);
+    if (lightRef.current) {
+      lightRef.current.position.set(cx, 9, cz + 5);
+      // The accent key light breathes over the active island once entered.
+      lightRef.current.intensity = 240 + (reduced ? 0 : e * Math.sin(t * 2.5) * 55);
+    }
 
     // Surfboard rides the water while crossing the gap to the indie island.
     if (boardRef.current) {

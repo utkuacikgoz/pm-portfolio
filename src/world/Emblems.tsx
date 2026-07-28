@@ -3,6 +3,7 @@ import { useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
 import * as THREE from "three";
 import { PUBLISHED_PROJECTS, type Project, type StructureType } from "../projects/projects";
 import { islandPosition } from "./geometry";
+import { usePrefersReducedMotion } from "../ui/hooks/useReducedMotion";
 
 // Hover just above each structure type so the emblem reads as part of it.
 const HOVER_BY_STRUCTURE: Record<StructureType, number> = {
@@ -80,11 +81,13 @@ function Emblem({
   index,
   active,
   hovered,
+  reduced,
 }: {
   project: Project;
   index: number;
   active: boolean;
   hovered: boolean;
+  reduced: boolean;
 }) {
   const ref = useRef<THREE.Group>(null);
   const spin = useRef(0);
@@ -98,7 +101,22 @@ function Emblem({
     if (!ref.current) return;
     spin.current += dt * (active || hovered ? 0.6 : 0.22);
     ref.current.rotation.y = spin.current;
-    ref.current.position.y = hoverY + lift + Math.sin(state.clock.elapsedTime * 1.1 + index) * 0.2;
+    const t = state.clock.elapsedTime;
+    ref.current.position.y = hoverY + lift + Math.sin(t * 1.1 + index) * 0.2;
+
+    // The active island's emblem breathes: emissive pulse + gentle scale swell.
+    // (Inactive emblems keep the static JSX emissiveIntensity; React resets it
+    // when `active` flips back to false.)
+    if (active && !reduced) {
+      const pulse = 0.6 + Math.sin(t * 3.2) * 0.3;
+      ref.current.scale.setScalar(1 + Math.sin(t * 2.4) * 0.05);
+      for (const child of ref.current.children) {
+        const m = (child as THREE.Mesh).material as THREE.MeshStandardMaterial;
+        if (m) m.emissiveIntensity = pulse;
+      }
+    } else if (ref.current.scale.x !== 1) {
+      ref.current.scale.setScalar(1);
+    }
   });
 
   return (
@@ -169,10 +187,11 @@ function Hitbox({
 
 export default function Emblems({ active, onOpen }: { active: number; onOpen: (i: number) => void }) {
   const [hovered, setHovered] = useState<number | null>(null);
+  const reduced = usePrefersReducedMotion();
   return (
     <>
       {PUBLISHED_PROJECTS.map((p, i) => (
-        <Emblem key={p.id} project={p} index={i} active={i === active} hovered={i === hovered} />
+        <Emblem key={p.id} project={p} index={i} active={i === active} hovered={i === hovered} reduced={reduced} />
       ))}
       {PUBLISHED_PROJECTS.map((p, i) => (
         <Hitbox key={`hit-${p.id}`} index={i} onOpen={onOpen} onHover={setHovered} />

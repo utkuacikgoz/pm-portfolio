@@ -22,6 +22,7 @@ export interface Project {
   structure: StructureType;
   content?: CaseStudy; // omitted for indie glimpses (no full case study yet)
   glimpse?: string; // teaser line shown on the glimpse panel for indie products
+  story?: string; // one-line narrative caption for the fly-through tour
 }
 
 const C = CASE_STUDIES as Record<string, CaseStudy>;
@@ -31,22 +32,24 @@ export const PROJECTS: Project[] = [
   {
     id: "bilira",
     title: "BiLira",
-    tagline: "Regulated-fintech scale · −35% AML review time",
+    tagline: "Regulated fintech at scale · 35% faster AML review",
     kind: "employment",
     published: true,
     accent: "#FF0080",
     structure: "tower",
     content: C.bilira,
+    story: "The one where I made compliance fast enough to actually ship.",
   },
   {
     id: "mestores",
     title: "Mestores",
-    tagline: "E-commerce 0→1 · +163% conversion, $500K cart recovery",
+    tagline: "Ecommerce zero to one · +163% conversion, $500K recovered",
     kind: "employment",
     published: true,
     accent: "#FFD700",
     structure: "market",
     content: C.mestores,
+    story: "The one where a broken store started printing money again.",
   },
   {
     id: "apollo",
@@ -57,26 +60,29 @@ export const PROJECTS: Project[] = [
     accent: "#FF6B35",
     structure: "campus",
     content: C.apollo,
+    story: "The one where healthcare ops stopped bleeding two million a year.",
   },
   {
     id: "la3eb",
     title: "La3eb",
-    tagline: "Gaming super-app · 6× DAU in 10 weeks",
+    tagline: "Gaming super app · 6× DAU in 10 weeks",
     kind: "employment",
     published: true,
     accent: "#00FFFF",
     structure: "arcade",
     content: C.la3eb,
+    story: "The one where a gaming app found six times its players in ten weeks.",
   },
   {
     id: "upshift",
     title: "Upshift",
-    tagline: "HRtech marketplace · churn 8%→4%, built the PM function",
+    tagline: "HRtech marketplace · churn halved to 4%, built the PM function",
     kind: "employment",
     published: true,
     accent: "#00FF88",
     structure: "bridge",
     content: C.upshift,
+    story: "The one where I built the entire product function from scratch.",
   },
 
   // ── Indie products — live on the separate "ocean" island as coming-soon
@@ -84,7 +90,7 @@ export const PROJECTS: Project[] = [
   {
     id: "signalbot",
     title: "Buyback Signal",
-    tagline: "trading-signal bot",
+    tagline: "trading signal bot",
     kind: "indie",
     published: false,
     accent: "#00E5A0",
@@ -94,28 +100,28 @@ export const PROJECTS: Project[] = [
   {
     id: "passats",
     title: "PassATS",
-    tagline: "beat the résumé robots",
+    tagline: "beat the resume robots",
     kind: "indie",
     published: false,
     accent: "#B14EFF",
     structure: "beacon",
-    glimpse: "Helps job-seekers get past automated applicant-tracking filters.",
+    glimpse: "Helps job seekers get past automated tracking filters.",
   },
   {
     id: "cofoundr",
     title: "Cofoundr",
-    tagline: "co-founder matching",
+    tagline: "cofounder matching",
     kind: "indie",
     published: false,
     accent: "#FFE600",
     structure: "beacon",
-    glimpse: "A matching app for finding a co-founder — right person, right time.",
+    glimpse: "A matching app for finding a cofounder, the right person at the right time.",
   },
   // Mona is real but lower-signal; surface it by flipping published:true.
   {
     id: "mona",
     title: "Mona",
-    tagline: "No-code HR platform · 150+ employees in 4 weeks",
+    tagline: "HR platform with no code · 150+ employees in 4 weeks",
     kind: "employment",
     published: false,
     accent: "#00FF00",

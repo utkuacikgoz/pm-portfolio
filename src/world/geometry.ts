@@ -1,10 +1,11 @@
 import { PUBLISHED_PROJECTS } from "../projects/projects";
 import type { Project, StructureType } from "../projects/projects";
 
-// Distance between island centers along the rail (X axis).
-export const SPACING = 16;
+// Distance between island centers along the rail (X axis). Roomier than a tight
+// diorama so the world reads as a place you travel through.
+export const SPACING = 22;
 export const EMP_COUNT = PUBLISHED_PROJECTS.length;
-export const WATER_GAP = 34; // ocean you surf across to reach the indie island
+export const WATER_GAP = 46; // ocean you surf across to reach the indie island
 export const WATER_Y = -3.4;
 export const INDIE_INDEX = EMP_COUNT; // the separate indie island sits past the gap
 
@@ -98,7 +99,10 @@ function buildPath(i: number): Cube[] {
   const [ax, , az] = islandPosition(i);
   const [bx, , bz] = islandPosition(i + 1);
   const cubes: Cube[] = [];
-  const steps = 9;
+  // Scale step count with the gap so stepping-stone density stays constant as
+  // SPACING grows (~one stone every 2 units).
+  const dist = Math.hypot(bx - ax, bz - az);
+  const steps = Math.max(6, Math.round(dist / 2));
   for (let s = 1; s < steps; s++) {
     const t = s / steps;
     cubes.push({

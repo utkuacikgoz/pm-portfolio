@@ -2,7 +2,7 @@ import type { CaseStudy } from "./types";
 
 export const bilira: CaseStudy = {
   id: "bilira",
-  title: "BiLira — Technical Product Management",
+  title: "BiLira, Technical Product Management",
   sentimentScores: [15, 28, 45, 82, 95], // Problem → Constraints → Approach → Results → Learnings
   beats: [
     {
@@ -26,9 +26,9 @@ export const bilira: CaseStudy = {
     {
       id: "approach",
       body: [
-        "We built a hybrid pipeline. Automated screening handled the clear-cut 90% — wired to Chainalysis for on-chain risk and Notabene for travel-rule data — and routed only the ambiguous cases to human reviewers. Manual review time dropped about 35% and false positives fell 40%, while detection accuracy held at 99.7%.",
+        "We built a hybrid pipeline. Automated screening handled the clear-cut 90%, wired to Chainalysis for on-chain risk and Notabene for travel-rule data, and routed only the ambiguous cases to human reviewers. Manual review time dropped about 35% and false positives fell 40%, while detection accuracy held at 99.7%.",
         "I led the 25-person team through it. The CTO and compliance officer started in different risk worlds, so I ran weekly sessions where we walked failure scenarios together until both owned the design instead of tolerating it. We built the engine modular on purpose, knowing the rules would move.",
-        "In parallel I redefined the OTC system — 500+ institutional trades a week, latency down from 500ms to 275ms, throughput up 45% across 15+ pairs — and shipped a Trade API doing 50M+ calls a month for 50+ enterprise clients at 99.9% uptime. We also moved releases from quarterly to bi-weekly without a single regulatory breach.",
+        "In parallel I redefined the OTC system, 500+ institutional trades a week, latency down from 500ms to 275ms, throughput up 45% across 15+ pairs, and shipped a Trade API doing 50M+ calls a month for 50+ enterprise clients at 99.9% uptime. We also moved releases from quarterly to bi-weekly without a single regulatory breach.",
       ],
       insight:
         "Automate the 90% that's obvious; spend your humans on the 10% that's ambiguous. The machine buys the time, the people catch what the machine can't.",
@@ -38,7 +38,7 @@ export const bilira: CaseStudy = {
       body: [
         "Manual review time fell ~35% and false positives 40%, with detection accuracy at 99.7% and zero regulatory breaches across the period. Compliance stopped being the thing that capped growth.",
         "On the trading side: OTC latency went 500ms → 275ms, throughput rose 45%, and we ran 500+ institutional trades a week across 15+ pairs. The Trade API held 99.9% uptime on 50M+ monthly calls for 50+ enterprise clients.",
-        "Releases went quarterly → bi-weekly. We could absorb a rule change in days instead of a quarter — which, in this market, is most of the advantage.",
+        "Releases went quarterly → bi-weekly. We could absorb a rule change in days instead of a quarter, which, in this market, is most of the advantage.",
       ],
       metrics: [
         { label: "OTC Latency", before: 500, after: 275, unit: "ms", color: "#FF0080" },

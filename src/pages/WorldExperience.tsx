@@ -9,6 +9,13 @@ import ProjectPanel from "../ui/ProjectPanel";
 import HeroIntro from "../ui/HeroIntro";
 import ErrorBoundary from "../ui/ErrorBoundary";
 import EggToast from "../ui/EggToast";
+import SoundToggle from "../ui/SoundToggle";
+import StoryCaption from "../ui/StoryCaption";
+import AvatarSelect from "../ui/AvatarSelect";
+import { readAvatar, avatarById } from "../ui/avatars";
+import { sfx, armAudio } from "../audio/sfx";
+import { useKeySequence, KONAMI, HIRE } from "../ui/hooks/useKeySequence";
+import { markEggId } from "../state/progress";
 import FlatMap from "./FlatMap";
 
 // Lazy so three.js / r3f / drei only download on the interactive world path.
@@ -26,7 +33,71 @@ export default function WorldExperience() {
   // Intro shows first in world mode; deep-linking a project skips it.
   const [entered, setEntered] = useState(() => openIndex >= 0);
   const [showHint, setShowHint] = useState(false);
+  const [flashing, setFlashing] = useState(false);
+  const [celebrate, setCelebrate] = useState(false);
+  const [surfing, setSurfing] = useState(false);
+  // Playful "who's looking?" gate, shown once before the experience (skipped on
+  // deep links). Fun label only — surfaces as a small badge, no story branching.
+  const [avatar, setAvatar] = useState<string | null>(() => readAvatar());
+  const needAvatar = avatar === null && openIndex < 0;
+  const chosenAvatar = avatar ? avatarById(avatar) : undefined;
   const opener = useRef<HTMLElement | null>(null);
+  const prevActive = useRef(active);
+  const suppressTravel = useRef(false);
+
+  // Easter eggs. Konami → rainbow celebration; typing "hire" → a wink. Both
+  // record the egg, which surfaces its reward toast (+ sound) via EggToast.
+  useKeySequence(
+    KONAMI,
+    useCallback(() => {
+      markEggId("konami");
+      setCelebrate(true);
+      setTimeout(() => setCelebrate(false), 1600);
+    }, [])
+  );
+  useKeySequence(
+    HIRE,
+    useCallback(() => markEggId("hire"), [])
+  );
+
+  // Sound is on by default; start the waterfall on the first user gesture.
+  useEffect(() => armAudio(), []);
+
+  // Free surf mode: hop on the board and roam the ocean; Esc comes back.
+  const enterSurf = useCallback(() => {
+    setSurfing(true);
+    sfx.play("enter");
+  }, []);
+  const exitSurf = useCallback(() => setSurfing(false), []);
+  useEffect(() => {
+    if (!surfing) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setSurfing(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [surfing]);
+
+  // Begin: punctuate the camera dive with a quick accent wash, then enter.
+  const beginJourney = useCallback(() => {
+    sfx.play("enter");
+    setEntered(true);
+    setFlashing(true);
+    setTimeout(() => setFlashing(false), 420);
+  }, []);
+
+  // Whoosh when travelling between islands — but not when a click opened one
+  // (that gets its own "open" sound) and not on the initial mount.
+  useEffect(() => {
+    const changed = prevActive.current !== active;
+    prevActive.current = active;
+    if (!changed) return;
+    if (suppressTravel.current) {
+      suppressTravel.current = false;
+      return;
+    }
+    if (entered && !panelOpen) sfx.play("travel");
+  }, [active, entered, panelOpen]);
 
   useEffect(() => {
     if (openIndex >= 0) {
@@ -37,8 +108,8 @@ export default function WorldExperience() {
 
   // Per-route document title (helps shared links + crawlers that run JS).
   useEffect(() => {
-    const base = "Utku Acikgoz — Senior Technical Product Manager";
-    document.title = openIndex >= 0 ? `${projects[openIndex].title} — ${base}` : base;
+    const base = "Utku Acikgoz, Senior Technical Product Manager";
+    document.title = openIndex >= 0 ? `${projects[openIndex].title} | ${base}` : base;
   }, [openIndex, projects]);
 
   // One-time "how to interact" hint once you enter the world.
@@ -59,6 +130,8 @@ export default function WorldExperience() {
     (i: number) => {
       if (i >= projects.length) return; // indie island has no case study
       opener.current = document.activeElement as HTMLElement;
+      suppressTravel.current = true; // this island-change is an open, not a travel
+      sfx.play("open");
       setActive(i); // keep the camera pointed at this island when the panel closes
       navigate(`/p/${projects[i].id}`);
     },
@@ -66,6 +139,7 @@ export default function WorldExperience() {
   );
 
   const close = useCallback(() => {
+    sfx.play("close");
     navigate("/");
     requestAnimationFrame(() => opener.current?.focus?.());
   }, [navigate]);
@@ -73,7 +147,7 @@ export default function WorldExperience() {
   // Arrow-key travel + Enter to open, for mouse users focused on the canvas/body.
   // Skipped when focus is on an interactive element (WorldNav handles its own keys).
   useEffect(() => {
-    if (panelOpen || !entered) return;
+    if (panelOpen || !entered || surfing) return; // surf mode owns the arrows
     const onKey = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement | null;
       if (t && ["BUTTON", "A", "INPUT", "TEXTAREA"].includes(t.tagName)) return;
@@ -83,29 +157,95 @@ export default function WorldExperience() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [panelOpen, entered, active, open, projects.length]);
+  }, [panelOpen, entered, surfing, active, open, projects.length]);
 
   return (
-    <div style={{ minHeight: "100vh", background: "#05060a" }}>
+    <div
+      style={{
+        minHeight: "100vh",
+        // Tropical-dusk sky: shows through the transparent WebGL canvas as the
+        // backdrop. Deep indigo up top → teal → warm turquoise at the horizon.
+        background:
+          "linear-gradient(180deg, #0a0e24 0%, #0f2a3f 44%, #14495a 74%, #1f6f74 100%)",
+      }}
+    >
       <Link to="/resume" className="skip-link">
-        Skip to résumé
+        Skip to resume
       </Link>
       <EscapeHatch />
+      <SoundToggle />
+      {entered && chosenAvatar && (
+        <div
+          style={{
+            position: "fixed",
+            left: 72,
+            bottom: "calc(24px + env(safe-area-inset-bottom))",
+            zIndex: 50,
+            display: "flex",
+            alignItems: "center",
+            gap: 7,
+            padding: "7px 12px",
+            background: "rgba(7,8,12,0.72)",
+            border: `1px solid ${chosenAvatar.accent}55`,
+            borderRadius: 999,
+            fontSize: 12,
+            fontWeight: 700,
+            color: "#c4c8d2",
+            backdropFilter: "blur(6px)",
+            pointerEvents: "none",
+          }}
+        >
+          <span aria-hidden>{chosenAvatar.emoji}</span>
+          <span>{chosenAvatar.label} mode</span>
+        </div>
+      )}
       <EggToast />
       <WorldNav projects={projects} active={active} onFocus={setActive} onOpen={open} />
 
       {mode === "world" ? (
         <ErrorBoundary fallback={<FlatMap projects={projects} onOpen={open} />}>
           <Suspense fallback={<WorldLoading />}>
-            <World activeIndex={active} entered={entered} onOpen={open} />
+            <World activeIndex={active} entered={entered} surfing={surfing} onOpen={open} />
           </Suspense>
         </ErrorBoundary>
       ) : (
         <FlatMap projects={projects} onOpen={open} />
       )}
 
-      {mode === "world" && !entered && !panelOpen && (
-        <HeroIntro onBegin={() => setEntered(true)} />
+      {needAvatar && <AvatarSelect onPick={setAvatar} />}
+
+      {mode === "world" && !entered && !panelOpen && !needAvatar && (
+        <HeroIntro onBegin={beginJourney} />
+      )}
+
+      {flashing && (
+        <div
+          aria-hidden
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 65,
+            pointerEvents: "none",
+            background: `radial-gradient(circle at 50% 45%, ${projects[active]?.accent ?? "#FF0080"}, transparent 70%)`,
+            animation: "diveFlash .42s ease-out forwards",
+          }}
+        />
+      )}
+
+      {celebrate && (
+        <div
+          aria-hidden
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 75,
+            pointerEvents: "none",
+            mixBlendMode: "screen",
+            background:
+              "conic-gradient(from 0deg, #FF0080, #FFD700, #00FF88, #00FFFF, #FF6B35, #FF0080)",
+            animation: "konamiSweep 1.6s ease-out forwards",
+          }}
+        />
       )}
 
       {showHint && (
@@ -132,8 +272,9 @@ export default function WorldExperience() {
         </div>
       )}
 
-      {mode === "world" && entered && !panelOpen && !isIndie && (
+      {mode === "world" && entered && !panelOpen && !isIndie && !surfing && (
         <>
+          <StoryCaption key={projects[active].id} project={projects[active]} />
           <TitleCard
             project={projects[active]}
             index={active}
@@ -161,11 +302,75 @@ export default function WorldExperience() {
           >
             🏄 What I'm building →
           </button>
+          <button
+            onClick={enterSurf}
+            style={{
+              position: "fixed",
+              bottom: "calc(74px + env(safe-area-inset-bottom))",
+              right: 24,
+              zIndex: 44,
+              padding: "11px 18px",
+              background: "rgba(7,8,12,0.85)",
+              border: "2px solid #00CFFF",
+              color: "#00CFFF",
+              fontSize: 13,
+              fontWeight: 800,
+              cursor: "pointer",
+              backdropFilter: "blur(6px)",
+            }}
+          >
+            🏄 Free surf
+          </button>
         </>
       )}
 
-      {mode === "world" && entered && !panelOpen && isIndie && (
+      {mode === "world" && entered && !panelOpen && isIndie && !surfing && (
         <IndieOverlay onBack={() => setActive(INDIE_INDEX - 1)} />
+      )}
+
+      {mode === "world" && surfing && (
+        <>
+          <div
+            style={{
+              position: "fixed",
+              top: 76,
+              left: "50%",
+              transform: "translateX(-50%)",
+              zIndex: 45,
+              padding: "8px 16px",
+              background: "rgba(7,8,12,0.8)",
+              border: "1px solid #23283a",
+              borderRadius: 999,
+              fontSize: 12.5,
+              fontWeight: 600,
+              color: "#c4c8d2",
+              whiteSpace: "nowrap",
+              pointerEvents: "none",
+            }}
+          >
+            🏄 WASD or arrows to surf · Esc to come back
+          </div>
+          <button
+            onClick={exitSurf}
+            style={{
+              position: "fixed",
+              bottom: "calc(28px + env(safe-area-inset-bottom))",
+              left: "50%",
+              transform: "translateX(-50%)",
+              zIndex: 44,
+              padding: "11px 20px",
+              background: "rgba(7,8,12,0.85)",
+              border: "2px solid #00CFFF",
+              color: "#00CFFF",
+              fontSize: 13,
+              fontWeight: 800,
+              cursor: "pointer",
+              backdropFilter: "blur(6px)",
+            }}
+          >
+            Exit surf
+          </button>
+        </>
       )}
 
       {panelOpen && <ProjectPanel project={projects[openIndex]} onClose={close} />}
@@ -214,7 +419,7 @@ function IndieOverlay({ onBack }: { onBack: () => void }) {
         🏄 WHAT I'M BUILDING
       </div>
       <p style={{ fontSize: 13.5, color: "#c4c8d2", lineHeight: 1.55, marginBottom: 16 }}>
-        53 countries travelled so far — here's what I'm building next. No case studies yet, just bets.
+        53 countries travelled so far. Here's what I'm building next. No case studies yet, just bets.
       </p>
       <div style={{ display: "grid", gap: 8, marginBottom: 16 }}>
         {INDIE_PROJECTS.map((p) => (
