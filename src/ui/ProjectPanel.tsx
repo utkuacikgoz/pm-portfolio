@@ -26,6 +26,8 @@ const HEADER_H = 84; // sticky header height → scroll-padding + active-line of
 interface Props {
   project: Project;
   onClose: () => void;
+  onNext?: () => void;
+  nextTitle?: string;
 }
 
 /**
@@ -38,7 +40,7 @@ interface Props {
  * each section reveals as it enters. Colour follows 60/30/10 — dark chrome
  * dominates, neutral text carries the body, the accent is the sparing pop.
  */
-export default function ProjectPanel({ project, onClose }: Props) {
+export default function ProjectPanel({ project, onClose, onNext, nextTitle }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const content = project.content;
   const [active, setActive] = useState(0);
@@ -207,6 +209,25 @@ export default function ProjectPanel({ project, onClose }: Props) {
             {b.stakeholders && <Stakeholders stakeholders={b.stakeholders} accent={project.accent} />}
 
             {isLast && <CTA accent={project.accent} />}
+            {isLast && onNext && nextTitle && (
+              <button
+                onClick={onNext}
+                style={{
+                  marginTop: 16,
+                  width: "100%",
+                  padding: "14px 18px",
+                  background: "transparent",
+                  border: `2px solid ${project.accent}`,
+                  color: project.accent,
+                  fontSize: 14,
+                  fontWeight: 800,
+                  letterSpacing: 0.3,
+                  cursor: "pointer",
+                }}
+              >
+                Next: {nextTitle} →
+              </button>
+            )}
           </section>
         );
       })}
