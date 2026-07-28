@@ -6,6 +6,8 @@ import { buildWorld } from "./geometry";
 import CameraRig from "./CameraRig";
 import Emblems from "./Emblems";
 import SurfController from "./SurfController";
+import SurfSpots from "./SurfSpots";
+import type { SurfSpot } from "./surf-spots";
 import { Water, IndieIsland, Ripples, LightShaft, SunDisc } from "./Ocean";
 
 // Horizon color the fog fades islands into — matches the bottom of the CSS dusk
@@ -17,6 +19,7 @@ interface Props {
   entered: boolean;
   surfing: boolean;
   onOpen: (i: number) => void;
+  onNearSpot?: (spot: SurfSpot | null) => void;
 }
 
 /**
@@ -24,7 +27,7 @@ interface Props {
  * across every island lives in a single <Instances> (one draw call, per-instance
  * color) — no per-cube draw calls. Lazy-loaded so three.js only ships here.
  */
-export default function World({ activeIndex, entered, surfing, onOpen }: Props) {
+export default function World({ activeIndex, entered, surfing, onOpen, onNearSpot }: Props) {
   const cubes = useMemo(() => buildWorld(PUBLISHED_PROJECTS), []);
   const accent = PUBLISHED_PROJECTS[activeIndex]?.accent ?? "#FF0080";
   const [dpr, setDpr] = useState(1.5);
@@ -74,7 +77,9 @@ export default function World({ activeIndex, entered, surfing, onOpen }: Props) 
       <LightShaft active={activeIndex} />
       <IndieIsland />
       <Emblems active={activeIndex} onOpen={onOpen} />
-      <SurfController active={surfing} />
+      {/* Legendary breaks only exist while surfing → the rail diorama stays clean. */}
+      {surfing && <SurfSpots />}
+      <SurfController active={surfing} onNearSpot={onNearSpot} />
       <CameraRig activeIndex={activeIndex} accent={accent} entered={entered} surfing={surfing} />
     </Canvas>
   );

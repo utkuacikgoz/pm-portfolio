@@ -3,11 +3,20 @@ import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { WATER_Y } from "./geometry";
 import Surfer from "./Surfer";
+import { nearestSpot, type SurfSpot } from "./surf-spots";
 
 // Free-roam surf mode: hop on a board and steer around the ocean with WASD /
 // arrow keys, third-person chase camera. Active only while `active` is true;
 // CameraRig goes inert during that time so the two don't fight over the camera.
-export default function SurfController({ active }: { active: boolean }) {
+// As you roam, we report the nearest legendary break (or null) up to the DOM HUD
+// via `onNearSpot`, firing only when the break actually changes (not per frame).
+export default function SurfController({
+  active,
+  onNearSpot,
+}: {
+  active: boolean;
+  onNearSpot?: (spot: SurfSpot | null) => void;
+}) {
   const board = useRef<THREE.Group>(null);
   const pos = useRef(new THREE.Vector3(60, WATER_Y + 0.3, 0));
   const heading = useRef(Math.PI); // face back toward the islands
@@ -17,6 +26,11 @@ export default function SurfController({ active }: { active: boolean }) {
   const lookTarget = useRef(new THREE.Vector3());
   const camera = useThree((s) => s.camera);
   const regress = useThree((s) => s.performance.regress);
+  // Keep the callback in a ref so the frame loop always calls the latest one
+  // without re-subscribing effects; track the last break so we only report changes.
+  const onNearSpotRef = useRef(onNearSpot);
+  onNearSpotRef.current = onNearSpot;
+  const lastSpotId = useRef<string | null>(null);
 
   useEffect(() => {
     if (!active) return;
@@ -46,6 +60,14 @@ export default function SurfController({ active }: { active: boolean }) {
     heading.current = Math.PI;
     speed.current = 0;
   }, [active, camera]);
+
+  // Leaving surf mode clears the HUD label.
+  useEffect(() => {
+    if (!active) {
+      lastSpotId.current = null;
+      onNearSpotRef.current?.(null);
+    }
+  }, [active]);
 
   useFrame((state, dt) => {
     if (!active || !board.current) return;
@@ -81,6 +103,15 @@ export default function SurfController({ active }: { active: boolean }) {
     lookTarget.current.set(pos.current.x, bobY + 1, pos.current.z);
     camera.lookAt(lookTarget.current);
     if (Math.abs(speed.current) > 0.5 || turn !== 0) regress();
+
+    // Report the nearest break, but only when it changes → the HUD updates via a
+    // single setState per crossing, not every frame.
+    const spot = nearestSpot(pos.current.x, pos.current.z);
+    const id = spot ? spot.id : null;
+    if (id !== lastSpotId.current) {
+      lastSpotId.current = id;
+      onNearSpotRef.current?.(spot);
+    }
   });
 
   if (!active) return null;
