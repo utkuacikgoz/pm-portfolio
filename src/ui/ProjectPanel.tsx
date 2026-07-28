@@ -1,11 +1,25 @@
 import { useEffect, useRef, useState } from "react";
 import type { Project } from "../projects/projects";
+import type { Beat } from "../content/types";
 import { Metrics, Decisions, Initiatives, Stakeholders } from "./viz";
 import { CONTACT } from "../content/contact";
 import { markRead } from "../state/progress";
 import { sfx } from "../audio/sfx";
 
-const SECTION_LABELS = ["Problem", "Constraints", "Approach", "Results", "Learnings"];
+// Nice labels for the canonical arc, keyed by beat id so inserting a new beat
+// (e.g. BiLira's "Stablecoin & DeFi") stays correctly labelled. A beat may also
+// carry its own `label`.
+const SECTION_LABELS: Record<string, string> = {
+  problem: "Problem",
+  constraints: "Constraints",
+  approach: "Approach",
+  results: "Results",
+  learnings: "Learnings",
+};
+
+function beatLabel(b: Beat): string {
+  return b.label ?? SECTION_LABELS[b.id] ?? b.id.charAt(0).toUpperCase() + b.id.slice(1);
+}
 
 interface Props {
   project: Project;
@@ -98,19 +112,19 @@ export default function ProjectPanel({ project, onClose }: Props) {
 
   const beats = content.beats;
   const current = beats[beat];
-  const label = SECTION_LABELS[beat] ?? current.id;
+  const label = beatLabel(current);
   const isLast = beat === beats.length - 1;
 
   return (
     <Drawer scrollRef={scrollRef} accent={project.accent} onClose={onClose} title={project.title} tagline={project.tagline}>
       {/* Progress */}
       <div role="tablist" aria-label="Case study sections" style={{ display: "flex", gap: 6, marginBottom: 8 }}>
-        {beats.map((_, i) => (
+        {beats.map((b, i) => (
           <button
             key={i}
             role="tab"
             aria-selected={i === beat}
-            aria-label={SECTION_LABELS[i] ?? `Beat ${i + 1}`}
+            aria-label={beatLabel(b)}
             onClick={() => setBeat(i)}
             style={{
               flex: 1,
@@ -133,13 +147,14 @@ export default function ProjectPanel({ project, onClose }: Props) {
         <p
           key={i}
           style={{
-            fontSize: 16,
-            lineHeight: 1.85,
+            fontSize: 17,
+            lineHeight: 1.7,
             color: i === 0 ? "#eceef2" : "#c4c8d2",
-            marginBottom: 18,
+            marginBottom: 20,
+            maxWidth: "34em", // cap line length for comfortable reading
           }}
         >
-          {p}
+          {i === 0 ? <Lead text={p} /> : p}
         </p>
       ))}
 
@@ -162,6 +177,19 @@ export default function ProjectPanel({ project, onClose }: Props) {
         </NavBtn>
       </div>
     </Drawer>
+  );
+}
+
+// Opens each beat with its first sentence emphasized — an at-a-glance takeaway
+// so the panel skims instead of reading as a wall of text.
+function Lead({ text }: { text: string }) {
+  const cut = text.indexOf(". ");
+  if (cut === -1) return <strong style={{ color: "#fff", fontWeight: 800 }}>{text}</strong>;
+  return (
+    <>
+      <strong style={{ color: "#fff", fontWeight: 800 }}>{text.slice(0, cut + 1)}</strong>{" "}
+      {text.slice(cut + 2)}
+    </>
   );
 }
 
@@ -247,7 +275,7 @@ function Drawer({
         top: 0,
         right: 0,
         height: "100dvh",
-        width: "min(580px, 100vw)",
+        width: "min(620px, 100vw)",
         background: "rgba(7,8,12,0.97)",
         backdropFilter: "blur(10px)",
         borderLeft: `3px solid ${accent}`,

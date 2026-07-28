@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { WATER_Y } from "./geometry";
+import Surfer from "./Surfer";
 
 // Free-roam surf mode: hop on a board and steer around the ocean with WASD /
 // arrow keys, third-person chase camera. Active only while `active` is true;
@@ -85,18 +86,7 @@ export default function SurfController({ active }: { active: boolean }) {
   if (!active) return null;
   return (
     <group ref={board}>
-      <mesh raycast={() => null}>
-        <boxGeometry args={[0.9, 0.18, 3.4]} />
-        <meshStandardMaterial color="#ffce54" flatShading />
-      </mesh>
-      <mesh position={[0, 0.75, -0.2]} raycast={() => null}>
-        <boxGeometry args={[0.5, 1.1, 0.5]} />
-        <meshStandardMaterial color="#FF0080" flatShading />
-      </mesh>
-      <mesh position={[0, 1.5, -0.2]} raycast={() => null}>
-        <boxGeometry args={[0.42, 0.42, 0.42]} />
-        <meshStandardMaterial color="#f0c19c" flatShading />
-      </mesh>
+      <Surfer />
     </group>
   );
 }

@@ -42,6 +42,7 @@ export interface Stakeholder {
 
 export interface Beat {
   id: string;
+  label?: string; // overrides the id-derived section label (e.g. "Stablecoin & DeFi")
   body: string[];
   insight?: string; // sharp one-line takeaway, rendered as a callout
   metrics?: Metric[];

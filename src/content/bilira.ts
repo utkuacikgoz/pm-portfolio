@@ -3,7 +3,7 @@ import type { CaseStudy } from "./types";
 export const bilira: CaseStudy = {
   id: "bilira",
   title: "BiLira, Technical Product Management",
-  sentimentScores: [15, 28, 45, 82, 95], // Problem → Constraints → Approach → Results → Learnings
+  sentimentScores: [15, 28, 45, 60, 82, 95], // Problem, Constraints, Approach, Stablecoin & DeFi, Results, Learnings
   beats: [
     {
       id: "problem",
@@ -32,6 +32,20 @@ export const bilira: CaseStudy = {
       ],
       insight:
         "Automate the 90% that's obvious; spend your humans on the 10% that's ambiguous. The machine buys the time, the people catch what the machine can't.",
+    },
+    {
+      // NOTE (Utku): DRAFT with [PLACEHOLDER] tags. Replace every bracket with the
+      // real figure/claim before this ships; remove any line that isn't accurate.
+      // Once the numbers are in, we can add a `metrics` chart here too.
+      id: "defi",
+      label: "Stablecoin & DeFi",
+      body: [
+        "BiLira is a Turkish-Lira stablecoin, and I owned [PLACEHOLDER: your role, e.g. product for the stablecoin + DeFi surface]. The token, [PLACEHOLDER: TRYB], stayed fully reserve-backed and redeemable one-to-one, with mint and redeem live across [PLACEHOLDER: N] chains ([PLACEHOLDER: which chains]).",
+        "We took the stablecoin into DeFi. [PLACEHOLDER: describe the integrations, e.g. liquidity pools / lending markets / on-chain FX], which pushed on-chain supply to [PLACEHOLDER: supply/TVL] and monthly on-chain volume to [PLACEHOLDER: volume] across [PLACEHOLDER: N] holders.",
+        "On top of that we shipped yield vaults: [PLACEHOLDER: what the vaults did, e.g. auto-allocated idle TRYB into [strategies]], reaching [PLACEHOLDER: vault TVL] at [PLACEHOLDER: APY]% net yield while keeping [PLACEHOLDER: risk/custody guardrails]. [PLACEHOLDER: one line on the outcome, e.g. vaults drove X% of retention / Y new deposits].",
+      ],
+      insight:
+        "A stablecoin is only as useful as the places you can put it to work, so the vaults were the product, not a feature.",
     },
     {
       id: "results",
