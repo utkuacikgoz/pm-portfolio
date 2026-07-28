@@ -17,7 +17,6 @@ export interface Avatar {
   label: string; // class name
   title: string; // epithet
   pun: string; // flavor line
-  move: string; // signature move
   accent: string;
   stats: Stat[];
 }
@@ -29,7 +28,6 @@ export const AVATARS: Avatar[] = [
     label: "HR",
     title: "The Culture Keeper",
     pun: "Here for the culture fit.",
-    move: "Vibe Check",
     accent: "#00FF88",
     stats: [
       { label: "Empathy", value: 9 },
@@ -44,7 +42,6 @@ export const AVATARS: Avatar[] = [
     label: "Hiring Manager",
     title: "The Decision Maker",
     pun: "Show me the outcomes.",
-    move: "Offer or Hard Pass",
     accent: "#FFD700",
     stats: [
       { label: "Outcomes", value: 10 },
@@ -59,7 +56,6 @@ export const AVATARS: Avatar[] = [
     label: "Stalker",
     title: "The Deep Diver",
     pun: "I already read your LinkedIn.",
-    move: "Full Background Check",
     accent: "#FF0080",
     stats: [
       { label: "Recon", value: 10 },

@@ -2,41 +2,40 @@ import { useEffect, useRef, useState } from "react";
 import { usePrefersReducedMotion } from "./hooks/useReducedMotion";
 import { AVATARS, writeAvatar } from "./avatars";
 
-// RPG-style "choose your character" gate shown before the world. Fun label only:
-// the pick is cosmetic (a badge), it doesn't branch any copy or story. Data +
-// persistence live in ./avatars so this file only exports a component.
+// "Choose your character" gate, styled as an arcade cabinet select: pixel-stepped
+// frames, CRT scanlines, segmented stat blocks, a blinking PRESS ENTER. Fun label
+// only — the pick is cosmetic. Data lives in ./avatars (this file only exports a
+// component, for react-refresh).
+
+// Octagonal 8-bit notch, used for the slot frame + its inner fill.
+const NOTCH =
+  "polygon(0 7px, 7px 0, calc(100% - 7px) 0, 100% 7px, 100% calc(100% - 7px), calc(100% - 7px) 100%, 7px 100%, 0 calc(100% - 7px))";
+const PIXEL_SHADOW = "3px 3px 0 rgba(0,0,0,0.65)";
+
 export default function AvatarSelect({ onPick }: { onPick: (id: string) => void }) {
   const reduced = usePrefersReducedMotion();
   const [focus, setFocus] = useState(0);
-  const btnRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const slotRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
-  // Arrow-key navigation between characters (RPG feel); Enter/Space selects natively.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
-        e.preventDefault();
-        setFocus((f) => {
-          const next = (f + (e.key === "ArrowRight" ? 1 : AVATARS.length - 1)) % AVATARS.length;
-          btnRefs.current[next]?.focus();
-          return next;
-        });
-      }
+      if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+      e.preventDefault();
+      const next = (focus + (e.key === "ArrowRight" ? 1 : AVATARS.length - 1)) % AVATARS.length;
+      slotRefs.current[next]?.focus(); // onFocus updates selection
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, []);
+  }, [focus]);
 
   useEffect(() => {
-    btnRefs.current[0]?.focus();
+    slotRefs.current[0]?.focus();
   }, []);
 
   const choose = (id: string) => {
     writeAvatar(id);
     onPick(id);
   };
-
-  const rise = (delay: number): React.CSSProperties =>
-    reduced ? {} : { animation: "heroRise .55s cubic-bezier(.22,.61,.36,1) both", animationDelay: `${delay}s` };
 
   return (
     <div
@@ -50,127 +49,172 @@ export default function AvatarSelect({ onPick }: { onPick: (id: string) => void 
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
+        gap: 26,
         textAlign: "center",
         padding: "24px 16px",
         overflowY: "auto",
-        // Black-neon entrance, matching the hero.
         background:
-          "radial-gradient(120% 80% at 50% 8%, rgba(255,0,128,0.10), transparent 46%), radial-gradient(120% 80% at 50% 100%, rgba(0,255,255,0.08), transparent 52%), radial-gradient(circle at 50% 40%, #0a0a14 0%, #050509 64%, #020204 100%)",
+          "radial-gradient(120% 80% at 50% 6%, rgba(255,0,128,0.10), transparent 46%), radial-gradient(120% 80% at 50% 100%, rgba(0,255,255,0.08), transparent 52%), radial-gradient(circle at 50% 42%, #0a0a14 0%, #050509 64%, #020204 100%)",
       }}
     >
-      <p style={{ letterSpacing: 5, fontSize: 12, fontWeight: 800, color: "#7f8694", marginBottom: 6, ...rise(0) }}>
-        SELECT YOUR CHARACTER
-      </p>
-      <h2
+      {/* CRT scanlines */}
+      <div
+        aria-hidden
         style={{
-          fontSize: "clamp(22px, 4vw, 38px)",
-          fontWeight: 900,
-          marginBottom: 26,
-          textShadow: "0 2px 20px rgba(0,0,0,0.8)",
-          ...rise(0.06),
+          position: "fixed",
+          inset: 0,
+          zIndex: 73,
+          pointerEvents: "none",
+          background:
+            "repeating-linear-gradient(to bottom, rgba(0,0,0,0.22) 0px, rgba(0,0,0,0.22) 1px, transparent 1px, transparent 3px)",
+          mixBlendMode: "multiply",
+          opacity: 0.12,
+          animation: reduced ? undefined : "crtFlicker 3s ease-in-out infinite",
         }}
-      >
-        Who&apos;s judging me today?
-      </h2>
+      />
 
-      <div style={{ display: "flex", gap: 18, flexWrap: "wrap", justifyContent: "center", maxWidth: 860 }}>
+      <div>
+        <p style={{ letterSpacing: 6, fontSize: 12, fontWeight: 800, color: "#7f8694", marginBottom: 6 }}>
+          SELECT YOUR CHARACTER
+        </p>
+        <h2
+          style={{
+            fontSize: "clamp(24px, 4.4vw, 42px)",
+            fontWeight: 900,
+            textTransform: "uppercase",
+            letterSpacing: 1,
+            textShadow: PIXEL_SHADOW,
+          }}
+        >
+          Who&apos;s judging me today?
+        </h2>
+      </div>
+
+      <div style={{ display: "flex", gap: 18, justifyContent: "center", flexWrap: "wrap", maxWidth: 900 }}>
         {AVATARS.map((a, i) => {
           const active = i === focus;
+          const border = active ? a.accent : "#252a38";
           return (
             <button
               key={a.id}
               ref={(el) => {
-                btnRefs.current[i] = el;
+                slotRefs.current[i] = el;
               }}
               onClick={() => choose(a.id)}
               onFocus={() => setFocus(i)}
               onPointerEnter={() => setFocus(i)}
               aria-label={`${a.label}, ${a.title}. ${a.pun}`}
               style={{
-                width: 244,
+                width: 268,
                 maxWidth: "calc(100vw - 40px)",
-                padding: "20px 18px 18px",
-                background: active ? "rgba(12,16,30,0.9)" : "rgba(8,12,24,0.6)",
-                border: `2px solid ${active ? a.accent : a.accent + "44"}`,
-                color: "#fff",
+                padding: 3, // shows as the pixel frame
+                background: border,
+                clipPath: NOTCH,
+                border: "none",
                 cursor: "pointer",
-                textAlign: "center",
-                borderRadius: 14,
-                transform: !reduced && active ? "translateY(-8px)" : "translateY(0)",
-                boxShadow: active ? `0 16px 46px ${a.accent}33, inset 0 0 30px ${a.accent}14` : "none",
-                transition: "transform .16s ease, box-shadow .16s ease, border-color .16s ease, background .16s ease",
-                ...rise(0.14 + i * 0.08),
+                transform: !reduced && active ? "translateY(-6px)" : "none",
+                filter: active ? `drop-shadow(0 12px 26px ${a.accent}44)` : "none",
+                transition: "transform .15s ease, filter .15s ease, background .15s ease",
               }}
             >
-              {/* Portrait: crisp pixel-art, framed like an RPG roster slot. */}
               <div
                 style={{
-                  width: 84,
-                  height: 84,
-                  margin: "0 auto 12px",
-                  display: "grid",
-                  placeItems: "center",
-                  borderRadius: 16,
-                  overflow: "hidden",
-                  background: `radial-gradient(circle at 50% 40%, ${a.accent}26, #05060a 72%)`,
-                  border: `1.5px solid ${active ? a.accent : a.accent + "66"}`,
-                  boxShadow: active ? `inset 0 0 22px ${a.accent}22` : "none",
+                  clipPath: NOTCH,
+                  background: active
+                    ? `radial-gradient(120% 90% at 50% 0%, ${a.accent}14, #0a0d16 60%)`
+                    : "#090c14",
+                  padding: "18px 16px 16px",
+                  textAlign: "center",
                 }}
-                aria-hidden
               >
-                <img
-                  src={a.portrait}
-                  alt=""
-                  width={72}
-                  height={72}
-                  style={{ imageRendering: "pixelated", display: "block" }}
-                />
-              </div>
-              <div style={{ fontSize: 18, fontWeight: 900, letterSpacing: 0.5, color: a.accent }}>
-                {a.label}
-              </div>
-              <div style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 1, color: "#9aa0ac", marginBottom: 10 }}>
-                {a.title.toUpperCase()}
-              </div>
-              <div style={{ fontSize: 12.5, color: "#c4c8d2", lineHeight: 1.45, minHeight: 34, marginBottom: 12 }}>
-                {a.pun}
-              </div>
+                {/* Portrait */}
+                <div
+                  style={{
+                    width: 104,
+                    height: 104,
+                    margin: "0 auto 12px",
+                    display: "grid",
+                    placeItems: "center",
+                    background: "#05060a",
+                    border: `2px solid ${border}`,
+                    boxShadow: active ? `inset 0 0 20px ${a.accent}22` : "none",
+                  }}
+                >
+                  <img
+                    src={a.portrait}
+                    alt=""
+                    width={88}
+                    height={88}
+                    style={{ imageRendering: "pixelated", display: "block", opacity: active ? 1 : 0.82 }}
+                  />
+                </div>
 
-              {/* Stat bars */}
-              <div style={{ display: "grid", gap: 6, marginBottom: 12, textAlign: "left" }}>
-                {a.stats.map((s, si) => (
-                  <div key={s.label} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <span style={{ width: 74, fontSize: 10.5, fontWeight: 700, color: "#8b919e", letterSpacing: 0.3 }}>
-                      {s.label}
-                    </span>
-                    <span style={{ flex: 1, height: 6, background: "#1b2030", borderRadius: 999, overflow: "hidden" }}>
+                <div
+                  style={{
+                    fontSize: 18,
+                    fontWeight: 900,
+                    letterSpacing: 0.5,
+                    color: active ? a.accent : "#c4c8d2",
+                    textShadow: active ? PIXEL_SHADOW : "none",
+                  }}
+                >
+                  {a.label}
+                </div>
+                <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: 1.5, color: "#8b919e", margin: "3px 0 9px" }}>
+                  {a.title.toUpperCase()}
+                </div>
+                <div style={{ fontSize: 12.5, color: "#c4c8d2", lineHeight: 1.45, minHeight: 34, marginBottom: 12 }}>
+                  {a.pun}
+                </div>
+
+                {/* Segmented 8-bit stat blocks */}
+                <div style={{ display: "grid", gap: 6, textAlign: "left" }}>
+                  {a.stats.map((s, si) => (
+                    <div key={s.label} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <span style={{ width: 74, fontSize: 10, fontWeight: 700, color: "#8b919e", letterSpacing: 0.2 }}>
+                        {s.label}
+                      </span>
                       <span
                         style={{
-                          display: "block",
-                          height: "100%",
-                          width: `${s.value * 10}%`,
-                          background: a.accent,
-                          borderRadius: 999,
+                          flex: 1,
+                          display: "flex",
+                          gap: 2,
                           transformOrigin: "left",
-                          animation: reduced ? undefined : `statFill .5s ease ${0.3 + si * 0.08}s both`,
+                          animation: reduced ? undefined : `statFill .45s steps(10) ${0.1 + si * 0.06}s both`,
                         }}
-                      />
-                    </span>
-                  </div>
-                ))}
-              </div>
+                      >
+                        {Array.from({ length: 10 }).map((_, b) => (
+                          <span
+                            key={b}
+                            style={{ flex: 1, height: 8, background: b < s.value ? a.accent : "#1b2030" }}
+                          />
+                        ))}
+                      </span>
+                    </div>
+                  ))}
+                </div>
 
-              <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: 0.5, color: a.accent }}>
-                ★ {a.move}
+                {/* Selection cue */}
+                <div
+                  style={{
+                    marginTop: 12,
+                    fontSize: 10.5,
+                    fontWeight: 900,
+                    letterSpacing: 1.5,
+                    color: a.accent,
+                    visibility: active ? "visible" : "hidden",
+                    animation: reduced ? undefined : "blink 1s steps(1) infinite",
+                  }}
+                >
+                  PRESS ENTER
+                </div>
               </div>
             </button>
           );
         })}
       </div>
 
-      <p style={{ fontSize: 12, color: "#7f8694", marginTop: 22, ...rise(0.5) }}>
-        Arrow keys to browse, Enter to lock it in. (It just picks your badge.)
-      </p>
+      <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1, color: "#7f8694" }}>◄ ► SELECT&nbsp;&nbsp;&nbsp;ENTER START</p>
     </div>
   );
 }
