@@ -1,6 +1,6 @@
 export const mona = {
   id: "mona",
-  title: "Mona — HR Platform",
+  title: "Mona, HR Platform",
   sentimentScores: [12, 25, 40, 78, 92], // Chaos to order arc
   beats: [
     {
@@ -109,7 +109,7 @@ export const mona = {
         "No-code unlocks speed and customization when off-the-shelf tools don't fit. We went from concept to deployed platform in 4 weeks, something that would've taken months with traditional software development or vendor implementation. The flexibility to iterate based on real usage was more valuable than polished UI.",
         "Competition drives excellence. By making two consultants compete for the contract, we got better outcomes than if we'd hired one upfront. The competitive pressure ensured maximum effort, creativity, and responsiveness. This model works for any project where multiple freelancers can deliver in parallel.",
         "Product Management is the skill, not coding. I didn't write code, but I defined requirements, prioritized features, tested prototypes, and drove iteration. The consultants were execution partners, not decision-makers. This reinforced that PM is about identifying problems and validating solutions, not technical implementation.",
-        "Internal tools deserve the same rigor as customer-facing products. HR systems directly impact employee experience, retention, and operational efficiency. Treating this as a real product—with user research, iterative releases, and stakeholder feedback—made the difference between a spreadsheet replacement and a transformative platform.",
+        "Internal tools deserve the same rigor as customer-facing products. HR systems directly impact employee experience, retention, and operational efficiency. Treating this as a real product, with user research, iterative releases, and stakeholder feedback, made the difference between a spreadsheet replacement and a transformative platform.",
         "Incremental releases build momentum and reduce risk. Launching the full platform at once would've been overwhelming and risky. By shipping features weekly, we proved value continuously, adapted based on feedback, and built organizational buy-in before anyone could question whether the project was worth it."
       ]
     }

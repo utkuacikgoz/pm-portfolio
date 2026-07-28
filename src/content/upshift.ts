@@ -2,18 +2,18 @@ import type { CaseStudy } from "./types";
 
 export const upshift: CaseStudy = {
   id: "upshift",
-  title: "Upshift — Builder PM",
+  title: "Upshift, Builder PM",
   sentimentScores: [20, 35, 50, 75, 92],
   beats: [
     {
       id: "problem",
       body: [
-        "Upshift had hit product-market fit as a two-sided marketplace — 50K+ businesses, 200K+ hourly workers, 20 states. But three visions were pulling it apart: Sales wanted to chase enterprise, Operations was drowning in growth, and Engineering shipped without PM input and kept breaking things Sales had already promised customers.",
+        "Upshift had hit product-market fit as a two-sided marketplace, 50K+ businesses, 200K+ hourly workers, 20 states. But three visions were pulling it apart: Sales wanted to chase enterprise, Operations was drowning in growth, and Engineering shipped without PM input and kept breaking things Sales had already promised customers.",
         "Underneath it was a simple gap: zero product discipline. $35M ARR, no roadmap, no prioritization, no PM function at all. Engineering was burned out from constant context-switching, Sales was furious about indefinite delays, and Ops was firefighting customer chaos.",
         "The number that ended the debate: in 40+ interviews we found we'd lost five of eight enterprise customers in six months, specifically over product inconsistency and broken integrations.",
       ],
       insight:
-        "A company can have product-market fit and still be quietly losing its best customers — because nobody owns the product.",
+        "A company can have product-market fit and still be quietly losing its best customers, because nobody owns the product.",
       stakeholders: [
         { name: "VP Sales", role: "Growth & Revenue", color: "#FF0080" },
         { name: "CTO", role: "Technical Strategy", color: "#00FFFF" },
@@ -25,9 +25,9 @@ export const upshift: CaseStudy = {
     {
       id: "constraints",
       body: [
-        "The company was spread across the US, the Philippines, Macedonia and Poland, with genuinely different decision-making cultures — US leadership direct and data-driven, the Asian teams consensus-first. A single product discipline risked looking like Western process imposed on everyone else.",
-        "Engineering had a culture of independence — great for speed, terrible for consistency — and the CTO pushed back on structured prioritization at first. Sales wanted daily feature requests; Customer Success wanted whatever made clients happier. Every constraint was legitimate; they just pointed in different directions.",
-        "And the behavioural one: leadership was skeptical of product management. They'd never worked with PMs, saw them as overhead, and weren't especially technical — so I had to explain the value of product discipline with zero jargon.",
+        "The company was spread across the US, the Philippines, Macedonia and Poland, with genuinely different decision-making cultures, US leadership direct and data-driven, the Asian teams consensus-first. A single product discipline risked looking like Western process imposed on everyone else.",
+        "Engineering had a culture of independence, great for speed, terrible for consistency, and the CTO pushed back on structured prioritization at first. Sales wanted daily feature requests; Customer Success wanted whatever made clients happier. Every constraint was legitimate; they just pointed in different directions.",
+        "And the behavioural one: leadership was skeptical of product management. They'd never worked with PMs, saw them as overhead, and weren't especially technical, so I had to explain the value of product discipline with zero jargon.",
       ],
       decisions: [
         { label: "Slow Rollout (Safety)", speed: 30, risk: 15, isChosen: false, color: "#FF6B35" },
@@ -38,9 +38,9 @@ export const upshift: CaseStudy = {
     {
       id: "approach",
       body: [
-        "Instead of imposing a framework, I went with gradual institutionalization: start light, prove value, build consensus across the distributed teams. Week one was user research and a data audit, no politics. Week two, bi-weekly Product Reviews with Sales, Ops and Engineering in the same room — transparency over process. Week three, a simple OKR and prioritization model that tied specific features to churn and unit economics.",
-        "I hired and mentored a five-person product and design team — 60+ interviews, time-to-hire down 25% through a structured assessment. Then we let the data pick the work instead of the loudest voice in the room.",
-        "We shipped four AI-driven retention features: churn prediction, smart shift recommendations, worker performance scoring and dynamic pricing. Lead conversion rose 12% and monthly churn dropped from 8% to 4% — an eight-figure annual swing. Shipping off churn data instead of ad-hoc requests is what proved product discipline accelerates revenue rather than slowing it.",
+        "Instead of imposing a framework, I went with gradual institutionalization: start light, prove value, build consensus across the distributed teams. Week one was user research and a data audit, no politics. Week two, bi-weekly Product Reviews with Sales, Ops and Engineering in the same room, transparency over process. Week three, a simple OKR and prioritization model that tied specific features to churn and unit economics.",
+        "I hired and mentored a five-person product and design team, 60+ interviews, time-to-hire down 25% through a structured assessment. Then we let the data pick the work instead of the loudest voice in the room.",
+        "We shipped four AI-driven retention features: churn prediction, smart shift recommendations, worker performance scoring and dynamic pricing. Lead conversion rose 12% and monthly churn dropped from 8% to 4%, an eight-figure annual swing. Shipping off churn data instead of ad-hoc requests is what proved product discipline accelerates revenue rather than slowing it.",
       ],
       insight:
         "You don't win skeptics with a framework. You win them by tying one feature to one number they already care about.",
@@ -54,9 +54,9 @@ export const upshift: CaseStudy = {
     {
       id: "results",
       body: [
-        "Churn went 8% → 4% monthly, which unlocked $5M+ in new enterprise contracts — customers who stay are worth more — and pushed revenue per customer up 18% because we could spend on success instead of acquisition.",
-        "Lead conversion went 8.2% → 9.2%. Small on paper, but at $30M ARR every point is ~$80K a year, and the four retention features added $320K inside twelve months — roughly an 18× return on the product team in year one.",
-        "On the team side: five product and design hires across four regions, and Engineering went from 70% context-switching to 20% (tracked in the project data). That freed about ten engineer-months a quarter for real product work — two engineers' worth of capacity without the headcount.",
+        "Churn went 8% → 4% monthly, which unlocked $5M+ in new enterprise contracts, customers who stay are worth more, and pushed revenue per customer up 18% because we could spend on success instead of acquisition.",
+        "Lead conversion went 8.2% → 9.2%. Small on paper, but at $30M ARR every point is ~$80K a year, and the four retention features added $320K inside twelve months, roughly an 18× return on the product team in year one.",
+        "On the team side: five product and design hires across four regions, and Engineering went from 70% context-switching to 20% (tracked in the project data). That freed about ten engineer-months a quarter for real product work, two engineers' worth of capacity without the headcount.",
         "And the mindset shifted. The CEO went from 'PM is overhead' to putting Product on the board agenda. That change mattered more than any single metric for the next phase of scaling.",
       ],
       metrics: [

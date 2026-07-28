@@ -15,7 +15,7 @@ interface Props {
  */
 export default function WorldNav({ projects, active, onFocus, onOpen }: Props) {
   return (
-    <nav aria-label="Career world — projects" className="sr-only">
+    <nav aria-label="Career world, projects" className="sr-only">
       <ul>
         {projects.map((p, i) => (
           <li key={p.id}>
@@ -24,7 +24,7 @@ export default function WorldNav({ projects, active, onFocus, onOpen }: Props) {
               onFocus={() => onFocus(i)}
               onClick={() => onOpen(i)}
             >
-              {p.title} — {p.tagline}. Open case study.
+              {p.title}: {p.tagline}. Open case study.
             </button>
           </li>
         ))}

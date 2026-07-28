@@ -9,6 +9,7 @@ interface Props {
   activeIndex: number;
   accent: string;
   entered: boolean;
+  surfing: boolean;
 }
 
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
@@ -22,7 +23,7 @@ const ORBIT_HEIGHT = 7;
  * last employment island glides across the water gap to the indie island. While
  * over water, a surfboard (with a little rider) rides the surface for personality.
  */
-export default function CameraRig({ activeIndex, accent, entered }: Props) {
+export default function CameraRig({ activeIndex, accent, entered, surfing }: Props) {
   const gl = useThree((s) => s.gl);
   const regress = useThree((s) => s.performance.regress);
   const reduced = usePrefersReducedMotion();
@@ -82,6 +83,8 @@ export default function CameraRig({ activeIndex, accent, entered }: Props) {
   }, [gl, regress]);
 
   useFrame((state, dt) => {
+    // Surf mode owns the camera; stand down so we don't fight over it.
+    if (surfing) return;
     const k = 1 - Math.exp(-3.5 * dt);
     // Slower enter easing → a more cinematic dive from the establishing shot.
     enterT.current += ((entered ? 1 : 0) - enterT.current) * (1 - Math.exp(-1.5 * dt));
@@ -108,7 +111,8 @@ export default function CameraRig({ activeIndex, accent, entered }: Props) {
       cz + Math.cos(a) * ORBIT_RADIUS
     );
     // Establishing shot: higher + further back so "Begin" descends further.
-    wPos.current.set(CENTER_X + Math.sin(t * 0.1) * 3, 26, 56);
+    // Pulled back a touch for the roomier world.
+    wPos.current.set(CENTER_X + Math.sin(t * 0.1) * 3, 30, 64);
 
     const e = enterT.current;
     tPos.current.copy(wPos.current).lerp(iPos.current, e);

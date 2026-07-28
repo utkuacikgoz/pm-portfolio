@@ -42,8 +42,8 @@ export default function Resume() {
         </p>
         <p style={{ color: "#c4c8d2", fontSize: 15, marginTop: 12, lineHeight: 1.75 }}>
           8+ years and 11+ products shipped across fintech, blockchain, e-commerce, food delivery and
-          marketplaces. I lead distributed teams — up to 25 people across Turkey, the UAE, KSA and the
-          US — and lean hard on analytics and AI to ship. Certified Scrum Master (PSM I) and Product
+          marketplaces. I lead distributed teams, up to 25 people across Turkey, the UAE, KSA and the
+          US, and lean hard on analytics and AI to ship. Certified Scrum Master (PSM I) and Product
           Owner (PSPO I).
         </p>
         <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginTop: 20, alignItems: "center" }}>

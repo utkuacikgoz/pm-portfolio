@@ -10,7 +10,10 @@ import HeroIntro from "../ui/HeroIntro";
 import ErrorBoundary from "../ui/ErrorBoundary";
 import EggToast from "../ui/EggToast";
 import SoundToggle from "../ui/SoundToggle";
-import { sfx } from "../audio/sfx";
+import StoryCaption from "../ui/StoryCaption";
+import AvatarSelect from "../ui/AvatarSelect";
+import { readAvatar, avatarById } from "../ui/avatars";
+import { sfx, armAudio } from "../audio/sfx";
 import { useKeySequence, KONAMI, HIRE } from "../ui/hooks/useKeySequence";
 import { markEggId } from "../state/progress";
 import FlatMap from "./FlatMap";
@@ -32,6 +35,12 @@ export default function WorldExperience() {
   const [showHint, setShowHint] = useState(false);
   const [flashing, setFlashing] = useState(false);
   const [celebrate, setCelebrate] = useState(false);
+  const [surfing, setSurfing] = useState(false);
+  // Playful "who's looking?" gate, shown once before the experience (skipped on
+  // deep links). Fun label only — surfaces as a small badge, no story branching.
+  const [avatar, setAvatar] = useState<string | null>(() => readAvatar());
+  const needAvatar = avatar === null && openIndex < 0;
+  const chosenAvatar = avatar ? avatarById(avatar) : undefined;
   const opener = useRef<HTMLElement | null>(null);
   const prevActive = useRef(active);
   const suppressTravel = useRef(false);
@@ -50,6 +59,24 @@ export default function WorldExperience() {
     HIRE,
     useCallback(() => markEggId("hire"), [])
   );
+
+  // Sound is on by default; start the waterfall on the first user gesture.
+  useEffect(() => armAudio(), []);
+
+  // Free surf mode: hop on the board and roam the ocean; Esc comes back.
+  const enterSurf = useCallback(() => {
+    setSurfing(true);
+    sfx.play("enter");
+  }, []);
+  const exitSurf = useCallback(() => setSurfing(false), []);
+  useEffect(() => {
+    if (!surfing) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setSurfing(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [surfing]);
 
   // Begin: punctuate the camera dive with a quick accent wash, then enter.
   const beginJourney = useCallback(() => {
@@ -120,7 +147,7 @@ export default function WorldExperience() {
   // Arrow-key travel + Enter to open, for mouse users focused on the canvas/body.
   // Skipped when focus is on an interactive element (WorldNav handles its own keys).
   useEffect(() => {
-    if (panelOpen || !entered) return;
+    if (panelOpen || !entered || surfing) return; // surf mode owns the arrows
     const onKey = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement | null;
       if (t && ["BUTTON", "A", "INPUT", "TEXTAREA"].includes(t.tagName)) return;
@@ -130,29 +157,66 @@ export default function WorldExperience() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [panelOpen, entered, active, open, projects.length]);
+  }, [panelOpen, entered, surfing, active, open, projects.length]);
 
   return (
-    <div style={{ minHeight: "100vh", background: "#05060a" }}>
+    <div
+      style={{
+        minHeight: "100vh",
+        // Tropical-dusk sky: shows through the transparent WebGL canvas as the
+        // backdrop. Deep indigo up top → teal → warm turquoise at the horizon.
+        background:
+          "linear-gradient(180deg, #0a0e24 0%, #0f2a3f 44%, #14495a 74%, #1f6f74 100%)",
+      }}
+    >
       <Link to="/resume" className="skip-link">
         Skip to resume
       </Link>
       <EscapeHatch />
       <SoundToggle />
+      {entered && chosenAvatar && (
+        <div
+          style={{
+            position: "fixed",
+            left: 72,
+            bottom: "calc(24px + env(safe-area-inset-bottom))",
+            zIndex: 50,
+            display: "flex",
+            alignItems: "center",
+            gap: 7,
+            padding: "7px 12px",
+            background: "rgba(7,8,12,0.72)",
+            border: `1px solid ${chosenAvatar.accent}55`,
+            borderRadius: 999,
+            fontSize: 12,
+            fontWeight: 700,
+            color: "#c4c8d2",
+            backdropFilter: "blur(6px)",
+            pointerEvents: "none",
+          }}
+        >
+          <span aria-hidden>{chosenAvatar.emoji}</span>
+          <span>{chosenAvatar.label} mode</span>
+        </div>
+      )}
       <EggToast />
       <WorldNav projects={projects} active={active} onFocus={setActive} onOpen={open} />
 
       {mode === "world" ? (
         <ErrorBoundary fallback={<FlatMap projects={projects} onOpen={open} />}>
           <Suspense fallback={<WorldLoading />}>
-            <World activeIndex={active} entered={entered} onOpen={open} />
+            <World activeIndex={active} entered={entered} surfing={surfing} onOpen={open} />
           </Suspense>
         </ErrorBoundary>
       ) : (
         <FlatMap projects={projects} onOpen={open} />
       )}
 
-      {mode === "world" && !entered && !panelOpen && <HeroIntro onBegin={beginJourney} />}
+      {needAvatar && <AvatarSelect onPick={setAvatar} />}
+
+      {mode === "world" && !entered && !panelOpen && !needAvatar && (
+        <HeroIntro onBegin={beginJourney} />
+      )}
 
       {flashing && (
         <div
@@ -208,8 +272,9 @@ export default function WorldExperience() {
         </div>
       )}
 
-      {mode === "world" && entered && !panelOpen && !isIndie && (
+      {mode === "world" && entered && !panelOpen && !isIndie && !surfing && (
         <>
+          <StoryCaption key={projects[active].id} project={projects[active]} />
           <TitleCard
             project={projects[active]}
             index={active}
@@ -237,11 +302,75 @@ export default function WorldExperience() {
           >
             🏄 What I'm building →
           </button>
+          <button
+            onClick={enterSurf}
+            style={{
+              position: "fixed",
+              bottom: "calc(74px + env(safe-area-inset-bottom))",
+              right: 24,
+              zIndex: 44,
+              padding: "11px 18px",
+              background: "rgba(7,8,12,0.85)",
+              border: "2px solid #00CFFF",
+              color: "#00CFFF",
+              fontSize: 13,
+              fontWeight: 800,
+              cursor: "pointer",
+              backdropFilter: "blur(6px)",
+            }}
+          >
+            🏄 Free surf
+          </button>
         </>
       )}
 
-      {mode === "world" && entered && !panelOpen && isIndie && (
+      {mode === "world" && entered && !panelOpen && isIndie && !surfing && (
         <IndieOverlay onBack={() => setActive(INDIE_INDEX - 1)} />
+      )}
+
+      {mode === "world" && surfing && (
+        <>
+          <div
+            style={{
+              position: "fixed",
+              top: 76,
+              left: "50%",
+              transform: "translateX(-50%)",
+              zIndex: 45,
+              padding: "8px 16px",
+              background: "rgba(7,8,12,0.8)",
+              border: "1px solid #23283a",
+              borderRadius: 999,
+              fontSize: 12.5,
+              fontWeight: 600,
+              color: "#c4c8d2",
+              whiteSpace: "nowrap",
+              pointerEvents: "none",
+            }}
+          >
+            🏄 WASD or arrows to surf · Esc to come back
+          </div>
+          <button
+            onClick={exitSurf}
+            style={{
+              position: "fixed",
+              bottom: "calc(28px + env(safe-area-inset-bottom))",
+              left: "50%",
+              transform: "translateX(-50%)",
+              zIndex: 44,
+              padding: "11px 20px",
+              background: "rgba(7,8,12,0.85)",
+              border: "2px solid #00CFFF",
+              color: "#00CFFF",
+              fontSize: 13,
+              fontWeight: 800,
+              cursor: "pointer",
+              backdropFilter: "blur(6px)",
+            }}
+          >
+            Exit surf
+          </button>
+        </>
       )}
 
       {panelOpen && <ProjectPanel project={projects[openIndex]} onClose={close} />}

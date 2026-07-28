@@ -1,10 +1,10 @@
 import { useSyncExternalStore } from "react";
 
-// Tiny Web-Audio sound layer: all SFX are synthesized (oscillator + gain
-// envelope) so there is ZERO asset payload. Muted by default (recruiters may
-// open this in an office); state persists in localStorage. The AudioContext is
-// created/resumed lazily on the first user gesture (unmute / Begin), so we never
-// fight the browser autoplay policy.
+// Tiny Web-Audio sound layer: all SFX + the ambient waterfall are synthesized
+// (oscillators / filtered noise) so there is ZERO asset payload. Sound is ON by
+// default; state persists in localStorage and there's an always-visible toggle.
+// The AudioContext can't start without a user gesture, so `armAudio()` starts
+// the waterfall on the first pointer/key event — no autoplay-policy fights.
 
 const KEY = "pmworld.sound.v1";
 const EVENT = "pmworld:sound";
@@ -20,9 +20,9 @@ let master: GainNode | null = null;
 let ambient: Ambient | null = null;
 
 function readMuted(): boolean {
-  if (typeof localStorage === "undefined") return true;
+  if (typeof localStorage === "undefined") return false;
   const v = localStorage.getItem(KEY);
-  return v === null ? true : v !== "on"; // default muted
+  return v === null ? false : v !== "on"; // default ON (unmuted)
 }
 
 let muted = readMuted();
@@ -82,48 +82,87 @@ function arp(freqs: number[], step: number, dur: number, type: OscillatorType, p
   freqs.forEach((f, i) => note(f, dur, type, peak, { at: base + i * step }));
 }
 
+function makeNoiseBuffer(c: AudioContext): AudioBuffer {
+  const len = Math.floor(c.sampleRate * 2); // 2s seamless loop
+  const buf = c.createBuffer(1, len, c.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1;
+  return buf;
+}
+
+// A calming waterfall: looping noise split into a low rumble body + an airy
+// high "rush" whose level slowly swells so it moves rather than hisses flatly.
 function startAmbient() {
   const c = ensureCtx();
   if (!c || !master || ambient) return;
-  const a = c.createGain();
-  a.gain.value = 0.0001;
-  a.connect(master);
+  const out = c.createGain();
+  out.gain.value = 0.0001;
+  out.connect(master);
+
+  const src = c.createBufferSource();
+  src.buffer = makeNoiseBuffer(c);
+  src.loop = true;
+
+  // Body: low rumble of falling water.
   const lp = c.createBiquadFilter();
   lp.type = "lowpass";
-  lp.frequency.value = 620;
-  lp.connect(a);
-  const o1 = c.createOscillator();
-  o1.type = "sine";
-  o1.frequency.value = 110;
-  const o2 = c.createOscillator();
-  o2.type = "sine";
-  o2.frequency.value = 110 * 1.008; // gentle detune → slow beating
-  o1.connect(lp);
-  o2.connect(lp);
-  // Very slow swell so the pad breathes rather than drones.
+  lp.frequency.value = 640;
+  const lpGain = c.createGain();
+  lpGain.gain.value = 0.85;
+  src.connect(lp).connect(lpGain).connect(out);
+
+  // Rush: airy band that swells via a slow LFO.
+  const bp = c.createBiquadFilter();
+  bp.type = "bandpass";
+  bp.frequency.value = 3200;
+  bp.Q.value = 0.7;
+  const bpGain = c.createGain();
+  bpGain.gain.value = 0.16;
+  src.connect(bp).connect(bpGain).connect(out);
+
   const lfo = c.createOscillator();
-  lfo.frequency.value = 0.06;
+  lfo.frequency.value = 0.12;
   const lfoGain = c.createGain();
-  lfoGain.gain.value = 0.018;
-  lfo.connect(lfoGain).connect(a.gain);
+  lfoGain.gain.value = 0.06;
+  lfo.connect(lfoGain).connect(bpGain.gain);
+
   const t = c.currentTime;
-  a.gain.setValueAtTime(0.0001, t);
-  a.gain.linearRampToValueAtTime(0.03, t + 2);
-  o1.start();
-  o2.start();
+  out.gain.setValueAtTime(0.0001, t);
+  out.gain.linearRampToValueAtTime(0.16, t + 2.5); // gentle fade-in
+
+  src.start();
   lfo.start();
   ambient = {
     stop: () => {
       const now = c.currentTime;
-      a.gain.cancelScheduledValues(now);
-      a.gain.setValueAtTime(a.gain.value, now);
-      a.gain.linearRampToValueAtTime(0.0001, now + 0.4);
-      o1.stop(now + 0.5);
-      o2.stop(now + 0.5);
-      lfo.stop(now + 0.5);
+      out.gain.cancelScheduledValues(now);
+      out.gain.setValueAtTime(out.gain.value, now);
+      out.gain.linearRampToValueAtTime(0.0001, now + 0.5);
+      src.stop(now + 0.6);
+      lfo.stop(now + 0.6);
       ambient = null;
     },
   };
+}
+
+// Sound is on by default, but a browser won't let the AudioContext start until
+// the user interacts. Start the waterfall on the first gesture (if not muted).
+let armed = false;
+export function armAudio() {
+  if (armed || typeof window === "undefined") return;
+  armed = true;
+  const kick = () => {
+    window.removeEventListener("pointerdown", kick);
+    window.removeEventListener("keydown", kick);
+    window.removeEventListener("touchstart", kick);
+    if (!muted) {
+      ensureCtx();
+      startAmbient();
+    }
+  };
+  window.addEventListener("pointerdown", kick);
+  window.addEventListener("keydown", kick);
+  window.addEventListener("touchstart", kick);
 }
 
 export const sfx = {

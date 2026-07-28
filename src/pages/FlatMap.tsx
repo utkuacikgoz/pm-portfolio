@@ -182,7 +182,7 @@ export default function FlatMap({ projects, onOpen }: Props) {
             to="/resume"
             style={{ padding: "12px 22px", border: "2px solid #00FFFF", color: "#00FFFF", fontSize: 14, fontWeight: 800 }}
           >
-            Full résumé
+            Full resume
           </Link>
         </div>
       </div>

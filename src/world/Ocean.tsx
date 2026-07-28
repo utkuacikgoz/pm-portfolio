@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { INDIE_PROJECTS, PUBLISHED_PROJECTS } from "../projects/projects";
-import { islandPosition, INDIE_INDEX, WATER_Y } from "./geometry";
+import { islandPosition, INDIE_INDEX, WATER_Y, EMP_COUNT, SPACING } from "./geometry";
 import { usePrefersReducedMotion } from "../ui/hooks/useReducedMotion";
 
 // The sea the islands float on, and the separate "what I'm building" island you
@@ -10,10 +10,29 @@ import { usePrefersReducedMotion } from "../ui/hooks/useReducedMotion";
 
 export function Water() {
   return (
-    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[44, WATER_Y, 0]} raycast={() => null}>
-      <planeGeometry args={[460, 260]} />
-      <meshStandardMaterial color="#081420" roughness={0.18} metalness={0.35} transparent opacity={0.97} />
+    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[60, WATER_Y, 0]} raycast={() => null}>
+      <planeGeometry args={[600, 320]} />
+      {/* Dusk turquoise, reflective enough to catch the warm sun + neon accents. */}
+      <meshStandardMaterial color="#0c3a44" roughness={0.16} metalness={0.4} transparent opacity={0.96} />
     </mesh>
+  );
+}
+
+// A low, warm sun sinking into the sea behind the islands — anchors the
+// tropical-dusk mood. Pure emissive disc + a soft additive glow halo.
+export function SunDisc() {
+  const cx = ((EMP_COUNT - 1) / 2) * SPACING;
+  return (
+    <group position={[cx, 4, -120]}>
+      <mesh raycast={() => null}>
+        <circleGeometry args={[14, 48]} />
+        <meshBasicMaterial color="#ffb066" />
+      </mesh>
+      <mesh position={[0, 0, -1]} raycast={() => null}>
+        <circleGeometry args={[26, 48]} />
+        <meshBasicMaterial color="#ff8a5c" transparent opacity={0.28} blending={THREE.AdditiveBlending} />
+      </mesh>
+    </group>
   );
 }
 

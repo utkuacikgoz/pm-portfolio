@@ -1,15 +1,21 @@
 import { useMemo, useState } from "react";
 import { Canvas } from "@react-three/fiber";
-import { Instances, Instance, AdaptiveDpr, PerformanceMonitor } from "@react-three/drei";
+import { Instances, Instance, AdaptiveDpr, PerformanceMonitor, Stars } from "@react-three/drei";
 import { PUBLISHED_PROJECTS } from "../projects/projects";
 import { buildWorld } from "./geometry";
 import CameraRig from "./CameraRig";
 import Emblems from "./Emblems";
-import { Water, IndieIsland, Ripples, LightShaft } from "./Ocean";
+import SurfController from "./SurfController";
+import { Water, IndieIsland, Ripples, LightShaft, SunDisc } from "./Ocean";
+
+// Horizon color the fog fades islands into — matches the bottom of the CSS dusk
+// gradient behind the (transparent) canvas so the world melts into the sky.
+const HORIZON = "#164e5a";
 
 interface Props {
   activeIndex: number;
   entered: boolean;
+  surfing: boolean;
   onOpen: (i: number) => void;
 }
 
@@ -18,7 +24,7 @@ interface Props {
  * across every island lives in a single <Instances> (one draw call, per-instance
  * color) — no per-cube draw calls. Lazy-loaded so three.js only ships here.
  */
-export default function World({ activeIndex, entered, onOpen }: Props) {
+export default function World({ activeIndex, entered, surfing, onOpen }: Props) {
   const cubes = useMemo(() => buildWorld(PUBLISHED_PROJECTS), []);
   const accent = PUBLISHED_PROJECTS[activeIndex]?.accent ?? "#FF0080";
   const [dpr, setDpr] = useState(1.5);
@@ -30,18 +36,24 @@ export default function World({ activeIndex, entered, onOpen }: Props) {
       // to crisp when it settles — keeps orbit/travel smooth on weaker GPUs.
       performance={{ min: 0.5 }}
       camera={{ position: [0, 7, 16], fov: 45 }}
-      gl={{ antialias: true, powerPreference: "high-performance" }}
+      // Transparent canvas so the CSS dusk gradient (page wrapper) shows through
+      // as the sky — a gradient for free, no GL cost.
+      gl={{ antialias: true, powerPreference: "high-performance", alpha: true }}
       style={{ position: "fixed", inset: 0 }}
       aria-hidden="true"
     >
-      <color attach="background" args={["#05060a"]} />
-      <fog attach="fog" args={["#05060a", 20, 70]} />
+      {/* Fog fades islands into the horizon color; far plane covers the wider world. */}
+      <fog attach="fog" args={[HORIZON, 34, 130]} />
 
-      {/* Physically-based intensities (r3f v9 / three r155+). Ambient + hemisphere
-          carry base visibility (distance-independent); directional adds form. */}
-      <ambientLight intensity={1.3} />
-      <hemisphereLight args={["#9fb4ff", "#0a0c12", 1.6]} />
-      <directionalLight position={[8, 14, 6]} intensity={2.6} />
+      {/* Tropical-dusk lighting: teal sky bounce + a warm low sun. PBR intensities
+          (r3f v9 / three r155+) — ambient + hemisphere carry base visibility. */}
+      <ambientLight intensity={1.15} />
+      <hemisphereLight args={["#bfe6e0", "#0a1a1e", 1.5]} />
+      <directionalLight position={[-14, 8, 8]} intensity={2.4} color="#ffcfa0" />
+
+      {/* A few faint stars in the upper dusk sky. */}
+      <Stars radius={120} depth={40} count={700} factor={3} saturation={0} fade speed={0.6} />
+      <SunDisc />
 
       <PerformanceMonitor
         onDecline={() => setDpr(1)}
@@ -62,7 +74,8 @@ export default function World({ activeIndex, entered, onOpen }: Props) {
       <LightShaft active={activeIndex} />
       <IndieIsland />
       <Emblems active={activeIndex} onOpen={onOpen} />
-      <CameraRig activeIndex={activeIndex} accent={accent} entered={entered} />
+      <SurfController active={surfing} />
+      <CameraRig activeIndex={activeIndex} accent={accent} entered={entered} surfing={surfing} />
     </Canvas>
   );
 }

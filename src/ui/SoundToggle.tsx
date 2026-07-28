@@ -1,9 +1,9 @@
 import { sfx, useSound } from "../audio/sfx";
 
 /**
- * Bottom-left speaker toggle. Sound is muted by default (office-safe); this is
- * the always-visible way to turn on the ambient pad + interaction SFX. State
- * persists across visits.
+ * Bottom-left speaker toggle. Sound (waterfall bed + interaction SFX) is ON by
+ * default; this is the always-visible way to mute it. State persists across
+ * visits.
  */
 export default function SoundToggle() {
   const { muted, toggle } = useSound();

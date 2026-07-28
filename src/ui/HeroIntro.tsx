@@ -28,10 +28,11 @@ export default function HeroIntro({ onBegin }: { onBegin: () => void }) {
         justifyContent: "center",
         textAlign: "center",
         padding: 24,
-        // Light cinematic grade + edge vignette — lets the world read through
-        // while keeping the copy legible (reinforced by text-shadow below).
+        // Entrance stays black-neon (Utku's call): opaque black base with a
+        // faint magenta/cyan glow. The tropical-dusk world is revealed only
+        // after Begin dives the camera in.
         background:
-          "radial-gradient(circle at 50% 42%, rgba(5,6,10,0.12) 0%, rgba(5,6,10,0.55) 55%, rgba(5,6,10,0.82) 100%)",
+          "radial-gradient(120% 80% at 50% 8%, rgba(255,0,128,0.10), transparent 46%), radial-gradient(120% 80% at 50% 100%, rgba(0,255,255,0.08), transparent 52%), radial-gradient(circle at 50% 42%, #0a0a14 0%, #050509 62%, #020204 100%)",
         textShadow: "0 2px 24px rgba(0,0,0,0.85), 0 1px 3px rgba(0,0,0,0.9)",
       }}
     >
