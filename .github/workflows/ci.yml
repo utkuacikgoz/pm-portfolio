@@ -27,10 +27,11 @@ jobs:
         run: npm run coverage
       - name: Build (vite)
         run: npm run build
-      - name: Dependency audit (high+)
-        # Low/moderate dev-only advisories (esbuild dev-server, Windows-only) are
-        # accepted per CLAUDE.md; fail only on high/critical. Runtime deps are clean.
-        run: npm audit --audit-level=high
+      - name: Dependency audit (prod high+, allowlisted)
+        # Fails on high/critical advisories in PRODUCTION deps only (dev-only
+        # tooling advisories never ship and are accepted per CLAUDE.md), minus a
+        # small documented allowlist. See scripts/check-audit.mjs.
+        run: node scripts/check-audit.mjs
 
   secret-scan:
     runs-on: ubuntu-latest
