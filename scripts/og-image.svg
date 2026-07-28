@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2400" height="2400" viewBox="0 0 2400 2400">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0e1f1c"/>
+      <stop offset="0.45" stop-color="#24304c"/>
+      <stop offset="0.74" stop-color="#4b3a5c"/>
+      <stop offset="1" stop-color="#b56a4d"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.9" r="0.7">
+      <stop offset="0" stop-color="#E7684A" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#E7684A" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Outer padding matches the top of the sky so the center crop is seamless.
+       qlmanage renders a square; the design lives in the center 2400x1260 band
+       (y 570..1830), which is what we crop to. -->
+  <rect width="2400" height="2400" fill="#0e1f1c"/>
+
+  <g transform="translate(0,570)">
+    <rect width="2400" height="1260" fill="url(#sky)"/>
+    <rect width="2400" height="1260" fill="url(#glow)"/>
+
+    <!-- Utku logo mark -->
+    <g transform="translate(176,120) scale(1.9)">
+      <path d="M24 48C37.2548 48 48 37.2548 48 24C48 10.7452 37.2548 0 24 0C10.7452 0 0 10.7452 0 24C0 37.2548 10.7452 48 24 48Z" fill="#224930"/>
+      <path d="M48 0H0V24H48V0Z" fill="#224930"/>
+      <path d="M96 15H48V33H96V15Z" fill="#E7684A"/>
+      <path d="M81 48V0L63 0V48H81Z" fill="#E7684A"/>
+      <path d="M72 96C85.2548 96 96 85.2548 96 72C96 58.7452 85.2548 48 72 48C58.7452 48 48 58.7452 48 72C48 85.2548 58.7452 96 72 96Z" fill="#5D74C5"/>
+      <path d="M96 48H48V72H96V48Z" fill="#5D74C5"/>
+      <path d="M24 72L48 48H0V96H48L24 72Z" fill="#D17AC6"/>
+    </g>
+
+    <text x="180" y="440" font-family="Helvetica, Arial, sans-serif" font-size="40" font-weight="700" letter-spacing="13" fill="#8FA0DB">UTKU ACIKGOZ</text>
+
+    <text x="174" y="600" font-family="Helvetica, Arial, sans-serif" font-size="150" font-weight="800" fill="#f4f6fa">Senior Technical</text>
+    <text x="174" y="760" font-family="Helvetica, Arial, sans-serif" font-size="150" font-weight="800" fill="#f4f6fa">Product Manager</text>
+
+    <text x="180" y="880" font-family="Helvetica, Arial, sans-serif" font-size="46" font-weight="500" fill="#d7dbe6">8+ years across fintech, blockchain, HRtech and SaaS. 11 products shipped.</text>
+
+    <g font-family="Helvetica, Arial, sans-serif" font-size="44" font-weight="700">
+      <text x="180" y="1030" fill="#6E86D6">BiLira</text>
+      <text x="400" y="1030" fill="#E0A45C">Mestores</text>
+      <text x="720" y="1030" fill="#3FA46A">Apollo</text>
+      <text x="950" y="1030" fill="#CB7BC7">La3eb</text>
+      <text x="1180" y="1030" fill="#E7684A">Upshift</text>
+    </g>
+
+    <text x="2220" y="1150" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="38" font-weight="600" fill="#aab0c0">portfolio.utkuacikgoz.com</text>
+  </g>
+</svg>
