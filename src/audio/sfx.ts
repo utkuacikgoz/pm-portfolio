@@ -9,7 +9,7 @@ import { useSyncExternalStore } from "react";
 const KEY = "pmworld.sound.v1";
 const EVENT = "pmworld:sound";
 
-export type SfxName = "enter" | "travel" | "open" | "close" | "read" | "egg" | "toggle";
+export type SfxName = "enter" | "travel" | "open" | "close" | "read" | "egg" | "toggle" | "coin";
 
 interface Ambient {
   stop: () => void;
@@ -275,6 +275,9 @@ export const sfx = {
         break;
       case "toggle":
         note(300, 0.05, "square", 0.07);
+        break;
+      case "coin":
+        note(880, 0.06, "triangle", 0.08, { slideTo: 1320 });
         break;
     }
   },
