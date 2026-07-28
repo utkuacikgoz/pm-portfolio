@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
-import { WATER_Y } from "./geometry";
+import { WATER_Y, seaHeight } from "./geometry";
 import Surfer from "./Surfer";
 import { nearestTakeoff, type SurfSpot } from "./surf-spots";
 import { surfSignal } from "./surf-signal";
@@ -149,8 +149,12 @@ export default function SurfController({
     const fwd = (k["w"] || k["arrowup"] ? 1 : 0) - (k["s"] || k["arrowdown"] ? 1 : 0);
     const turn = (k["a"] || k["arrowleft"] ? 1 : 0) - (k["d"] || k["arrowright"] ? 1 : 0);
 
-    heading.current += turn * 1.9 * d;
-    const targetSpeed = fwd * 18; // units / sec
+    // Carve harder the faster you go, and get a little drive out of a hard turn
+    // (a cutback pump) — it's a surfer's world.
+    const bite = 0.6 + Math.min(1, Math.abs(speed.current) / 18) * 0.75;
+    heading.current += turn * 2.1 * bite * d;
+    let targetSpeed = fwd * 18; // units / sec
+    if (turn !== 0 && speed.current > 6) targetSpeed += Math.min(6, speed.current * 0.35);
     speed.current += (targetSpeed - speed.current) * (1 - Math.exp(-3 * d));
 
     // ── Jump (ollie) ─────────────────────────────────────────────────────────
@@ -198,21 +202,34 @@ export default function SurfController({
 
     pos.current.x += Math.sin(heading.current) * speed.current * d;
     pos.current.z += Math.cos(heading.current) * speed.current * d;
-    // Keep the surfer within a generous ocean bound.
-    pos.current.x = THREE.MathUtils.clamp(pos.current.x, -60, 220);
-    pos.current.z = THREE.MathUtils.clamp(pos.current.z, -130, 130);
 
-    // ── Collision: push the board out of solid landmasses ────────────────────
+    // ── Walls: bounce off the ocean bounds so you can't wedge into a corner ──
+    let hitWall = false;
+    if (pos.current.x < -60) { pos.current.x = -60; heading.current = -heading.current; hitWall = true; }
+    else if (pos.current.x > 220) { pos.current.x = 220; heading.current = -heading.current; hitWall = true; }
+    if (pos.current.z < -130) { pos.current.z = -130; heading.current = Math.PI - heading.current; hitWall = true; }
+    else if (pos.current.z > 130) { pos.current.z = 130; heading.current = Math.PI - heading.current; hitWall = true; }
+    if (hitWall) speed.current *= 0.55;
+
+    // ── Collision: bounce the board off solid landmasses (no ghosting) ───────
     for (const col of SURF_COLLIDERS) {
       const dx = pos.current.x - col.x;
       const dz = pos.current.z - col.z;
-      const dist = Math.hypot(dx, dz);
+      const dist = Math.hypot(dx, dz) || 1e-4;
       const min = col.r + 1.6; // + board half-width
-      if (dist < min && dist > 1e-4) {
-        const push = (min - dist) / dist;
-        pos.current.x += dx * push;
-        pos.current.z += dz * push;
-        speed.current *= 0.35; // bleed speed on impact
+      if (dist < min) {
+        const nx = dx / dist;
+        const nz = dz / dist;
+        pos.current.x = col.x + nx * min;
+        pos.current.z = col.z + nz * min;
+        // Reflect heading about the surface normal → a real bounce.
+        const vx = Math.sin(heading.current);
+        const vz = Math.cos(heading.current);
+        const dot = vx * nx + vz * nz;
+        if (dot < 0) {
+          heading.current = Math.atan2(vx - 2 * dot * nx, vz - 2 * dot * nz);
+          speed.current *= 0.5;
+        }
       }
     }
 
@@ -250,17 +267,18 @@ export default function SurfController({
       onCheckpointRef.current?.(null);
     }
 
-    const bobY = WATER_Y + 0.3 + Math.sin(t * 2.4) * 0.14;
+    // Ride the moving swell (float ON the surface, never under it).
+    const bobY = WATER_Y + seaHeight(pos.current.x, pos.current.z, t) + 0.4;
     board.current.position.set(pos.current.x, bobY + airY.current, pos.current.z);
     const airPitch = airY.current * 0.06; // nose lifts as it leaves the water
     const carveRoll = riding.current ? Math.sin((t - rideStart.current) * 4.2) * 0.4 : 0;
     board.current.rotation.set(
       Math.sin(t * 1.4) * 0.05 - airPitch,
       heading.current,
-      turn * -0.18 + Math.sin(t * 1.8) * 0.04 + carveRoll
+      turn * -0.26 + Math.sin(t * 1.8) * 0.04 + carveRoll
     );
-    // Rider leans into the carve (independent of the board roll).
-    const leanTarget = turn * 0.32 + carveRoll * 0.6;
+    // Rider leans hard into the carve (independent of the board roll).
+    const leanTarget = turn * 0.45 + carveRoll * 0.6;
     lean.current += (leanTarget - lean.current) * (1 - Math.exp(-6 * d));
     if (rider.current) rider.current.rotation.z = lean.current;
 
