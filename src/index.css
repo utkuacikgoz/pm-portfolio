@@ -126,6 +126,14 @@ h1, h2, h3, h4, h5, h6 {
 }
 .page-in { animation: pageIn .42s cubic-bezier(.22,.61,.36,1) both; }
 
+/* Case-study sections reveal as they scroll into the drawer. Base is hidden;
+   the `.revealed` class (added by an IntersectionObserver) animates them in.
+   Under reduced-motion the global rule collapses the duration, so `forwards`
+   simply snaps them visible — never stuck at opacity 0. */
+.beat-section { opacity: 0; transform: translateY(16px); }
+.beat-section.revealed { animation: sectionReveal .55s cubic-bezier(.22,.61,.36,1) forwards; }
+@keyframes sectionReveal { to { opacity: 1; transform: none; } }
+
 /* Respect reduced-motion: the app already falls back to the flat map, but kill
    any residual transitions/animations for users who ask for it. */
 @media (prefers-reduced-motion: reduce) {
