@@ -8,7 +8,7 @@ import { usePrefersReducedMotion } from "./hooks/useReducedMotion";
  * from the first frame; "Begin" flies the camera down into the world. The resume
  * escape hatch is always one click away.
  */
-export default function HeroIntro({ onBegin }: { onBegin: (withSound: boolean) => void }) {
+export default function HeroIntro({ onBegin }: { onBegin: () => void }) {
   const reduced = usePrefersReducedMotion();
   // Stagger helper: each element rises in, unless reduced-motion (then static).
   const rise = (delay: number): React.CSSProperties =>
@@ -59,37 +59,17 @@ export default function HeroIntro({ onBegin }: { onBegin: (withSound: boolean) =
 
       <ProofRow reduced={reduced} style={rise(0.36)} />
 
-      <MagneticCTA reduced={reduced} onClick={() => onBegin(true)} delay={0.46} />
-
-      {/* Sound is off by default; entering here is the one place it turns on. A
-          quieter secondary path enters muted. */}
-      <button
-        onClick={() => onBegin(false)}
-        style={{
-          marginTop: 14,
-          padding: "8px 16px",
-          fontSize: 13,
-          fontWeight: 700,
-          letterSpacing: 0.3,
-          background: "transparent",
-          color: "#c4c8d2",
-          border: "1px solid #3a3f4e",
-          cursor: "pointer",
-          ...rise(0.52),
-        }}
-      >
-        Enter with sound off
-      </button>
+      <MagneticCTA reduced={reduced} onClick={onBegin} delay={0.46} />
 
       <Link
         to="/resume"
         style={{
-          marginTop: 16,
+          marginTop: 18,
           fontSize: 13,
           fontWeight: 700,
           color: "#9aa0ac",
           textDecoration: "underline",
-          ...rise(0.58),
+          ...rise(0.54),
         }}
       >
         or skip straight to the resume

@@ -14,7 +14,7 @@ import StoryCaption from "../ui/StoryCaption";
 import AvatarSelect from "../ui/AvatarSelect";
 import { readAvatar } from "../ui/avatars";
 import type { SurfSpot } from "../world/surf-spots";
-import { sfx, enableSound, startSurfMusic, stopSurfMusic } from "../audio/sfx";
+import { sfx, startSurfMusic, stopSurfMusic } from "../audio/sfx";
 import { useKeySequence, KONAMI, HIRE } from "../ui/hooks/useKeySequence";
 import { markEggId } from "../state/progress";
 import FlatMap from "./FlatMap";
@@ -103,16 +103,12 @@ export default function WorldExperience() {
     setTimeout(() => setFlashing(false), 420);
   }, []);
 
-  // Enter from the hero: sound turns on ONLY down the "with sound" path. First-
-  // time visitors pick a character next; returning ones dive straight in.
-  const onEnter = useCallback(
-    (withSound: boolean) => {
-      if (withSound) enableSound();
-      if (avatar === null) setChoosingAvatar(true);
-      else beginJourney();
-    },
-    [avatar, beginJourney]
-  );
+  // Enter from the hero. First-time visitors pick a character next; returning
+  // ones dive straight in. Sound stays off (default); the in-world toggle owns it.
+  const onEnter = useCallback(() => {
+    if (avatar === null) setChoosingAvatar(true);
+    else beginJourney();
+  }, [avatar, beginJourney]);
 
   const onPickAvatar = useCallback(
     (id: string) => {
