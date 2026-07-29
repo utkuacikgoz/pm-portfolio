@@ -103,14 +103,71 @@ export interface Checkpoint {
   id: number;
   x: number;
   z: number;
-  text: string; // one line on how Utku works (dash-free)
+  angle: number; // gate facing, radians — the tangent of the loop at this point
+  title: string; // the principle
+  text: string; // one supporting line (dash-free)
   accent: string;
 }
 
-export const CHECKPOINTS: Checkpoint[] = [
-  { id: 0, x: 50, z: 28, text: "Automate the 90 percent that is obvious, and spend your people on the 10 that is not.", accent: T.coral },
-  { id: 1, x: 132, z: 8, text: "In a regulated market, design for the regulator first, then speed is yours to keep.", accent: T.peri },
-  { id: 2, x: 78, z: -62, text: "When two experts disagree, both are usually partly right. Co-design instead of picking a side.", accent: T.green },
-  { id: 3, x: -18, z: -20, text: "Ship modular, not monolithic. When the rules move, you change one piece, not the whole engine.", accent: T.mauve },
-  { id: 4, x: 14, z: 42, text: "Compliance framed as a growth enabler becomes a moat a competitor cannot copy.", accent: T.sand },
+// Where a fraction 0..1 along the coin loop lands, plus which way the loop is
+// heading there. Gates were previously placed at hand-picked coordinates that sat
+// off the trail with no rotation, so you met them side-on, out of order, and they
+// read as random scenery. Sampling the same waypoint path the coins use puts them
+// ON the route, in sequence, square to your direction of travel.
+function pointOnLoop(fraction: number): { x: number; z: number; angle: number } {
+  const segs = WAYPOINTS.slice(0, -1).map((_, s) => {
+    const [ax, az] = WAYPOINTS[s];
+    const [bx, bz] = WAYPOINTS[s + 1];
+    return Math.hypot(bx - ax, bz - az);
+  });
+  const total = segs.reduce((a, b) => a + b, 0);
+  let want = fraction * total;
+  for (let s = 0; s < segs.length; s++) {
+    if (want > segs[s] && s < segs.length - 1) {
+      want -= segs[s];
+      continue;
+    }
+    const [ax, az] = WAYPOINTS[s];
+    const [bx, bz] = WAYPOINTS[s + 1];
+    const t = Math.min(1, want / segs[s]);
+    return {
+      x: ax + (bx - ax) * t,
+      z: az + (bz - az) * t,
+      // Gate posts sit on the X axis before rotation, so face the gate along the
+      // path tangent to surf straight through the opening.
+      angle: Math.atan2(bx - ax, bz - az),
+    };
+  }
+  return { x: WAYPOINTS[0][0], z: WAYPOINTS[0][1], angle: 0 };
+}
+
+// Four beats in narrative order, spaced along the loop so a single lap reads as a
+// story rather than four unrelated signs.
+const BEATS: { title: string; text: string; accent: string }[] = [
+  {
+    title: "Bias for action",
+    text: "Automate the 90 percent that is obvious and spend your people on the 10 that is not.",
+    accent: T.coral,
+  },
+  {
+    title: "Lead with example",
+    text: "When two experts disagree, both are usually partly right. Sit in the work and co-design instead of picking a side.",
+    accent: T.peri,
+  },
+  {
+    title: "Culture over strategy",
+    text: "A strategy deck does not survive a rule change. A team that trusts each other does.",
+    accent: T.green,
+  },
+  {
+    title: "Winner takes it all",
+    text: "Compliance framed as a growth enabler becomes a moat a competitor cannot copy.",
+    accent: T.mauve,
+  },
 ];
+
+export const CHECKPOINTS: Checkpoint[] = BEATS.map((b, i) => {
+  const p = pointOnLoop(0.14 + i * 0.24);
+  return { id: i, x: p.x, z: p.z, angle: p.angle, ...b };
+});
+export const CHECKPOINT_TOTAL = CHECKPOINTS.length;

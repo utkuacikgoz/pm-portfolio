@@ -467,7 +467,7 @@ function Checkpoints() {
   return (
     <group>
       {CHECKPOINTS.map((c) => (
-        <group key={c.id} position={[c.x, WATER_Y, c.z]}>
+        <group key={c.id} position={[c.x, WATER_Y, c.z]} rotation={[0, c.angle, 0]}>
           <mesh position={[-3.6, 4, 0]} raycast={() => null}>
             <cylinderGeometry args={[0.4, 0.4, 8, 8]} />
             <meshStandardMaterial color={c.accent} emissive={c.accent} emissiveIntensity={0.7} flatShading />

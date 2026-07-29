@@ -44,6 +44,7 @@ export default function CameraRig({ activeIndex, accent, entered, surfing }: Pro
   const progress = useRef(activeIndex);
   const vel = useRef(0); // spring velocity for the island-to-island bounce
   const enterT = useRef(entered ? 1 : 0);
+  const wasSurfing = useRef(false); // true on the frame surf hands the camera back
   const look = useRef(new THREE.Vector3(CENTER_X, 1, 0));
   const tPos = useRef(new THREE.Vector3());
   const tLook = useRef(new THREE.Vector3());
@@ -52,9 +53,22 @@ export default function CameraRig({ activeIndex, accent, entered, surfing }: Pro
 
   useFrame((state, dt) => {
     // Surf mode owns the camera; stand down so we don't fight over it.
-    if (surfing) return;
+    if (surfing) {
+      wasSurfing.current = true;
+      return;
+    }
     const d = Math.min(dt, 0.05); // clamp so a stutter can't destabilize the spring
-    const k = 1 - Math.exp(-3.5 * dt);
+    // Handing the camera BACK from surf mode: our look/spring refs have been
+    // frozen the whole time the surf chase-cam was driving, so resuming from them
+    // eases out of a stale pose (and, if a panel opened in the same tick, the
+    // stale target is somewhere out at sea). Re-acquire on the first frame back.
+    const reacquire = wasSurfing.current;
+    if (reacquire) {
+      wasSurfing.current = false;
+      vel.current = 0;
+      progress.current = activeIndex;
+    }
+    const k = reacquire ? 1 : 1 - Math.exp(-3.5 * dt);
     // Slower enter easing → a more cinematic dive from the establishing shot.
     enterT.current += ((entered ? 1 : 0) - enterT.current) * (1 - Math.exp(-1.5 * dt));
 
