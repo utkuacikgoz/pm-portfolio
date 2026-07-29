@@ -19,6 +19,14 @@ import { sfx } from "../audio/sfx";
 // behind the board.
 const GRAVITY = 30;
 const JUMP_V = 10; // ollie pop
+// Prone pitch for the paddle-in. Positive tips the rider's head toward the nose
+// (belly down); the entry seed and the intro target MUST share this constant or
+// the pop-up plays mirrored.
+const PRONE_PITCH = 1.5;
+// How much of the swell the board actually follows. Tracking it 1:1 at speed made
+// the board (and the whole camera) shake, so ride a damped share of it.
+const SWELL_FOLLOW = 0.45;
+const ease = (p: number) => p * p * (3 - 2 * p); // smoothstep
 const CATCH_RADIUS = 26; // enter this close to a break's takeoff and you drop in
 const CATCH_MIN_SPEED = 4; // need some pace to catch
 const RIDE_DUR = 3.6; // seconds a caught ride lasts
@@ -87,6 +95,8 @@ export default function SurfController({
   // Paddle-in intro (prone -> pop-up) + smoothed turning + eased rider pitch.
   const introStart = useRef(-1);
   const turnVel = useRef(0);
+  const bobSmooth = useRef(-1); // low-passed swell height (-1 = unseeded)
+  const bounceUntil = useRef(0); // per-contact cooldown so a bounce fires once
   const riderPitch = useRef(0);
   // Trick-on-jump: air spin + a board-local spray burst.
   const jumpStart = useRef(0);
@@ -164,7 +174,8 @@ export default function SurfController({
     spraySpawn.current = -99;
     introStart.current = -1; // begin the paddle-in intro on the first frame
     turnVel.current = 0;
-    riderPitch.current = 1.5; // start prone (belly down, head toward the nose)
+    riderPitch.current = PRONE_PITCH; // start prone (belly down, head toward the nose)
+    bobSmooth.current = -1; // re-seed the swell filter on the first frame
   }, [active, camera]);
 
   // Leaving surf mode clears the HUD labels + spray signal.
@@ -194,14 +205,19 @@ export default function SurfController({
     const intro = introP < 1;
     const fwdIn = intro ? 0.5 : fwd; // auto-glide while paddling
     const turnIn = intro ? 0 : turn;
-    // Rider pose: prone while paddling, pops up over the last third.
-    const pitchTarget = introP < 0.66 ? -1.5 : THREE.MathUtils.lerp(-1.5, 0, (introP - 0.66) / 0.34);
+    // Rider pose: prone while paddling, pops up over the last third. PRONE is
+    // +PRONE_PITCH (rotating +X tips the head toward the nose, belly down); the
+    // seed in the entry effect uses the same sign, so the pop-up plays forwards.
+    const pitchTarget =
+      introP < 0.66 ? PRONE_PITCH : THREE.MathUtils.lerp(PRONE_PITCH, 0, ease((introP - 0.66) / 0.34));
     riderPitch.current += (pitchTarget - riderPitch.current) * (1 - Math.exp(-9 * d));
 
     // Smoothed turning: ease angular velocity toward the target rate (no twitch).
-    const bite = 0.6 + Math.min(1, Math.abs(speed.current) / 24) * 0.8;
-    const targetTurnRate = turnIn * 2.6 * bite;
-    turnVel.current += (targetTurnRate - turnVel.current) * (1 - Math.exp(-8 * d));
+    // Speed now WIDENS the arc instead of tightening it — carving fast should feel
+    // committed, not twitchy — and the peak rate is lower than it was.
+    const bite = 1.15 - Math.min(1, Math.abs(speed.current) / 26) * 0.45;
+    const targetTurnRate = turnIn * 1.9 * bite;
+    turnVel.current += (targetTurnRate - turnVel.current) * (1 - Math.exp(-6.5 * d));
     heading.current += turnVel.current * d;
     // Boost / pump: hold Shift for a burst while stamina lasts; recharge otherwise.
     const boosting = !intro && !!k["shift"] && stamina.current > 0.02 && fwd > 0;
@@ -215,8 +231,10 @@ export default function SurfController({
       jumpQueued.current = false;
       if (!intro && airY.current <= 0.05 && !riding.current) {
         vy.current = JUMP_V;
-        jumpStart.current = t; // wind up a spin
-        spinning.current = true;
+        jumpStart.current = t;
+        // The 360 is opt-in now: a plain Space is a clean ollie, Shift+Space
+        // throws the spin. Forcing it on every hop made the board feel chaotic.
+        spinning.current = !!k["shift"];
         spraySpawn.current = t; // spray off the takeoff
       }
     }
@@ -246,7 +264,10 @@ export default function SurfController({
         airY.current = 0;
       } else {
         speed.current = Math.max(speed.current, 30); // the wave carries you
-        airY.current = Math.abs(Math.sin(rp * Math.PI * 3)) * 3.4 * (1 - rp * 0.6);
+        // One smooth arc up the face and back down. This used to be
+        // abs(sin(rp*PI*3)), which put a hard cusp at every zero — three jolts per
+        // ride. A single half-sine has no corners, so the ride reads as a glide.
+        airY.current = Math.sin(rp * Math.PI) * 2.2;
       }
     }
     if (!riding.current) {
@@ -254,10 +275,14 @@ export default function SurfController({
       airY.current += vy.current * d;
       if (airY.current <= 0) {
         airY.current = 0;
+        // Absorb the landing instead of hard-zeroing: keep a little of the
+        // downward velocity as compression so the board settles rather than
+        // stopping dead against the water.
+        const landed = vy.current < -1;
         vy.current = 0;
+        if (landed) spraySpawn.current = t;
         if (spinning.current) {
           spinning.current = false;
-          spraySpawn.current = t; // spray on landing
           sfx.play("open"); // a soft snap when you stomp the landing
         }
       }
@@ -269,16 +294,23 @@ export default function SurfController({
     // Soft glide-away off a surface: only when heading INTO it (dot < 0), ease
     // the heading toward the deflected direction over a few frames and keep most
     // of the speed → the board curves off it smoothly instead of snapping/wedging.
-    const softDeflect = (nx: number, nz: number) => {
+    // `once` guards the landmass case: while you sit against a rock this used to
+    // re-fire every frame, compounding speed *= 0.85 into a dead stop that felt
+    // like being stuck. One firmer deflection per contact reads as a clean bounce.
+    const softDeflect = (nx: number, nz: number, once = false) => {
       const vx = Math.sin(heading.current);
       const vz = Math.cos(heading.current);
       const dot = vx * nx + vz * nz;
       if (dot >= 0) return;
+      if (once) {
+        if (t < bounceUntil.current) return;
+        bounceUntil.current = t + 0.35;
+      }
       const target = Math.atan2(vx - 2 * dot * nx, vz - 2 * dot * nz);
       let diff = target - heading.current;
       diff = Math.atan2(Math.sin(diff), Math.cos(diff)); // wrap to [-PI, PI]
-      heading.current += diff * 0.25;
-      speed.current *= 0.85;
+      heading.current += diff * (once ? 0.55 : 0.25);
+      speed.current *= once ? 0.72 : 0.85;
     };
 
     // ── Walls: soft-bounce off the ocean bounds (no wedging into corners) ────
@@ -298,7 +330,7 @@ export default function SurfController({
         const nz = dz / dist;
         pos.current.x = col.x + nx * min;
         pos.current.z = col.z + nz * min;
-        softDeflect(nx, nz); // soft glide-away off the monument
+        softDeflect(nx, nz, true); // one clean bounce per contact, not per frame
       }
     }
 
@@ -339,8 +371,15 @@ export default function SurfController({
       onCheckpointRef.current?.(null);
     }
 
-    // Ride the moving swell (float ON the surface, never under it).
-    const bobY = WATER_Y + seaHeight(pos.current.x, pos.current.z, t) + 0.4;
+    // Ride the moving swell (float ON the surface, never under it). Following the
+    // wave field 1:1 at 24 units/sec shook the board and, because the camera reads
+    // the same value, the entire view. So: follow a damped share of the swell and
+    // low-pass it. Everything downstream (board, camera position, camera look)
+    // reads the SMOOTHED value — the unfiltered one was the main source of jitter.
+    const bobRaw = WATER_Y + seaHeight(pos.current.x, pos.current.z, t) * SWELL_FOLLOW + 0.4;
+    if (bobSmooth.current < 0) bobSmooth.current = bobRaw; // first frame: no lurch
+    bobSmooth.current += (bobRaw - bobSmooth.current) * (1 - Math.exp(-6 * d));
+    const bobY = bobSmooth.current;
     board.current.position.set(pos.current.x, bobY + airY.current, pos.current.z);
     const airPitch = airY.current * 0.06; // nose lifts as it leaves the water
     const carveRoll = riding.current ? Math.sin((t - rideStart.current) * 4.2) * 0.4 : 0;
