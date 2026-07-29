@@ -15,7 +15,7 @@ import AvatarSelect from "../ui/AvatarSelect";
 import { readAvatar } from "../ui/avatars";
 import type { SurfSpot } from "../world/surf-spots";
 import type { Checkpoint } from "../world/surf-journey";
-import { COIN_TOTAL } from "../world/surf-journey";
+import { COIN_TOTAL, CHECKPOINT_TOTAL } from "../world/surf-journey";
 import { CONTACT } from "../content/contact";
 import { T } from "../theme";
 import { sfx, startSurfMusic, stopSurfMusic } from "../audio/sfx";
@@ -413,7 +413,7 @@ export default function WorldExperience() {
                 pointerEvents: "none",
               }}
             >
-              🏄 WASD or arrows to surf · move mouse to look · Esc to come back
+              🏄 WASD to surf · Space to jump, Shift for a spin · Esc to come back
             </div>
           )}
           <div
@@ -557,8 +557,11 @@ function CheckpointCard({ cp }: { cp: Checkpoint }) {
         animation: "captionIn .45s ease",
       }}
     >
-      <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: 2, color: cp.accent, marginBottom: 7 }}>🧭 HOW I WORK</div>
-      <div style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.5, color: "#eceef2" }}>{cp.text}</div>
+      <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: 2, color: cp.accent, marginBottom: 7 }}>
+        🧭 HOW I WORK · {cp.id + 1} / {CHECKPOINT_TOTAL}
+      </div>
+      <div style={{ fontSize: 19, fontWeight: 900, letterSpacing: 0.3, color: "#fff", marginBottom: 6 }}>{cp.title}</div>
+      <div style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.5, color: "#c4c8d2" }}>{cp.text}</div>
     </div>
   );
 }

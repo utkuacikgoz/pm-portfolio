@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { COINS, COIN_TOTAL, SURF_COLLIDERS, collectedCoins } from "./surf-journey";
+import { COINS, COIN_TOTAL, SURF_COLLIDERS, collectedCoins, CHECKPOINTS, CHECKPOINT_TOTAL } from "./surf-journey";
 
 // The coin trail loops through the breaks and back to where it started, so the
 // last stretch is as much of the ride as the first. An earlier `.slice(0, 42)`
@@ -38,5 +38,52 @@ describe("coin trail", () => {
 
   it("starts a run with nothing collected", () => {
     expect(collectedCoins.size).toBe(0);
+  });
+});
+
+// The gates used to sit at hand-picked coordinates off the trail with no rotation,
+// so you met them side-on and out of order and they read as random scenery. These
+// pin the "part of a story" property: on the route, in sequence, facing you.
+describe("how I work checkpoints", () => {
+  it("is a four beat sequence with ids in narrative order", () => {
+    expect(CHECKPOINT_TOTAL).toBe(4);
+    expect(CHECKPOINTS.map((c) => c.id)).toEqual([0, 1, 2, 3]);
+    expect(CHECKPOINTS.map((c) => c.title)).toEqual([
+      "Bias for action",
+      "Lead with example",
+      "Culture over strategy",
+      "Winner takes it all",
+    ]);
+  });
+
+  it("places every gate on the coin trail, not off in open water", () => {
+    for (const c of CHECKPOINTS) {
+      const nearest = Math.min(...COINS.map((k) => Math.hypot(k.x - c.x, k.z - c.z)));
+      expect(nearest).toBeLessThan(12);
+    }
+  });
+
+  it("keeps every gate clear of the solid landmasses you would bounce off", () => {
+    const GATE_HALF_WIDTH = 3.8;
+    for (const c of CHECKPOINTS) {
+      for (const s of SURF_COLLIDERS) {
+        expect(Math.hypot(c.x - s.x, c.z - s.z)).toBeGreaterThan(s.r + GATE_HALF_WIDTH);
+      }
+    }
+  });
+
+  it("faces each gate along the route so you surf through the opening", () => {
+    for (const c of CHECKPOINTS) {
+      expect(Number.isFinite(c.angle)).toBe(true);
+    }
+    // A single facing reused everywhere would mean the gates ignore the path.
+    expect(new Set(CHECKPOINTS.map((c) => c.angle.toFixed(3))).size).toBeGreaterThan(1);
+  });
+
+  it("carries a supporting line under every principle", () => {
+    for (const c of CHECKPOINTS) {
+      expect(c.text.length).toBeGreaterThan(20);
+      expect(c.text).not.toContain("—"); // house style: dash free
+    }
   });
 });
