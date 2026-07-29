@@ -9,7 +9,7 @@ function EggLink({ children }: { children: ReactNode }) {
       href={CONTACT.calendar}
       target="_blank"
       rel="noopener"
-      style={{ color: "#3FA46A", fontWeight: 800, textDecoration: "underline" }}
+      style={{ color: "#1F7A5E", fontWeight: 800, textDecoration: "underline" }}
     >
       {children}
     </a>
@@ -85,8 +85,8 @@ export default function EggToast() {
         alignItems: "flex-start",
         gap: 12,
         padding: "14px 16px",
-        background: "rgba(7,8,12,0.96)",
-        border: "2px solid #3FA46A",
+        background: "rgba(252,249,243,0.94)",
+        border: "2px solid #1F7A5E",
         borderRadius: 12,
         backdropFilter: "blur(8px)",
         boxShadow: "0 12px 40px rgba(0,0,0,0.5)",
@@ -97,7 +97,7 @@ export default function EggToast() {
         🥚
       </span>
       <div style={{ flex: 1 }}>
-        <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1, color: "#3FA46A", marginBottom: 4 }}>
+        <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1, color: "#1F7A5E", marginBottom: 4 }}>
           {msg.tag}
         </div>
         <p style={{ fontSize: 13.5, lineHeight: 1.55, color: "#e7e9ee", margin: 0 }}>{msg.body}</p>

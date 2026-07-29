@@ -54,7 +54,7 @@ export default function AvatarSelect({ onPick }: { onPick: (id: string) => void 
         padding: "24px 16px",
         overflowY: "auto",
         background:
-          "radial-gradient(120% 80% at 50% 6%, rgba(255,0,128,0.10), transparent 46%), radial-gradient(120% 80% at 50% 100%, rgba(0,255,255,0.08), transparent 52%), radial-gradient(circle at 50% 42%, #0a0a14 0%, #050509 64%, #020204 100%)",
+          "radial-gradient(120% 80% at 50% 6%, rgba(172,74,45,0.10), transparent 46%), radial-gradient(120% 80% at 50% 100%, rgba(79,87,176,0.08), transparent 52%), radial-gradient(circle at 50% 42%, #FBF6EC 0%, #F4EFE6 64%, #EBE3D6 100%)",
       }}
     >
       {/* CRT scanlines */}
@@ -121,8 +121,8 @@ export default function AvatarSelect({ onPick }: { onPick: (id: string) => void 
                 style={{
                   clipPath: NOTCH,
                   background: active
-                    ? `radial-gradient(120% 90% at 50% 0%, ${a.accent}14, #0a0d16 60%)`
-                    : "#090c14",
+                    ? `radial-gradient(120% 90% at 50% 0%, ${a.accent}14, #FCF9F3 60%)`
+                    : "#F4EFE6",
                   padding: "18px 16px 16px",
                   textAlign: "center",
                 }}
@@ -135,7 +135,7 @@ export default function AvatarSelect({ onPick }: { onPick: (id: string) => void 
                     margin: "0 auto 12px",
                     display: "grid",
                     placeItems: "center",
-                    background: "#05060a",
+                    background: "#F4EFE6",
                     border: `2px solid ${border}`,
                     boxShadow: active ? `inset 0 0 20px ${a.accent}22` : "none",
                   }}
@@ -154,7 +154,7 @@ export default function AvatarSelect({ onPick }: { onPick: (id: string) => void 
                     fontSize: 18,
                     fontWeight: 900,
                     letterSpacing: 0.5,
-                    color: active ? a.accent : "#c4c8d2",
+                    color: active ? a.accent : "#5C5766",
                     textShadow: active ? PIXEL_SHADOW : "none",
                   }}
                 >
@@ -163,7 +163,7 @@ export default function AvatarSelect({ onPick }: { onPick: (id: string) => void 
                 <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: 1.5, color: "#8b919e", margin: "3px 0 9px" }}>
                   {a.title.toUpperCase()}
                 </div>
-                <div style={{ fontSize: 12.5, color: "#c4c8d2", lineHeight: 1.45, minHeight: 34, marginBottom: 12 }}>
+                <div style={{ fontSize: 12.5, color: "#5C5766", lineHeight: 1.45, minHeight: 34, marginBottom: 12 }}>
                   {a.pun}
                 </div>
 
@@ -186,7 +186,7 @@ export default function AvatarSelect({ onPick }: { onPick: (id: string) => void 
                         {Array.from({ length: 10 }).map((_, b) => (
                           <span
                             key={b}
-                            style={{ flex: 1, height: 8, background: b < s.value ? a.accent : "#1b2030" }}
+                            style={{ flex: 1, height: 8, background: b < s.value ? a.accent : "#DED5C7" }}
                           />
                         ))}
                       </span>

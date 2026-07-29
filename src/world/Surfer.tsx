@@ -73,7 +73,7 @@ function Foot({ pos, yaw }: { pos: [number, number, number]; yaw: number }) {
   );
 }
 
-const Surfer = forwardRef<THREE.Group, { accent?: string }>(function Surfer({ accent = "#6E86D6" }, riderRef) {
+const Surfer = forwardRef<THREE.Group, { accent?: string }>(function Surfer({ accent = "#4F57B0" }, riderRef) {
   return (
     <group>
       {/* ── Shortboard (smooth, rounded nose + tail) ── */}

@@ -237,7 +237,7 @@ export default function WorldExperience() {
         minHeight: "100vh",
         // Sky behind the transparent WebGL canvas. Dusk on the rail; a bright,
         // cheerful daytime while free-surfing (cross-fades with the 3D lighting).
-        background: surfing ? T.daySky : T.sky,
+        background: surfing ? T.surfSky : T.sky,
         transition: "background 1s ease",
       }}
     >
@@ -286,7 +286,7 @@ export default function WorldExperience() {
             inset: 0,
             zIndex: 65,
             pointerEvents: "none",
-            background: `radial-gradient(circle at 50% 45%, ${projects[active]?.accent ?? "#6E86D6"}, transparent 70%)`,
+            background: `radial-gradient(circle at 50% 45%, ${projects[active]?.accent ?? "#4F57B0"}, transparent 70%)`,
             animation: "diveFlash .42s ease-out forwards",
           }}
         />
@@ -302,7 +302,7 @@ export default function WorldExperience() {
             pointerEvents: "none",
             mixBlendMode: "screen",
             background:
-              "conic-gradient(from 0deg, #6E86D6, #E0A45C, #3FA46A, #CB7BC7, #E7684A, #6E86D6)",
+              "conic-gradient(from 0deg, #4F57B0, #8A6118, #1F7A5E, #98487F, #AC4A2D, #4F57B0)",
             animation: "konamiSweep 1.6s ease-out forwards",
           }}
         />
@@ -317,12 +317,12 @@ export default function WorldExperience() {
             transform: "translateX(-50%)",
             zIndex: 45,
             padding: "8px 16px",
-            background: "rgba(7,8,12,0.8)",
-            border: "1px solid #23283a",
+            background: "rgba(252,249,243,0.92)",
+            border: "1px solid #DED5C7",
             borderRadius: 999,
             fontSize: 12.5,
             fontWeight: 600,
-            color: "#c4c8d2",
+            color: "#5C5766",
             whiteSpace: "nowrap",
             pointerEvents: "none",
             animation: "panelIn .4s ease",
@@ -351,9 +351,9 @@ export default function WorldExperience() {
               right: 24,
               zIndex: 44,
               padding: "11px 18px",
-              background: "rgba(7,8,12,0.85)",
-              border: "2px solid #3FA46A",
-              color: "#3FA46A",
+              background: "rgba(252,249,243,0.92)",
+              border: "2px solid #1F7A5E",
+              color: "#1F7A5E",
               fontSize: 13,
               fontWeight: 800,
               cursor: "pointer",
@@ -375,9 +375,9 @@ export default function WorldExperience() {
             left: 24,
             zIndex: 44,
             padding: "10px 16px",
-            background: "rgba(7,8,12,0.85)",
-            border: "2px solid #6E86D6",
-            color: "#6E86D6",
+            background: "rgba(252,249,243,0.92)",
+            border: "2px solid #4F57B0",
+            color: "#4F57B0",
             fontSize: 13,
             fontWeight: 800,
             cursor: "pointer",
@@ -403,12 +403,12 @@ export default function WorldExperience() {
                 transform: "translateX(-50%)",
                 zIndex: 45,
                 padding: "8px 16px",
-                background: "rgba(7,8,12,0.8)",
-                border: "1px solid #23283a",
+                background: "rgba(252,249,243,0.92)",
+                border: "1px solid #DED5C7",
                 borderRadius: 999,
                 fontSize: 12.5,
                 fontWeight: 600,
-                color: "#c4c8d2",
+                color: "#5C5766",
                 whiteSpace: "nowrap",
                 pointerEvents: "none",
               }}
@@ -423,7 +423,7 @@ export default function WorldExperience() {
               left: 24,
               zIndex: 45,
               padding: "9px 15px",
-              background: "rgba(7,8,12,0.85)",
+              background: "rgba(252,249,243,0.92)",
               border: `2px solid ${T.sand}`,
               color: T.sand,
               fontSize: 14,
@@ -456,9 +456,9 @@ export default function WorldExperience() {
               transform: "translateX(-50%)",
               zIndex: 44,
               padding: "11px 20px",
-              background: "rgba(7,8,12,0.85)",
-              border: "2px solid #6E86D6",
-              color: "#6E86D6",
+              background: "rgba(252,249,243,0.92)",
+              border: "2px solid #4F57B0",
+              color: "#4F57B0",
               fontSize: 13,
               fontWeight: 800,
               cursor: "pointer",
@@ -516,7 +516,7 @@ function SpotLabel({ spot }: { spot: SurfSpot }) {
         zIndex: 45,
         width: "min(440px, calc(100vw - 32px))",
         padding: "14px 20px",
-        background: "rgba(7,8,12,0.86)",
+        background: "rgba(252,249,243,0.92)",
         border: `2px solid ${spot.accent}`,
         borderRadius: 12,
         textAlign: "center",
@@ -528,10 +528,10 @@ function SpotLabel({ spot }: { spot: SurfSpot }) {
       <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: 2, color: spot.accent, marginBottom: 5 }}>
         🤙 DROPPING IN
       </div>
-      <div style={{ fontSize: 25, fontWeight: 900, letterSpacing: 0.4, color: "#fff", marginBottom: 4 }}>
+      <div style={{ fontSize: 25, fontWeight: 900, letterSpacing: 0.4, color: "#2B2833", marginBottom: 4 }}>
         {spot.name}
       </div>
-      <div style={{ fontSize: 12.5, color: "#c4c8d2", lineHeight: 1.5 }}>{spot.blurb}</div>
+      <div style={{ fontSize: 12.5, color: "#5C5766", lineHeight: 1.5 }}>{spot.blurb}</div>
     </div>
   );
 }
@@ -548,7 +548,7 @@ function CheckpointCard({ cp }: { cp: Checkpoint }) {
         zIndex: 45,
         width: "min(520px, calc(100vw - 32px))",
         padding: "16px 22px",
-        background: "rgba(7,8,12,0.9)",
+        background: "rgba(252,249,243,0.94)",
         border: `2px solid ${cp.accent}`,
         borderRadius: 12,
         textAlign: "center",
@@ -560,8 +560,8 @@ function CheckpointCard({ cp }: { cp: Checkpoint }) {
       <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: 2, color: cp.accent, marginBottom: 7 }}>
         🧭 HOW I WORK · {cp.id + 1} / {CHECKPOINT_TOTAL}
       </div>
-      <div style={{ fontSize: 19, fontWeight: 900, letterSpacing: 0.3, color: "#fff", marginBottom: 6 }}>{cp.title}</div>
-      <div style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.5, color: "#c4c8d2" }}>{cp.text}</div>
+      <div style={{ fontSize: 19, fontWeight: 900, letterSpacing: 0.3, color: "#2B2833", marginBottom: 6 }}>{cp.title}</div>
+      <div style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.5, color: "#5C5766" }}>{cp.text}</div>
     </div>
   );
 }
@@ -582,8 +582,8 @@ function RunCompleteCard({ onCases, onDismiss }: { onCases: () => void; onDismis
         transform: "translateX(-50%)",
         zIndex: 46,
         width: "min(560px, calc(100vw - 32px))",
-        background: "rgba(7,8,12,0.92)",
-        border: "2px solid #3FA46A",
+        background: "rgba(252,249,243,0.94)",
+        border: "2px solid #1F7A5E",
         borderRadius: 12,
         backdropFilter: "blur(8px)",
         padding: "20px 22px",
@@ -591,10 +591,10 @@ function RunCompleteCard({ onCases, onDismiss }: { onCases: () => void; onDismis
         animation: "captionIn .45s ease",
       }}
     >
-      <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.5, color: "#3FA46A", marginBottom: 8 }}>
+      <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.5, color: "#1F7A5E", marginBottom: 8 }}>
         🏄 RUN COMPLETE · {COIN_TOTAL} / {COIN_TOTAL}
       </div>
-      <div style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.55, color: "#eceef2", marginBottom: 16 }}>
+      <div style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.55, color: "#2B2833", marginBottom: 16 }}>
         You surfed the whole loop and picked up every last coin. That is the same stubbornness I
         bring to shipping product. Want the real version?
       </div>
@@ -605,8 +605,8 @@ function RunCompleteCard({ onCases, onDismiss }: { onCases: () => void; onDismis
           rel="noopener"
           style={{
             padding: "12px 22px",
-            background: "#3FA46A",
-            color: "#07080c",
+            background: "#1F7A5E",
+            color: "#FFFFFF",
             fontSize: 14,
             fontWeight: 800,
             borderRadius: 8,
@@ -620,8 +620,8 @@ function RunCompleteCard({ onCases, onDismiss }: { onCases: () => void; onDismis
           style={{
             padding: "12px 22px",
             background: "transparent",
-            border: "2px solid #3FA46A",
-            color: "#3FA46A",
+            border: "2px solid #1F7A5E",
+            color: "#1F7A5E",
             fontSize: 14,
             fontWeight: 800,
             borderRadius: 8,
@@ -638,7 +638,7 @@ function RunCompleteCard({ onCases, onDismiss }: { onCases: () => void; onDismis
           marginTop: 12,
           background: "none",
           border: "none",
-          color: "#8b90a0",
+          color: "#5C5766",
           fontSize: 12,
           fontWeight: 700,
           cursor: "pointer",
@@ -660,17 +660,17 @@ function IndieOverlay({ onBack }: { onBack: () => void }) {
         transform: "translateX(-50%)",
         zIndex: 44,
         width: "min(560px, calc(100vw - 32px))",
-        background: "rgba(7,8,12,0.92)",
-        border: "2px solid #3FA46A",
+        background: "rgba(252,249,243,0.94)",
+        border: "2px solid #1F7A5E",
         backdropFilter: "blur(8px)",
         padding: "20px 22px",
         textAlign: "center",
       }}
     >
-      <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.5, color: "#3FA46A", marginBottom: 8 }}>
+      <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.5, color: "#1F7A5E", marginBottom: 8 }}>
         🏄 WHAT I'M BUILDING
       </div>
-      <p style={{ fontSize: 13.5, color: "#c4c8d2", lineHeight: 1.55, marginBottom: 16 }}>
+      <p style={{ fontSize: 13.5, color: "#5C5766", lineHeight: 1.55, marginBottom: 16 }}>
         53 countries travelled so far. Here's what I'm building next. No case studies yet, just bets.
       </p>
       <div style={{ display: "grid", gap: 8, marginBottom: 16 }}>
@@ -683,7 +683,7 @@ function IndieOverlay({ onBack }: { onBack: () => void }) {
               gap: 10,
               padding: "10px 14px",
               border: `1.5px solid ${p.accent}55`,
-              background: "#0b0d14",
+              background: "#FCF9F3",
               textAlign: "left",
             }}
           >
@@ -701,8 +701,8 @@ function IndieOverlay({ onBack }: { onBack: () => void }) {
         style={{
           padding: "10px 20px",
           background: "transparent",
-          border: "2px solid #3FA46A",
-          color: "#3FA46A",
+          border: "2px solid #1F7A5E",
+          color: "#1F7A5E",
           fontSize: 13,
           fontWeight: 800,
           cursor: "pointer",
@@ -738,7 +738,7 @@ function TitleCard({
         transform: "translateX(-50%)",
         zIndex: 40,
         width: "min(520px, calc(100vw - 32px))",
-        background: "rgba(7,8,12,0.9)",
+        background: "rgba(252,249,243,0.94)",
         border: `2px solid ${project.accent}`,
         backdropFilter: "blur(6px)",
         padding: "16px 18px",

@@ -11,9 +11,10 @@ body {
   font-optical-sizing: auto;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  /* Dusk indigo base so there's never a black flash behind the gradient wrapper. */
-  background: #0a0e24;
-  color: #fff;
+  /* Paper cream base so there's never a flash of the wrong ground behind the
+     gradient wrapper. Matches T.bg. */
+  background: #f4efe6;
+  color: #2b2833;
   overflow-x: hidden;
 }
 
@@ -61,7 +62,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 :focus-visible {
-  outline: 2px solid #CB7BC7;
+  outline: 2px solid #98487F;
   outline-offset: 2px;
 }
 
@@ -76,10 +77,11 @@ h1, h2, h3, h4, h5, h6 {
   to { transform: translateY(0); opacity: 1; filter: blur(0); }
 }
 
-/* CTA: slow neon breathe (cyan halo + magenta core). */
+/* CTA: a soft raised breathe. The neon halo the dark world used reads as grubby
+   on cream, so this is a lifted shadow in the ink colour instead of a glow. */
 @keyframes ctaGlow {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(0, 255, 255, 0), 0 8px 30px rgba(255, 0, 128, 0.35); }
-  50% { box-shadow: 0 0 34px 3px rgba(0, 255, 255, 0.5), 0 8px 30px rgba(255, 0, 128, 0.6); }
+  0%, 100% { box-shadow: 0 2px 10px rgba(43, 40, 51, 0.10), 0 8px 26px rgba(43, 40, 51, 0.08); }
+  50% { box-shadow: 0 4px 18px rgba(43, 40, 51, 0.16), 0 10px 34px rgba(43, 40, 51, 0.12); }
 }
 
 /* Begin → camera dive punctuation: a quick accent wash that clears to the world. */

@@ -40,10 +40,10 @@ export default function FlatMap({ projects, onOpen }: Props) {
         >
           Utku Acikgoz
         </h1>
-        <p style={{ color: "#6E86D6", fontSize: 16, fontWeight: 700, marginTop: 6 }}>
+        <p style={{ color: "#4F57B0", fontSize: 16, fontWeight: 700, marginTop: 6 }}>
           Senior Technical Product Manager
         </p>
-        <p style={{ color: "#c4c8d2", fontSize: 14, marginTop: 12, lineHeight: 1.7, maxWidth: 560, marginInline: "auto" }}>
+        <p style={{ color: "#5C5766", fontSize: 14, marginTop: 12, lineHeight: 1.7, maxWidth: 560, marginInline: "auto" }}>
           8+ years and 11 products shipped across fintech, blockchain, HRtech & SaaS. I lead distributed
           teams and lean hard on analytics and AI to ship.
         </p>
@@ -68,13 +68,13 @@ export default function FlatMap({ projects, onOpen }: Props) {
               style={{
                 textAlign: "left",
                 cursor: "pointer",
-                background: "#0a0c12",
+                background: "#FCF9F3",
                 border: `3px solid ${p.accent}`,
                 padding: "22px 20px",
                 display: "flex",
                 gap: 16,
                 alignItems: "center",
-                color: "#fff",
+                color: "#2B2833",
                 position: "relative",
               }}
             >
@@ -122,7 +122,7 @@ export default function FlatMap({ projects, onOpen }: Props) {
                   alignItems: "center",
                   gap: 12,
                   padding: "14px 18px",
-                  background: "#0a0c12",
+                  background: "#FCF9F3",
                   borderLeft: `4px solid ${p.accent}`,
                 }}
               >
@@ -152,14 +152,14 @@ export default function FlatMap({ projects, onOpen }: Props) {
         style={{
           marginTop: 44,
           padding: "26px 22px",
-          background: "#6E86D612",
-          border: "1.5px solid #6E86D6",
+          background: "#4F57B012",
+          border: "1.5px solid #4F57B0",
           borderRadius: 12,
           textAlign: "center",
         }}
       >
         <h2 style={{ fontSize: 22, fontWeight: 900, marginBottom: 8 }}>Like how I work?</h2>
-        <p style={{ fontSize: 14, color: "#c4c8d2", lineHeight: 1.6, marginBottom: 20 }}>
+        <p style={{ fontSize: 14, color: "#5C5766", lineHeight: 1.6, marginBottom: 20 }}>
           Open to senior product roles, and building my own products on the side. Grab a slot or take the CV.
         </p>
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap", justifyContent: "center" }}>
@@ -167,20 +167,20 @@ export default function FlatMap({ projects, onOpen }: Props) {
             href={CONTACT.calendar}
             target="_blank"
             rel="noopener"
-            style={{ padding: "12px 22px", background: "#6E86D6", color: "#000", fontSize: 14, fontWeight: 800 }}
+            style={{ padding: "12px 22px", background: "#4F57B0", color: "#000", fontSize: 14, fontWeight: 800 }}
           >
             Book a 20-min call →
           </a>
           <a
             href="/UtkuAcikgoz-CV.pdf"
             download
-            style={{ padding: "12px 22px", border: "2px solid #fff", color: "#fff", fontSize: 14, fontWeight: 800 }}
+            style={{ padding: "12px 22px", border: "2px solid #2B2833", color: "#2B2833", fontSize: 14, fontWeight: 800 }}
           >
             ↓ Download CV
           </a>
           <Link
             to="/resume"
-            style={{ padding: "12px 22px", border: "2px solid #CB7BC7", color: "#CB7BC7", fontSize: 14, fontWeight: 800 }}
+            style={{ padding: "12px 22px", border: "2px solid #98487F", color: "#98487F", fontSize: 14, fontWeight: 800 }}
           >
             Full resume
           </Link>

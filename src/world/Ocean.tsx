@@ -7,8 +7,8 @@ import { usePrefersReducedMotion } from "../ui/hooks/useReducedMotion";
 import { T } from "../theme";
 import { daylight } from "./daylight";
 
-const WATER_DUSK = new THREE.Color(T.water);
-const WATER_DAY = new THREE.Color(T.dayWater);
+const WATER_RAIL = new THREE.Color(T.water);
+const WATER_SURF = new THREE.Color(T.surfWater);
 
 // The sea the islands float on, and the separate "what I'm building" island you
 // surf to — indie products as gently bobbing, NON-clickable coming-soon bubbles.
@@ -25,7 +25,7 @@ export function Water() {
   useFrame((s) => {
     if (!reduced) uTime.current.value = s.clock.elapsedTime;
     // Brighten toward turquoise as free-surf fades to daytime.
-    if (matRef.current) matRef.current.color.lerpColors(WATER_DUSK, WATER_DAY, daylight.v);
+    if (matRef.current) matRef.current.color.lerpColors(WATER_RAIL, WATER_SURF, daylight.v);
   });
 
   const onBeforeCompile = (shader: THREE.WebGLProgramParametersWithUniforms) => {
@@ -87,7 +87,7 @@ export function SunDisc() {
       </mesh>
       <mesh position={[0, 0, -1]} raycast={() => null}>
         <circleGeometry args={[42, 48]} />
-        <meshBasicMaterial color="#E7684A" transparent opacity={0.3} blending={THREE.AdditiveBlending} fog={false} />
+        <meshBasicMaterial color="#AC4A2D" transparent opacity={0.3} blending={THREE.AdditiveBlending} fog={false} />
       </mesh>
     </group>
   );
@@ -161,7 +161,7 @@ export function Ripples({ active }: { active: number }) {
   const meshes = useRef<(THREE.Mesh | null)[]>([]);
   const slots = useRef(Array.from({ length: 3 }, () => ({ born: -99, x: 0, z: 0 })));
   const cursor = useRef(0);
-  const accent = PUBLISHED_PROJECTS[active]?.accent ?? "#CB7BC7";
+  const accent = PUBLISHED_PROJECTS[active]?.accent ?? "#98487F";
 
   useEffect(() => {
     if (reduced) return;
@@ -225,7 +225,7 @@ export function Ripples({ active }: { active: number }) {
 export function LightShaft({ active }: { active: number }) {
   const ref = useRef<THREE.Mesh>(null);
   const reduced = usePrefersReducedMotion();
-  const accent = PUBLISHED_PROJECTS[active]?.accent ?? "#CB7BC7";
+  const accent = PUBLISHED_PROJECTS[active]?.accent ?? "#98487F";
   const target = useRef(new THREE.Vector3());
 
   useFrame((_, dt) => {
@@ -257,11 +257,11 @@ export function IndieIsland() {
     <group position={[ix, 0, iz]}>
       <mesh position={[0, -0.5, 0]} raycast={() => null}>
         <boxGeometry args={[7, 1, 7]} />
-        <meshStandardMaterial color="#13243a" flatShading />
+        <meshStandardMaterial color="#C9D6DE" flatShading />
       </mesh>
       <mesh position={[0, -1.5, 0]} raycast={() => null}>
         <boxGeometry args={[4.5, 1, 4.5]} />
-        <meshStandardMaterial color="#0e1b2c" flatShading />
+        <meshStandardMaterial color="#B7C7D4" flatShading />
       </mesh>
       {INDIE_PROJECTS.map((p, i) => (
         <Bubble key={p.id} index={i} color={p.accent} count={INDIE_PROJECTS.length} />

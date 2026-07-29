@@ -35,7 +35,7 @@ function MiniBar({ value, color, label }: { value: number; color: string; label:
         <span>{label}</span>
         <span style={{ color: "#cfd3dc", fontWeight: 700 }}>{value}</span>
       </div>
-      <div style={{ height: 6, background: "#15171f", borderRadius: 3 }}>
+      <div style={{ height: 6, background: "#E6DED1", borderRadius: 3 }}>
         <div style={{ height: "100%", width: `${value}%`, background: color, borderRadius: 3 }} />
       </div>
     </div>
@@ -53,7 +53,7 @@ export function Metrics({ metrics }: { metrics: Metric[] }) {
           const pct = hasBaseline ? Math.round((Math.abs(m.after - m.before) / m.before) * 100) : 0;
           const down = m.after < m.before;
           return (
-            <div key={i} style={{ background: "#0b0d14", border: "1px solid #1c2030", borderRadius: 8, padding: "16px 18px" }}>
+            <div key={i} style={{ background: "#FCF9F3", border: "1px solid #DED5C7", borderRadius: 8, padding: "16px 18px" }}>
               <div style={{ fontSize: 12, color: "#9aa0ac", marginBottom: 8 }}>{m.label}</div>
               <div style={{ fontSize: 30, fontWeight: 900, color: m.color, lineHeight: 1 }}>
                 {m.after}
@@ -89,8 +89,8 @@ export function Decisions({ decisions, accent }: { decisions: Decision[]; accent
           <div
             key={i}
             style={{
-              background: d.isChosen ? `${accent}14` : "#0b0d14",
-              border: `1.5px solid ${d.isChosen ? accent : "#1c2030"}`,
+              background: d.isChosen ? `${accent}14` : "#FCF9F3",
+              border: `1.5px solid ${d.isChosen ? accent : "#DED5C7"}`,
               borderRadius: 8,
               padding: "14px 16px",
             }}
@@ -132,7 +132,7 @@ export function Initiatives({ initiatives }: { initiatives: Initiative[]; accent
     <Section label="What we prioritized">
       <div style={{ display: "grid", gap: 10 }}>
         {sorted.map((it, i) => (
-          <div key={i} style={{ background: "#0b0d14", border: "1px solid #1c2030", borderRadius: 8, padding: "14px 16px" }}>
+          <div key={i} style={{ background: "#FCF9F3", border: "1px solid #DED5C7", borderRadius: 8, padding: "14px 16px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
               <span style={{ width: 9, height: 9, background: it.color, borderRadius: "50%", flexShrink: 0 }} />
               <span style={{ fontWeight: 700, fontSize: 14, color: "#e7e9ee" }}>{it.label}</span>

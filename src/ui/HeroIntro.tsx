@@ -32,7 +32,7 @@ export default function HeroIntro({ onBegin }: { onBegin: () => void }) {
         // Entrance stays black (Utku's call): opaque black base with a faint
         // coral/periwinkle glow (logo palette). The dusk world is revealed only
         // after entering dives the camera in.
-        background: `radial-gradient(120% 80% at 50% 8%, ${T.entranceGlow.coral}, transparent 46%), radial-gradient(120% 80% at 50% 100%, ${T.entranceGlow.peri}, transparent 52%), radial-gradient(circle at 50% 42%, #0a0a14 0%, #050509 62%, #020204 100%)`,
+        background: `radial-gradient(120% 80% at 50% 8%, ${T.entranceGlow.coral}, transparent 46%), radial-gradient(120% 80% at 50% 100%, ${T.entranceGlow.peri}, transparent 52%), radial-gradient(circle at 50% 42%, #FBF6EC 0%, #F4EFE6 62%, #EBE3D6 100%)`,
         textShadow: "0 2px 24px rgba(0,0,0,0.85), 0 1px 3px rgba(0,0,0,0.9)",
       }}
     >
@@ -103,7 +103,7 @@ function ProofRow({ reduced, style }: { reduced: boolean; style: React.CSSProper
         <div key={s.label} style={{ display: "flex", alignItems: "center", gap: "8px 22px" }}>
           {i > 0 && <span aria-hidden style={{ color: "#4a4f5e", fontSize: 18 }}>·</span>}
           <span style={{ display: "inline-flex", alignItems: "baseline", gap: 8 }}>
-            <span style={{ fontSize: 26, fontWeight: 900, color: "#CB7BC7", letterSpacing: 0.5 }}>
+            <span style={{ fontSize: 26, fontWeight: 900, color: "#98487F", letterSpacing: 0.5 }}>
               <CountUp target={s.n} suffix={s.suffix} reduced={reduced} />
             </span>
             <span style={{ fontSize: 12.5, fontWeight: 600, color: "#9aa0ac" }}>{s.label}</span>
@@ -187,7 +187,7 @@ function MagneticCTA({
         fontSize: 15,
         fontWeight: 800,
         letterSpacing: 1,
-        background: "#6E86D6",
+        background: "#4F57B0",
         color: "#fff",
         border: "none",
         cursor: "pointer",

@@ -41,13 +41,27 @@ where each island = a project, with the narrative + metrics in a fast DOM overla
   optional **free surf mode** (`SurfController`) lets you hop on a board and roam the
   ocean with WASD/arrows; it's a bonus, the rails remain the default path.
 - **Stylized low-poly / flat-shaded** (subtle voxel nod), NOT literal Minecraft.
-- **Palette:** **logo-derived** (see `src/theme.ts`) — accents green `#3FA46A`, coral
-  `#E7684A`, periwinkle `#6E86D6`, mauve `#CB7BC7`, sand `#E0A45C`. The **entrance/hero
-  stays on black** with a faint coral/periwinkle glow; the **world is a logo dusk**
-  (green-navy → periwinkle → coral CSS sky behind a transparent canvas, warm low sun,
-  periwinkle-dusk water). `theme.ts` `T` owns the atmosphere; per-project `accent` lives
-  in `projects.ts`. (Old neon palette retired; `og-image.png` still shows the old colors,
-  regenerate when tooling allows.)
+- **Palette: Monument Valley** — high-key pastels on paper cream, a **light** world.
+  This **replaced the neon-on-black / logo-dusk palette** (retired; that entry used to
+  live here). `src/theme.ts` `T` is the single source of truth and has two tiers that
+  must not be mixed up:
+  - **Accents are text-safe**: green `#1F7A5E`, coral `#AC4A2D`, peri `#4F57B0`, mauve
+    `#98487F`, sand `#8A6118`. Every one clears **4.5:1** on both `T.bg` and `T.surface`,
+    and `src/theme.test.ts` asserts it. Recruiter-skimmability is job one and pastel-on-
+    pastel fails contrast silently, so **never lighten an accent for text**.
+  - **`*Soft` cousins** (`periSoft`, `coralSoft`, …) are for large 3D fills and
+    decoration **only**. A test pins that they are *not* text-legible, on purpose.
+  - Surfaces: `bg` `#F4EFE6` (paper), `surface` `#FCF9F3` (cards), `ink` `#2B2833`,
+    `inkSoft` `#5C5766`, `line` `#DED5C7`.
+  - The **rail is the calm pale gallery**; **free-surf** shifts to open ocean via
+    `T.surfSky` / `T.surfWater` (deeper, more saturated). That relationship is inverted
+    from the old world, where the rail was dusk and surfing was the bright half.
+  - `og-image.png` still shows the retired colors; regenerate when tooling allows.
+- **Island monuments share one architectural kit** (`geometry.ts`): plinths, stairs,
+  arches, colonnades, crowned towers. Islands differ by **arrangement**, not by inventing
+  new forms — that is what stopped them reading as random objects. Keep it **cube-only**:
+  all islands are one drei `<Instances>` (a single draw call), so a curved arch would
+  cost a second instanced geometry.
 - **Sound is OFF by default**; it turns on only via the in-world `SoundToggle`. The
   AudioContext suspends while the tab is hidden. Entering the world no longer starts sound.
 - **Entrance flow:** static hero first (no Canvas mounted) → Enter → character-select →
@@ -124,10 +138,13 @@ the quantified outcomes are the gold.
   plugin-react 6 targets the unreleased Vite 8 (rolldown) and imports `vite/internal`.
 - **Lighting is physically-based** (r3f v9): light intensities are intentionally large
   (point light ~240 with inverse-square decay; ambient/hemisphere carry base visibility).
-  Don't "fix" them down to old 0.5–2 values or the scene goes black.
-- Styling: **inline styles**, logo-derived accents (see Locked decisions + `src/theme.ts`):
-  periwinkle `#6E86D6`, coral `#E7684A`, green `#3FA46A`, mauve `#CB7BC7`, sand `#E0A45C`.
-  Atmosphere tokens live in `theme.ts` `T`. Font: Plus Jakarta Sans, headings weight 900.
+  Don't "fix" them down to old 0.5–2 values or the scene goes black. The pastel world
+  also needs a **high light floor** (ambient ~2.3, hemisphere ~2.6, a soft high key at
+  ~1.5) — drop those and the stone goes muddy and loses its high-key character.
+- Styling: **inline styles**, Monument Valley palette (see Locked decisions +
+  `src/theme.ts`): peri `#4F57B0`, coral `#AC4A2D`, green `#1F7A5E`, mauve `#98487F`,
+  sand `#8A6118` on paper cream. Surface/ink/atmosphere tokens live in `theme.ts` `T` —
+  prefer a token over a new literal. Font: Plus Jakarta Sans, headings weight 900.
 - `src/global.d.ts` has a permissive JSX intrinsic shim so r3f elements type-check —
   leave it.
 - `npm run build` runs **vite only (no tsc)** — type-check separately with

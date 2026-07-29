@@ -193,7 +193,7 @@ export default function ProjectPanel({ project, onClose, onNext, nextTitle }: Pr
                 style={{
                   fontSize: 17,
                   lineHeight: 1.7,
-                  color: j === 0 ? "#eceef2" : "#c4c8d2",
+                  color: j === 0 ? "#2B2833" : "#5C5766",
                   marginBottom: 20,
                   maxWidth: "34em",
                 }}
@@ -239,10 +239,10 @@ export default function ProjectPanel({ project, onClose, onNext, nextTitle }: Pr
 // so the panel skims instead of reading as a wall of text.
 function Lead({ text }: { text: string }) {
   const cut = text.indexOf(". ");
-  if (cut === -1) return <strong style={{ color: "#fff", fontWeight: 800 }}>{text}</strong>;
+  if (cut === -1) return <strong style={{ color: "#2B2833", fontWeight: 800 }}>{text}</strong>;
   return (
     <>
-      <strong style={{ color: "#fff", fontWeight: 800 }}>{text.slice(0, cut + 1)}</strong>{" "}
+      <strong style={{ color: "#2B2833", fontWeight: 800 }}>{text.slice(0, cut + 1)}</strong>{" "}
       {text.slice(cut + 2)}
     </>
   );
@@ -252,7 +252,7 @@ function InsightCallout({ accent, text }: { accent: string; text: string }) {
   return (
     <div style={{ margin: "30px 0 6px", paddingLeft: 20, borderLeft: `3px solid ${accent}` }}>
       <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: 2, color: accent, marginBottom: 8 }}>THE INSIGHT</div>
-      <p style={{ fontSize: 19, lineHeight: 1.45, fontWeight: 800, color: "#eceef2", letterSpacing: -0.2 }}>{text}</p>
+      <p style={{ fontSize: 19, lineHeight: 1.45, fontWeight: 800, color: "#2B2833", letterSpacing: -0.2 }}>{text}</p>
     </div>
   );
 }
@@ -261,7 +261,7 @@ function CTA({ accent }: { accent: string }) {
   return (
     <div style={{ marginTop: 36, padding: "26px 24px", background: `${accent}12`, border: `1.5px solid ${accent}`, borderRadius: 12 }}>
       <h3 style={{ fontSize: 22, fontWeight: 900, marginBottom: 8 }}>Like how I work?</h3>
-      <p style={{ fontSize: 14.5, color: "#c4c8d2", lineHeight: 1.6, marginBottom: 20 }}>
+      <p style={{ fontSize: 14.5, color: "#5C5766", lineHeight: 1.6, marginBottom: 20 }}>
         I'm open to senior product roles, and I build my own products on the side. If you want to talk, grab a slot or drop me a line.
       </p>
       <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
@@ -307,7 +307,7 @@ function StickyHeader({
         padding: "16px clamp(20px, 5vw, 40px) 14px",
         background: "rgba(9,10,15,0.94)",
         backdropFilter: "blur(10px)",
-        borderBottom: "1px solid #1b1f2c",
+        borderBottom: "1px solid #DED5C7",
       }}
     >
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
@@ -375,7 +375,7 @@ function Shell({
         right: 0,
         height: "100dvh",
         width: "min(620px, 100vw)",
-        background: "rgba(7,8,12,0.97)",
+        background: "rgba(252,249,243,0.94)",
         backdropFilter: "blur(10px)",
         borderLeft: `3px solid ${accent}`,
         boxShadow: "-20px 0 60px rgba(0,0,0,0.6)",

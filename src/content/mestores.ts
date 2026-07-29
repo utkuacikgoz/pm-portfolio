@@ -14,11 +14,11 @@ export const mestores: CaseStudy = {
       ],
       insight: "You can't optimize what you can't see. The first product decision was to stop flying blind.",
       stakeholders: [
-        { name: "Legacy Engineering Team", role: "Maintenance & Blockers", color: "#6E86D6" },
-        { name: "Product/UX", role: "Customer Experience", color: "#CB7BC7" },
-        { name: "Marketing", role: "Acquisition Costs", color: "#E0A45C" },
-        { name: "Finance/CFO", role: "Unit Economics", color: "#E7684A" },
-        { name: "Customers", role: "User Frustration", color: "#3FA46A" },
+        { name: "Legacy Engineering Team", role: "Maintenance & Blockers", color: "#4F57B0" },
+        { name: "Product/UX", role: "Customer Experience", color: "#98487F" },
+        { name: "Marketing", role: "Acquisition Costs", color: "#8A6118" },
+        { name: "Finance/CFO", role: "Unit Economics", color: "#AC4A2D" },
+        { name: "Customers", role: "User Frustration", color: "#1F7A5E" },
       ],
     },
     {
@@ -29,9 +29,9 @@ export const mestores: CaseStudy = {
         "Budget was tied to proof. Leadership wouldn't fund three senior engineers until we showed platform work drove revenue, a chicken-and-egg problem. So I went hunting for quick wins: low-effort, high-impact features that would show results in weeks, not months.",
       ],
       decisions: [
-        { label: "Total Rewrite (Years, High Risk)", speed: 10, risk: 90, isChosen: false, color: "#E7684A" },
-        { label: "Gradual Fixes (Slow, Safe)", speed: 25, risk: 20, isChosen: false, color: "#E0A45C" },
-        { label: "Strategic Modernization (Infrastructure + Features)", speed: 70, risk: 40, isChosen: true, color: "#6E86D6" },
+        { label: "Total Rewrite (Years, High Risk)", speed: 10, risk: 90, isChosen: false, color: "#AC4A2D" },
+        { label: "Gradual Fixes (Slow, Safe)", speed: 25, risk: 20, isChosen: false, color: "#8A6118" },
+        { label: "Strategic Modernization (Infrastructure + Features)", speed: 70, risk: 40, isChosen: true, color: "#4F57B0" },
       ],
     },
     {
@@ -45,10 +45,10 @@ export const mestores: CaseStudy = {
       insight:
         "Ship a visible win first, then spend that credibility on the invisible work. Nobody funds CI/CD until they've seen the cart-recovery revenue.",
       initiatives: [
-        { label: "Analytics & Tracking Foundation", effort: 20, impact: 90, timeToValue: 5, color: "#6E86D6" },
-        { label: "Abandoned Cart Recovery", effort: 15, impact: 85, timeToValue: 8, color: "#CB7BC7" },
-        { label: "E-Commerce Best Practices (Checkout, Reviews, Recommendations)", effort: 50, impact: 88, timeToValue: 20, color: "#E0A45C" },
-        { label: "CI/CD & Infrastructure", effort: 60, impact: 80, timeToValue: 30, color: "#E7684A" },
+        { label: "Analytics & Tracking Foundation", effort: 20, impact: 90, timeToValue: 5, color: "#4F57B0" },
+        { label: "Abandoned Cart Recovery", effort: 15, impact: 85, timeToValue: 8, color: "#98487F" },
+        { label: "E-Commerce Best Practices (Checkout, Reviews, Recommendations)", effort: 50, impact: 88, timeToValue: 20, color: "#8A6118" },
+        { label: "CI/CD & Infrastructure", effort: 60, impact: 80, timeToValue: 30, color: "#AC4A2D" },
       ],
     },
     {
@@ -59,10 +59,10 @@ export const mestores: CaseStudy = {
         "And customers felt it. NPS jumped 32 → 68. Faster checkout, working search, personalized recommendations, real order updates, the platform felt modern instead of broken, and returning customers named 'better experience' as the reason they came back.",
       ],
       metrics: [
-        { label: "Conversion Rate", before: 0.8, after: 2.1, unit: "%", color: "#6E86D6" },
-        { label: "Repeat Purchase Rate", before: 22, after: 48, unit: "%", color: "#CB7BC7" },
-        { label: "Abandoned Cart Recovery", before: 0, after: 500, unit: "K$/yr", color: "#E0A45C" },
-        { label: "Customer Lifetime Value", before: 120, after: 280, unit: "$", color: "#E7684A" },
+        { label: "Conversion Rate", before: 0.8, after: 2.1, unit: "%", color: "#4F57B0" },
+        { label: "Repeat Purchase Rate", before: 22, after: 48, unit: "%", color: "#98487F" },
+        { label: "Abandoned Cart Recovery", before: 0, after: 500, unit: "K$/yr", color: "#8A6118" },
+        { label: "Customer Lifetime Value", before: 120, after: 280, unit: "$", color: "#AC4A2D" },
       ],
     },
     {

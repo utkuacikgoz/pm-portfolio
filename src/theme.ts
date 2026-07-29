@@ -1,31 +1,58 @@
-// Palette derived from the Utku logo (green / coral / periwinkle / mauve),
-// brightened for legibility on the dark 3D ground. The five accents also live
-// inline on each project in projects.ts (via the palette sweep); this module is
-// the single source of truth for the world's ATMOSPHERE (sky, fog, water, sun,
-// entrance glow) so the mood stays cohesive.
+// Monument Valley palette: high-key pastels, paper-cream ground, soft geometric
+// light. This replaces the earlier neon-on-black world (see CLAUDE.md, Locked
+// product decisions) — the whole site now reads as one calm, sunlit architecture.
+//
+// Two tiers, deliberately separate:
+//   * ACCENT tokens are text-safe. Every one clears 4.5:1 on `bg` and on
+//     `surface`, because the site's first job is recruiter-skimmable and pastel
+//     on pastel fails contrast silently. Do not lighten these for text use.
+//   * The *Soft cousins are for large 3D fills and decoration ONLY, never text.
+//
+// The five accents also live inline on each project in projects.ts.
 export const T = {
-  // logo-family accents
-  peri: "#6E86D6",
-  coral: "#E7684A",
-  green: "#3FA46A",
-  mauve: "#CB7BC7",
-  sand: "#E0A45C",
+  // Accent family — text-safe (see contrast note above)
+  peri: "#4F57B0", // indigo
+  coral: "#AC4A2D", // terracotta
+  green: "#1F7A5E", // sage
+  mauve: "#98487F", // plum
+  sand: "#8A6118", // ochre
 
-  // atmosphere
-  sky: "linear-gradient(180deg, #101f1c 0%, #24304c 42%, #4b3a5c 70%, #b56a4d 100%)",
-  fog: "#4a4560", // dusk haze the distant islands fade into
-  skyBounce: "#c3c9e6", // hemisphere sky light (periwinkle-tinted)
-  ground: "#141a18", // hemisphere ground light
-  sunLight: "#ffcaa0", // warm directional key
+  // Pastel cousins for monument faces and decoration. Never used for text.
+  periSoft: "#AEB6EC",
+  coralSoft: "#F0B39A",
+  greenSoft: "#8FCDB6",
+  mauveSoft: "#E4A9CF",
+  sandSoft: "#EDCB8E",
 
-  water: "#16283c", // periwinkle-dusk sea
+  // Surfaces + ink
+  bg: "#F4EFE6", // paper cream, the page ground
+  surface: "#FCF9F3", // cards, panels
+  surfaceVeil: "rgba(252,249,243,0.92)", // same, floated over the canvas
+  ink: "#2B2833", // primary text
+  inkSoft: "#5C5766", // secondary text
+  line: "#DED5C7", // hairlines, borders
+
+  // Atmosphere — a pale sunlit sky the islands sit inside
+  sky: "linear-gradient(180deg, #BFE0E4 0%, #DCDCEF 40%, #F2DFDD 74%, #FBF2E6 100%)",
+  fog: "#E3E0DC", // distance haze; far islands dissolve into the sky
+  skyBounce: "#EAF3F7", // hemisphere sky light
+  ground: "#D8CCBC", // hemisphere ground bounce (warm sand)
+  sunLight: "#FFF3E0", // soft directional key
+
+  water: "#8FC7CE", // pale lagoon around the rail
   entranceGlow: {
-    coral: "rgba(231,104,74,0.10)",
-    peri: "rgba(94,116,197,0.09)",
+    coral: "rgba(172,74,45,0.10)",
+    peri: "rgba(79,87,176,0.09)",
   },
 
-  // Free-surf shifts to a bright, cheerful daytime (the rail/career world stays
-  // dusk). Sky gradient for the page wrapper + a turquoise daytime sea.
-  daySky: "linear-gradient(180deg, #4aa6e0 0%, #7fc6e8 45%, #a9e0e6 74%, #d9f2ef 100%)",
-  dayWater: "#1f7fa6", // bright turquoise
+  // Free-surf leaves the pale rail for open ocean: deeper, more saturated water
+  // and a bigger sky. The rail is calm and papery; the ocean is vivid. (These
+  // were daySky/dayWater when the rail was dusk and surfing was the bright half.)
+  surfSky: "linear-gradient(180deg, #4E9FD6 0%, #7CC2E2 45%, #A9DCE4 76%, #DCF1EC 100%)",
+  surfWater: "#1E7FA8",
+
+  // Monument stone: the shared masonry every island is built from.
+  stone: "#EFE6D8",
+  stoneMid: "#DCCFBC",
+  stoneDeep: "#C3B49E",
 };
