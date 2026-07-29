@@ -55,6 +55,24 @@ function Blob({ pos, r, color, scale }: { pos: [number, number, number]; r: numb
   );
 }
 
+// A foot: rounded (scaled sphere, not a hard box) and yawed across the board so
+// the stance reads as surfing rather than skiing. Toes are a second, smaller blob
+// so the silhouette tapers instead of ending in a slab.
+function Foot({ pos, yaw }: { pos: [number, number, number]; yaw: number }) {
+  return (
+    <group position={pos} rotation={[0, yaw, 0]}>
+      <mesh raycast={() => null} scale={[0.15, 0.06, 0.24]}>
+        <sphereGeometry args={[1, 10, 8]} />
+        <meshStandardMaterial color={SKIN} roughness={0.8} />
+      </mesh>
+      <mesh position={[0, -0.01, 0.2]} raycast={() => null} scale={[0.12, 0.045, 0.09]}>
+        <sphereGeometry args={[1, 8, 6]} />
+        <meshStandardMaterial color={SKIN} roughness={0.8} />
+      </mesh>
+    </group>
+  );
+}
+
 const Surfer = forwardRef<THREE.Group, { accent?: string }>(function Surfer({ accent = "#6E86D6" }, riderRef) {
   return (
     <group>
@@ -74,15 +92,15 @@ const Surfer = forwardRef<THREE.Group, { accent?: string }>(function Surfer({ ac
 
       {/* ── Rider (own group → leaned / pitched by the parent) ── */}
       <group ref={riderRef} position={[0, 0.16, 0]}>
-        {/* feet */}
-        <mesh position={[0.02, 0.05, 0.54]} raycast={() => null}>
-          <boxGeometry args={[0.28, 0.12, 0.46]} />
-          <meshStandardMaterial color={SKIN} roughness={0.8} />
-        </mesh>
-        <mesh position={[-0.04, 0.05, -0.52]} raycast={() => null}>
-          <boxGeometry args={[0.28, 0.12, 0.46]} />
-          <meshStandardMaterial color={SKIN} roughness={0.8} />
-        </mesh>
+        {/* Feet: a real surf stance. Both were axis-aligned boxes pointing down
+            the board like skis, which read as flat and toy-like. Now they are
+            rounded and angled off the stringer (front foot open ~35 degrees, back
+            foot across ~55) the way a rider actually stands, with short ankles
+            joining them to the shins. */}
+        <Foot pos={[0.02, 0.05, 0.54]} yaw={0.6} />
+        <Foot pos={[-0.04, 0.05, -0.52]} yaw={0.95} />
+        <Blob pos={[0.02, 0.14, 0.5]} r={0.1} color={SKIN} scale={[1, 0.9, 1]} />
+        <Blob pos={[-0.04, 0.14, -0.48]} r={0.1} color={SKIN} scale={[1, 0.9, 1]} />
 
         {/* legs: bare shins (skin) + boardshorts on the thighs (accent) */}
         <Limb a={[0.02, 0.12, 0.54]} b={[0.05, 0.46, 0.34]} r={0.14} color={SKIN} />
@@ -104,6 +122,9 @@ const Surfer = forwardRef<THREE.Group, { accent?: string }>(function Surfer({ ac
         {/* thick arms: leading down-forward, trailing up-back for balance */}
         <Limb a={[0.32, 1.0, 0.08]} b={[0.52, 0.6, 0.5]} r={0.12} color={SKIN} />
         <Limb a={[-0.28, 1.02, 0.02]} b={[-0.56, 1.2, -0.36]} r={0.12} color={SKIN} />
+        {/* hands: the arms used to just stop mid-air */}
+        <Blob pos={[0.53, 0.57, 0.53]} r={0.11} color={SKIN} scale={[0.9, 1, 1.1]} />
+        <Blob pos={[-0.59, 1.23, -0.39]} r={0.11} color={SKIN} scale={[0.9, 1, 1.1]} />
 
         {/* head */}
         <Blob pos={[0.08, 1.22, 0.18]} r={0.17} color={SKIN} />
