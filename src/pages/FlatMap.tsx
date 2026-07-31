@@ -4,6 +4,7 @@ import type { Project } from "../projects/projects";
 import { INDIE_PROJECTS } from "../projects/projects";
 import { useProgress, markEgg } from "../state/progress";
 import { CONTACT } from "../content/contact";
+import { T } from "../theme";
 
 interface Props {
   projects: Project[];
@@ -40,14 +41,14 @@ export default function FlatMap({ projects, onOpen }: Props) {
         >
           Utku Acikgoz
         </h1>
-        <p style={{ color: "#6E86D6", fontSize: 16, fontWeight: 700, marginTop: 6 }}>
+        <p style={{ color: T.blue, fontSize: 16, fontWeight: 700, marginTop: 6 }}>
           Senior Technical Product Manager
         </p>
-        <p style={{ color: "#c4c8d2", fontSize: 14, marginTop: 12, lineHeight: 1.7, maxWidth: 560, marginInline: "auto" }}>
+        <p style={{ color: T.textSoft, fontSize: 14, marginTop: 12, lineHeight: 1.7, maxWidth: 560, marginInline: "auto" }}>
           8+ years and 11 products shipped across fintech, blockchain, HRtech & SaaS. I lead distributed
           teams and lean hard on analytics and AI to ship.
         </p>
-        <p style={{ color: "#7f8694", fontSize: 13, marginTop: 14 }}>
+        <p style={{ color: T.textMuted, fontSize: 13, marginTop: 14 }}>
           Tap a project to read the case study.
         </p>
       </header>
@@ -68,13 +69,13 @@ export default function FlatMap({ projects, onOpen }: Props) {
               style={{
                 textAlign: "left",
                 cursor: "pointer",
-                background: "#0a0c12",
+                background: T.inkRaised,
                 border: `3px solid ${p.accent}`,
                 padding: "22px 20px",
                 display: "flex",
                 gap: 16,
                 alignItems: "center",
-                color: "#fff",
+                color: T.text,
                 position: "relative",
               }}
             >
@@ -99,7 +100,7 @@ export default function FlatMap({ projects, onOpen }: Props) {
                 <span style={{ display: "block", fontSize: 20, fontWeight: 900, letterSpacing: 0.5 }}>
                   {p.title}
                 </span>
-                <span style={{ display: "block", fontSize: 12.5, color: "#9aa0ac", marginTop: 4, lineHeight: 1.5 }}>
+                <span style={{ display: "block", fontSize: 12.5, color: T.textMuted, marginTop: 4, lineHeight: 1.5 }}>
                   {p.tagline}
                 </span>
               </span>
@@ -110,7 +111,7 @@ export default function FlatMap({ projects, onOpen }: Props) {
 
       {INDIE_PROJECTS.length > 0 && (
         <>
-          <h2 style={{ fontSize: 14, fontWeight: 900, letterSpacing: 1.5, color: "#7f8694", margin: "40px 0 14px" }}>
+          <h2 style={{ fontSize: 14, fontWeight: 900, letterSpacing: 1.5, color: T.textMuted, margin: "40px 0 14px" }}>
             CURRENTLY BUILDING
           </h2>
           <div style={{ display: "grid", gap: 10 }}>
@@ -122,13 +123,13 @@ export default function FlatMap({ projects, onOpen }: Props) {
                   alignItems: "center",
                   gap: 12,
                   padding: "14px 18px",
-                  background: "#0a0c12",
+                  background: T.inkRaised,
                   borderLeft: `4px solid ${p.accent}`,
                 }}
               >
                 <span style={{ width: 9, height: 9, borderRadius: "50%", background: p.accent, flexShrink: 0 }} />
                 <span style={{ fontWeight: 800, fontSize: 15 }}>{p.title}</span>
-                <span style={{ fontSize: 12.5, color: "#9aa0ac" }}>{p.glimpse ?? p.tagline}</span>
+                <span style={{ fontSize: 12.5, color: T.textMuted }}>{p.glimpse ?? p.tagline}</span>
                 <span
                   style={{
                     marginLeft: "auto",
@@ -152,14 +153,14 @@ export default function FlatMap({ projects, onOpen }: Props) {
         style={{
           marginTop: 44,
           padding: "26px 22px",
-          background: "#6E86D612",
-          border: "1.5px solid #6E86D6",
+          background: `${T.blue}12`,
+          border: `1.5px solid ${T.blue}`,
           borderRadius: 12,
           textAlign: "center",
         }}
       >
         <h2 style={{ fontSize: 22, fontWeight: 900, marginBottom: 8 }}>Like how I work?</h2>
-        <p style={{ fontSize: 14, color: "#c4c8d2", lineHeight: 1.6, marginBottom: 20 }}>
+        <p style={{ fontSize: 14, color: T.textSoft, lineHeight: 1.6, marginBottom: 20 }}>
           Open to senior product roles, and building my own products on the side. Grab a slot or take the CV.
         </p>
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap", justifyContent: "center" }}>
@@ -167,20 +168,20 @@ export default function FlatMap({ projects, onOpen }: Props) {
             href={CONTACT.calendar}
             target="_blank"
             rel="noopener"
-            style={{ padding: "12px 22px", background: "#6E86D6", color: "#000", fontSize: 14, fontWeight: 800 }}
+            style={{ padding: "12px 22px", background: T.blue, color: T.text, fontSize: 14, fontWeight: 800 }}
           >
             Book a 20-min call →
           </a>
           <a
             href="/UtkuAcikgoz-CV.pdf"
             download
-            style={{ padding: "12px 22px", border: "2px solid #fff", color: "#fff", fontSize: 14, fontWeight: 800 }}
+            style={{ padding: "12px 22px", border: `2px solid ${T.text}`, color: T.text, fontSize: 14, fontWeight: 800 }}
           >
             ↓ Download CV
           </a>
           <Link
             to="/resume"
-            style={{ padding: "12px 22px", border: "2px solid #CB7BC7", color: "#CB7BC7", fontSize: 14, fontWeight: 800 }}
+            style={{ padding: "12px 22px", border: `2px solid ${T.mauve}`, color: T.mauve, fontSize: 14, fontWeight: 800 }}
           >
             Full resume
           </Link>

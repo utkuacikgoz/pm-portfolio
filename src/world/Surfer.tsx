@@ -1,5 +1,6 @@
 import { forwardRef, useMemo } from "react";
 import * as THREE from "three";
+import { T } from "../theme";
 
 // A low-poly surfer — muscular, tanned, long-haired — shared by the free-surf
 // board (SurfController) and the water-gap easter-egg board (CameraRig). Rounded
@@ -73,7 +74,7 @@ function Foot({ pos, yaw }: { pos: [number, number, number]; yaw: number }) {
   );
 }
 
-const Surfer = forwardRef<THREE.Group, { accent?: string }>(function Surfer({ accent = "#6E86D6" }, riderRef) {
+const Surfer = forwardRef<THREE.Group, { accent?: string }>(function Surfer({ accent = T.blue }, riderRef) {
   return (
     <group>
       {/* ── Shortboard (smooth, rounded nose + tail) ── */}

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { INDIE_PROJECTS, PUBLISHED_PROJECTS } from "../projects/projects";
+import { PUBLISHED_PROJECTS } from "../projects/projects";
 import { islandPosition, INDIE_INDEX, WATER_Y, EMP_COUNT, SPACING, rng } from "./geometry";
 import { usePrefersReducedMotion } from "../ui/hooks/useReducedMotion";
 import { T } from "../theme";
@@ -11,7 +11,7 @@ const WATER_DUSK = new THREE.Color(T.water);
 const WATER_DAY = new THREE.Color(T.dayWater);
 
 // The sea the islands float on, and the separate "what I'm building" island you
-// surf to — indie products as gently bobbing, NON-clickable coming-soon bubbles.
+// surf to.
 
 // The sea, now with real swell: a segmented plane displaced in the vertex shader
 // (sum of sines, GPU-cheap, no textures) so the surface heaves and catches the
@@ -59,7 +59,7 @@ export function Water() {
   return (
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[60, WATER_Y, 0]} raycast={() => null}>
       <planeGeometry args={[600, 320, 120, 80]} />
-      {/* Periwinkle-dusk sea (logo palette), reflective enough to catch the sun. */}
+      {/* Ocean-blue dusk sea, reflective enough to catch the sun. */}
       <meshStandardMaterial
         ref={matRef}
         color={T.water}
@@ -91,7 +91,7 @@ export function IslandShadows() {
               raycast={() => null}
             >
               <circleGeometry args={[5.2, 8]} />
-              <meshBasicMaterial color="#03050c" transparent opacity={0.42} depthWrite={false} />
+              <meshBasicMaterial color="#1D1816" transparent opacity={0.42} depthWrite={false} />
             </mesh>
             <mesh
               position={[x, WATER_Y + 0.06, z]}
@@ -126,11 +126,11 @@ export function SunDisc() {
     <group position={[endX, 12, -55]}>
       <mesh raycast={() => null}>
         <circleGeometry args={[22, 48]} />
-        <meshBasicMaterial color="#F0A06A" fog={false} />
+        <meshBasicMaterial color={T.amber} fog={false} />
       </mesh>
       <mesh position={[0, 0, -1]} raycast={() => null}>
         <circleGeometry args={[42, 48]} />
-        <meshBasicMaterial color="#E7684A" transparent opacity={0.3} blending={THREE.AdditiveBlending} fog={false} />
+        <meshBasicMaterial color={T.coral} transparent opacity={0.3} blending={THREE.AdditiveBlending} fog={false} />
       </mesh>
     </group>
   );
@@ -166,33 +166,10 @@ export function DistantMountains() {
       {peaks.map((p, i) => (
         <mesh key={i} position={[p.x, WATER_Y + p.h / 2 - 2, p.z]} raycast={() => null}>
           <coneGeometry args={[p.w, p.h, 4]} />
-          <meshStandardMaterial color="#3a3550" flatShading />
+          <meshStandardMaterial color={T.surface} flatShading />
         </mesh>
       ))}
     </group>
-  );
-}
-
-function Bubble({ index, color, count }: { index: number; color: string; count: number }) {
-  const ref = useRef<THREE.Mesh>(null);
-  const x = (index - (count - 1) / 2) * 2.6;
-  useFrame((s) => {
-    if (ref.current) ref.current.position.y = 3.2 + Math.sin(s.clock.elapsedTime * 1.2 + index) * 0.35;
-  });
-  return (
-    // raycast disabled → bubbles are visual only, not clickable.
-    <mesh ref={ref} position={[x, 3.2, 0]} raycast={() => null}>
-      <sphereGeometry args={[1.15, 24, 24]} />
-      <meshStandardMaterial
-        color={color}
-        emissive={color}
-        emissiveIntensity={0.3}
-        transparent
-        opacity={0.45}
-        roughness={0.1}
-        metalness={0.1}
-      />
-    </mesh>
   );
 }
 
@@ -205,7 +182,7 @@ export function Ripples({ active }: { active: number }) {
   const meshes = useRef<(THREE.Mesh | null)[]>([]);
   const slots = useRef(Array.from({ length: 3 }, () => ({ born: -99, x: 0, z: 0 })));
   const cursor = useRef(0);
-  const accent = PUBLISHED_PROJECTS[active]?.accent ?? "#CB7BC7";
+  const accent = PUBLISHED_PROJECTS[active]?.accent ?? T.mauve;
 
   useEffect(() => {
     if (reduced) return;
@@ -269,7 +246,7 @@ export function Ripples({ active }: { active: number }) {
 export function LightShaft({ active }: { active: number }) {
   const ref = useRef<THREE.Mesh>(null);
   const reduced = usePrefersReducedMotion();
-  const accent = PUBLISHED_PROJECTS[active]?.accent ?? "#CB7BC7";
+  const accent = PUBLISHED_PROJECTS[active]?.accent ?? T.mauve;
   const target = useRef(new THREE.Vector3());
 
   useFrame((_, dt) => {
@@ -307,9 +284,6 @@ export function IndieIsland() {
         <boxGeometry args={[4.5, 1, 4.5]} />
         <meshStandardMaterial color="#0e1b2c" flatShading />
       </mesh>
-      {INDIE_PROJECTS.map((p, i) => (
-        <Bubble key={p.id} index={i} color={p.accent} count={INDIE_PROJECTS.length} />
-      ))}
     </group>
   );
 }

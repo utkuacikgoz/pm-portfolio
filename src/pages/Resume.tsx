@@ -1,11 +1,12 @@
 import { Link } from "../router";
 import { PUBLISHED_PROJECTS, INDIE_PROJECTS } from "../projects/projects";
 import { useProgress } from "../state/progress";
+import { T } from "../theme";
 
 const CONTACTS = [
-  { label: "EMAIL", href: "mailto:hello@utkuacikgoz.com", color: "#E0A45C" },
-  { label: "LINKEDIN", href: "https://linkedin.com/in/utkuacikgoz", color: "#6E86D6" },
-  { label: "WEBSITE", href: "https://utkuacikgoz.com", color: "#CB7BC7" },
+  { label: "EMAIL", href: "mailto:hello@utkuacikgoz.com", color: T.gold },
+  { label: "LINKEDIN", href: "https://linkedin.com/in/utkuacikgoz", color: T.blue },
+  { label: "WEBSITE", href: "https://utkuacikgoz.com", color: T.mauve },
 ];
 
 const EMPLOYMENT = PUBLISHED_PROJECTS;
@@ -26,8 +27,8 @@ export default function Resume() {
           top: 20,
           left: 24,
           padding: "10px 18px",
-          border: "2px solid #fff",
-          color: "#fff",
+          border: `2px solid ${T.text}`,
+          color: T.text,
           fontSize: 13,
           fontWeight: 800,
         }}
@@ -38,10 +39,10 @@ export default function Resume() {
       <header style={{ marginTop: 24, marginBottom: 12 }}>
         <img src="/utku-logo.svg" alt="" width={48} height={48} style={{ marginBottom: 14 }} />
         <h1 style={{ fontSize: "clamp(34px, 8vw, 48px)", fontWeight: 900 }}>Utku Acikgoz</h1>
-        <p style={{ color: "#6E86D6", fontSize: 18, fontWeight: 700, marginTop: 6 }}>
+        <p style={{ color: T.blue, fontSize: 18, fontWeight: 700, marginTop: 6 }}>
           Senior Product Manager
         </p>
-        <p style={{ color: "#c4c8d2", fontSize: 15, marginTop: 12, lineHeight: 1.75 }}>
+        <p style={{ color: T.textSoft, fontSize: 15, marginTop: 12, lineHeight: 1.75 }}>
           8+ years and 11+ products shipped across fintech, blockchain, e-commerce, food delivery and
           marketplaces. I lead distributed teams, up to 25 people across Turkey, the UAE, KSA and the
           US, and lean hard on analytics and AI to ship. Certified Scrum Master (PSM I) and Product
@@ -51,7 +52,7 @@ export default function Resume() {
           <a
             href="/UtkuAcikgoz-CV.pdf"
             download
-            style={{ padding: "9px 18px", background: "#fff", color: "#000", fontSize: 13, fontWeight: 800 }}
+            style={{ padding: "9px 18px", background: T.text, color: T.ink, fontSize: 13, fontWeight: 800 }}
           >
             ↓ DOWNLOAD CV
           </a>
@@ -94,13 +95,13 @@ export default function Resume() {
                   alignItems: "center",
                   gap: 16,
                   padding: "16px 20px",
-                  background: "#0a0c12",
+                  background: T.inkRaised,
                   borderLeft: `4px solid ${p.accent}`,
                 }}
               >
                 <span>
                   <span style={{ display: "block", fontSize: 18, fontWeight: 800 }}>{p.title}</span>
-                  <span style={{ display: "block", fontSize: 13, color: "#9aa0ac", marginTop: 3, lineHeight: 1.5 }}>
+                  <span style={{ display: "block", fontSize: 13, color: T.textMuted, marginTop: 3, lineHeight: 1.5 }}>
                     {p.glimpse ?? p.tagline}
                   </span>
                 </span>
@@ -150,9 +151,9 @@ function Row({
           alignItems: "center",
           gap: 16,
           padding: "16px 20px",
-          background: "#0a0c12",
+          background: T.inkRaised,
           borderLeft: `4px solid ${accent}`,
-          color: "#fff",
+          color: T.text,
         }}
       >
         <span>
@@ -160,7 +161,7 @@ function Row({
             {title}
             {read && <span aria-label="read" style={{ color: accent, fontSize: 13 }}>✓</span>}
           </span>
-          <span style={{ display: "block", fontSize: 13, color: "#9aa0ac", marginTop: 3, lineHeight: 1.5 }}>{sub}</span>
+          <span style={{ display: "block", fontSize: 13, color: T.textMuted, marginTop: 3, lineHeight: 1.5 }}>{sub}</span>
         </span>
         <span style={{ color: accent, fontSize: 13, fontWeight: 700, whiteSpace: "nowrap" }}>{cta}</span>
       </Link>
