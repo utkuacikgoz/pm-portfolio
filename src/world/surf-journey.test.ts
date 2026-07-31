@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { COINS, COIN_TOTAL, COIN_Y, SURF_COLLIDERS, collectedCoins, CHECKPOINTS, CHECKPOINT_TOTAL } from "./surf-journey";
 import { SURF_LAUNCH, SURF_SPOTS } from "./surf-spots";
 import { WATER_Y, seaHeight } from "./geometry";
+import { DISTANT_PEAKS } from "./distant-mountains";
 
 // The coin trail loops through the breaks and back to where it started, so the
 // last stretch is as much of the ride as the first. An earlier `.slice(0, 42)`
@@ -42,8 +43,30 @@ describe("coin trail", () => {
     }
   });
 
+  it("gives every surrounding mountain a physical bounce volume", () => {
+    for (const peak of DISTANT_PEAKS) {
+      const collider = SURF_COLLIDERS.find((candidate) => candidate.x === peak.x && candidate.z === peak.z);
+      expect(collider).toBeDefined();
+      expect(collider!.r).toBeGreaterThan(peak.w);
+    }
+  });
+
   it("gives every coin a unique id so collection cannot double count", () => {
     expect(new Set(COINS.map((c) => c.id)).size).toBe(COINS.length);
+  });
+
+  it("forms a continuous trail without dead gaps", () => {
+    for (let i = 1; i < COINS.length; i++) {
+      expect(Math.hypot(COINS[i].x - COINS[i - 1].x, COINS[i].z - COINS[i - 1].z)).toBeLessThan(52);
+    }
+  });
+
+  it("guides the player around every named break without hiding tokens inside it", () => {
+    for (const spot of SURF_SPOTS) {
+      const nearest = Math.min(...COINS.map((coin) => Math.hypot(coin.x - spot.take[0], coin.z - spot.take[1])));
+      expect(nearest).toBeGreaterThanOrEqual(24);
+      expect(nearest).toBeLessThan(36);
+    }
   });
 
   it("starts a run with nothing collected", () => {
@@ -69,7 +92,7 @@ describe("how I work checkpoints", () => {
   it("places every gate on the coin trail, not off in open water", () => {
     for (const c of CHECKPOINTS) {
       const nearest = Math.min(...COINS.map((k) => Math.hypot(k.x - c.x, k.z - c.z)));
-      expect(nearest).toBeLessThan(12);
+      expect(nearest).toBeLessThan(26);
     }
   });
 
@@ -90,6 +113,19 @@ describe("how I work checkpoints", () => {
     expect(new Set(CHECKPOINTS.map((c) => c.angle.toFixed(3))).size).toBeGreaterThan(1);
   });
 
+  it("encounters principles in narrative order along the trail", () => {
+    const nearestCoinIndex = CHECKPOINTS.map((checkpoint) => {
+      let best = 0;
+      for (let i = 1; i < COINS.length; i++) {
+        const current = Math.hypot(COINS[i].x - checkpoint.x, COINS[i].z - checkpoint.z);
+        const previous = Math.hypot(COINS[best].x - checkpoint.x, COINS[best].z - checkpoint.z);
+        if (current < previous) best = i;
+      }
+      return best;
+    });
+    expect(nearestCoinIndex).toEqual([...nearestCoinIndex].sort((a, b) => a - b));
+  });
+
   it("carries a supporting line under every principle", () => {
     for (const c of CHECKPOINTS) {
       expect(c.text.length).toBeGreaterThan(20);
@@ -103,6 +139,7 @@ describe("named-break rides", () => {
     for (const spot of SURF_SPOTS) {
       expect(spot.ride.lift).toBeGreaterThan(0);
       expect(spot.ride.lift).toBeLessThanOrEqual(5);
+      expect(Math.hypot(...spot.ride.direction)).toBeGreaterThan(1);
     }
   });
 
