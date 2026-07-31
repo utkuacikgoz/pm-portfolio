@@ -3,7 +3,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { WATER_Y, seaHeight } from "./geometry";
 import Surfer from "./Surfer";
-import { nearestTakeoff, type SurfSpot } from "./surf-spots";
+import { nearestTakeoff, SURF_LAUNCH, type SurfSpot } from "./surf-spots";
 import { surfSignal } from "./surf-signal";
 import { SURF_COLLIDERS, COINS, COIN_TOTAL, CHECKPOINTS, collectedCoins, type Checkpoint } from "./surf-journey";
 import { sfx } from "../audio/sfx";
@@ -12,11 +12,10 @@ import { sfx } from "../audio/sfx";
 // arrow keys, third-person chase camera. Active only while `active` is true;
 // CameraRig goes inert during that time so the two don't fight over the camera.
 //
-// Reach a legendary break and you AUTO drop in and ride it — no key needed —
-// which reveals its name as a reward (roaming is otherwise unlabelled, so the
-// breaks are a discovery). Space pops a separate ollie anywhere. The cursor moves
-// the view (move-look): point where you want to look, center it to fall back
-// behind the board.
+// Reach a legendary break to catch a short player-steered boost. It adds speed
+// and lift without teleporting the board onto a scripted rail. Space pops a
+// separate ollie anywhere. The cursor moves the view (move-look): point where
+// you want to look, center it to fall back behind the board.
 const GRAVITY = 30;
 const JUMP_V = 10; // ollie pop
 // Prone pitch for the paddle-in. Positive tips the rider's head toward the nose
@@ -25,12 +24,13 @@ const JUMP_V = 10; // ollie pop
 const PRONE_PITCH = 1.5;
 // How much of the swell the board actually follows. Tracking it 1:1 at speed made
 // the board (and the whole camera) shake, so ride a damped share of it.
-const SWELL_FOLLOW = 0.45;
+const SWELL_FOLLOW = 0.28;
 const ease = (p: number) => p * p * (3 - 2 * p); // smoothstep
 const CATCH_RADIUS = 26; // enter this close to a break's takeoff and you drop in
 const CATCH_MIN_SPEED = 4; // need some pace to catch
 const RIDE_DUR = 3.6; // seconds a caught ride lasts
 const REVEAL_HOLD = 5; // seconds the break's name stays on the HUD after catching
+const RIDE_ENTRY_RADIUS = 10; // catches happen close enough to cleanly enter the authored line
 const MAX_YAW = 0.6; // how far the cursor can swing the view (radians)
 const MAX_PITCH = 0.45;
 const SPIN_RATE = 9.4; // ~one full board rotation per ollie
@@ -62,6 +62,7 @@ export default function SurfController({
   const airY = useRef(0); // height above the water line
   const riding = useRef(false);
   const rideStart = useRef(0);
+  const rideSpot = useRef<SurfSpot | null>(null);
   const zoneId = useRef<string | null>(null); // takeoff zone we're currently inside
   const rodeThisVisit = useRef(false); // caught the wave since entering this zone?
   const lean = useRef(0); // rider carve lean, eased
@@ -70,6 +71,7 @@ export default function SurfController({
   const lookPitch = useRef(0);
   const camTarget = useRef(new THREE.Vector3());
   const lookTarget = useRef(new THREE.Vector3());
+  const cameraLook = useRef(new THREE.Vector3());
   const camera = useThree((s) => s.camera);
   const regress = useThree((s) => s.performance.regress);
   // Keep the callback in a ref so the frame loop always calls the latest one
@@ -148,15 +150,16 @@ export default function SurfController({
     };
   }, [active, regress]);
 
-  // Seed the board near where the camera was looking when surf mode starts.
+  // Launch in open water with Bondi in the initial heading, outside its catch zone.
   useEffect(() => {
     if (!active) return;
-    pos.current.set(camera.position.x, WATER_Y + 0.3, camera.position.z - 6);
-    heading.current = Math.PI;
+    pos.current.set(SURF_LAUNCH.position[0], WATER_Y + 0.3, SURF_LAUNCH.position[1]);
+    heading.current = SURF_LAUNCH.heading;
     speed.current = 0;
     airY.current = 0;
     vy.current = 0;
     riding.current = false;
+    rideSpot.current = null;
     zoneId.current = null;
     rodeThisVisit.current = false;
     cursor.current.x = 0;
@@ -176,6 +179,7 @@ export default function SurfController({
     turnVel.current = 0;
     riderPitch.current = PRONE_PITCH; // start prone (belly down, head toward the nose)
     bobSmooth.current = -1; // re-seed the swell filter on the first frame
+    cameraLook.current.set(pos.current.x, WATER_Y + 1, pos.current.z);
   }, [active, camera]);
 
   // Leaving surf mode clears the HUD labels + spray signal.
@@ -204,7 +208,7 @@ export default function SurfController({
     const introP = Math.min(1, (t - introStart.current) / 1.6); // 0..1
     const intro = introP < 1;
     const fwdIn = intro ? 0.5 : fwd; // auto-glide while paddling
-    const turnIn = intro ? 0 : turn;
+    const turnIn = intro ? 0 : turn * (riding.current ? 0.65 : 1);
     // Rider pose: prone while paddling, pops up over the last third. PRONE is
     // +PRONE_PITCH (rotating +X tips the head toward the nose, belly down); the
     // seed in the entry effect uses the same sign, so the pop-up plays forwards.
@@ -243,11 +247,13 @@ export default function SurfController({
     const zone = nearestTakeoff(pos.current.x, pos.current.z, CATCH_RADIUS);
     const zid = zone ? zone.id : null;
     if (zid !== zoneId.current) rodeThisVisit.current = false; // fresh entry
-    if (zone && !riding.current && !rodeThisVisit.current && speed.current > CATCH_MIN_SPEED) {
+    if (zone && !riding.current && !rodeThisVisit.current && speed.current > CATCH_MIN_SPEED && Math.hypot(pos.current.x - zone.take[0], pos.current.z - zone.take[1]) < RIDE_ENTRY_RADIUS) {
       riding.current = true;
       rideStart.current = t;
+      rideSpot.current = zone;
       rodeThisVisit.current = true;
       vy.current = 0;
+      turnVel.current = 0;
       shownSpotId.current = zone.id;
       revealUntil.current = t + REVEAL_HOLD;
       onNearSpotRef.current?.(zone);
@@ -256,18 +262,20 @@ export default function SurfController({
     }
     zoneId.current = zid;
 
-    // Vertical motion: a scripted carve while riding, else ballistic ollie.
+    // A caught wave boosts the board but leaves steering and travel in the
+    // player's hands. The old version snapped position onto a scripted line,
+    // which made every drop-in feel like control had been taken away.
     if (riding.current) {
       const rp = (t - rideStart.current) / RIDE_DUR; // 0..1
+      const spot = rideSpot.current;
       if (rp >= 1) {
         riding.current = false;
+        rideSpot.current = null;
         airY.current = 0;
-      } else {
-        speed.current = Math.max(speed.current, 30); // the wave carries you
-        // One smooth arc up the face and back down. This used to be
-        // abs(sin(rp*PI*3)), which put a hard cusp at every zero — three jolts per
-        // ride. A single half-sine has no corners, so the ride reads as a glide.
-        airY.current = Math.sin(rp * Math.PI) * 2.2;
+        surfSignal.rideSpotId = null;
+      } else if (spot) {
+        speed.current = Math.max(speed.current, 28);
+        airY.current = Math.sin(rp * Math.PI) * spot.ride.lift;
       }
     }
     if (!riding.current) {
@@ -309,8 +317,8 @@ export default function SurfController({
       const target = Math.atan2(vx - 2 * dot * nx, vz - 2 * dot * nz);
       let diff = target - heading.current;
       diff = Math.atan2(Math.sin(diff), Math.cos(diff)); // wrap to [-PI, PI]
-      heading.current += diff * (once ? 0.55 : 0.25);
-      speed.current *= once ? 0.72 : 0.85;
+      heading.current += diff * (once ? 0.3 : 0.18);
+      speed.current *= once ? 0.8 : 0.9;
     };
 
     // ── Walls: soft-bounce off the ocean bounds (no wedging into corners) ────
@@ -378,20 +386,21 @@ export default function SurfController({
     // reads the SMOOTHED value — the unfiltered one was the main source of jitter.
     const bobRaw = WATER_Y + seaHeight(pos.current.x, pos.current.z, t) * SWELL_FOLLOW + 0.4;
     if (bobSmooth.current < 0) bobSmooth.current = bobRaw; // first frame: no lurch
-    bobSmooth.current += (bobRaw - bobSmooth.current) * (1 - Math.exp(-6 * d));
+    bobSmooth.current += (bobRaw - bobSmooth.current) * (1 - Math.exp(-4.5 * d));
     const bobY = bobSmooth.current;
     board.current.position.set(pos.current.x, bobY + airY.current, pos.current.z);
     const airPitch = airY.current * 0.06; // nose lifts as it leaves the water
     const carveRoll = riding.current ? Math.sin((t - rideStart.current) * 4.2) * 0.4 : 0;
     const trickSpin = spinning.current ? (t - jumpStart.current) * SPIN_RATE : 0; // air 360
+    const turnRatio = THREE.MathUtils.clamp(turnVel.current / 1.9, -1, 1);
     board.current.rotation.set(
       Math.sin(t * 1.4) * 0.05 - airPitch,
       heading.current + trickSpin,
-      turnIn * -0.26 + Math.sin(t * 1.8) * 0.04 + carveRoll
+      turnRatio * -0.18 + Math.sin(t * 1.8) * 0.025 + carveRoll
     );
     // Rider leans into the carve (z) and is pitched prone during the paddle-in (x).
     // A gentle paddle sway while prone sells the stroke.
-    const leanTarget = turnIn * 0.45 + carveRoll * 0.6 + (intro ? Math.sin(t * 6) * 0.12 : 0);
+    const leanTarget = turnRatio * 0.36 + carveRoll * 0.6 + (intro ? Math.sin(t * 6) * 0.08 : 0);
     lean.current += (leanTarget - lean.current) * (1 - Math.exp(-6 * d));
     if (rider.current) {
       rider.current.rotation.z = lean.current;
@@ -424,21 +433,22 @@ export default function SurfController({
 
     // Chase camera: behind + above the board, pulling in tighter while riding,
     // yawed/pitched by the cursor.
-    const camYaw = heading.current + lookYaw.current;
-    const behind = riding.current ? 9 : 12;
-    const height = (riding.current ? 7.5 : 6) + airY.current * 0.4 + lookPitch.current * 4;
+    const camYaw = heading.current + lookYaw.current + (riding.current ? 0.48 : 0);
+    const behind = riding.current ? 11.5 : 12;
+    const height = (riding.current ? 8.5 : 6) + airY.current * 0.4 + lookPitch.current * 4;
     camTarget.current.set(
       pos.current.x - Math.sin(camYaw) * behind,
       bobY + height,
       pos.current.z - Math.cos(camYaw) * behind
     );
-    camera.position.lerp(camTarget.current, 1 - Math.exp(-4 * d));
+    camera.position.lerp(camTarget.current, 1 - Math.exp(-7 * d));
     lookTarget.current.set(
-      pos.current.x,
+      pos.current.x + (riding.current ? Math.sin(heading.current) * 2 : 0),
       bobY + 1 + airY.current * 0.5 + lookPitch.current * 2,
-      pos.current.z
+      pos.current.z + (riding.current ? Math.cos(heading.current) * 2 : 0)
     );
-    camera.lookAt(lookTarget.current);
+    cameraLook.current.lerp(lookTarget.current, 1 - Math.exp(-10 * d));
+    camera.lookAt(cameraLook.current);
     if (Math.abs(speed.current) > 0.5 || turnIn !== 0 || intro || airY.current > 0.05) regress();
 
     // Fade the reward label a few seconds after the ride.
