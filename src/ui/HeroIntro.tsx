@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link } from "../router";
 import { usePrefersReducedMotion } from "./hooks/useReducedMotion";
 import { T } from "../theme";
 
