@@ -170,7 +170,7 @@ export default function FlatMap({ projects, onOpen }: Props) {
             rel="noopener"
             style={{ padding: "12px 22px", background: T.blue, color: T.text, fontSize: 14, fontWeight: 800 }}
           >
-            Book a 20-min call →
+            Book a 20 min call →
           </a>
           <a
             href="/UtkuAcikgoz-CV.pdf"
