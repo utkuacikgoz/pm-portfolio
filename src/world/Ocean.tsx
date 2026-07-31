@@ -1,14 +1,22 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { PUBLISHED_PROJECTS } from "../projects/projects";
-import { islandPosition, INDIE_INDEX, WATER_Y, EMP_COUNT, SPACING, rng } from "./geometry";
+import { islandPosition, INDIE_INDEX, WATER_Y } from "./geometry";
 import { usePrefersReducedMotion } from "../ui/hooks/useReducedMotion";
 import { T } from "../theme";
+import { DISTANT_PEAKS } from "./distant-mountains";
 import { daylight } from "./daylight";
 
 const WATER_DUSK = new THREE.Color(T.water);
 const WATER_DAY = new THREE.Color(T.dayWater);
+const MOUNTAIN_GEO = new THREE.ConeGeometry(1, 1, 4);
+const MOUNTAIN_MAT = new THREE.MeshStandardMaterial({ color: T.surface, flatShading: true });
+const MOUNTAIN_MATRICES = DISTANT_PEAKS.map((peak) => new THREE.Matrix4().compose(
+  new THREE.Vector3(peak.x, WATER_Y + peak.h / 2 - 2, peak.z),
+  new THREE.Quaternion(),
+  new THREE.Vector3(peak.w, peak.h, peak.w)
+));
 
 // The sea the islands float on, and the separate "what I'm building" island you
 // surf to.
@@ -140,36 +148,20 @@ export function SunDisc() {
 // distant misty mountains rather than a bare cutoff line. Colored just under the
 // fog haze so they dissolve into it. Static (cheap; reduced-motion friendly).
 export function DistantMountains() {
-  const cx = ((EMP_COUNT - 1) / 2) * SPACING;
-  const peaks = useMemo(() => {
-    const arr: { x: number; z: number; h: number; w: number }[] = [];
-    const random = rng(54017);
-    const N = 26;
-    for (let i = 0; i < N; i++) {
-      const a = (i / N) * Math.PI * 2 + (random() - 0.5) * 0.16;
-      const ang = Math.atan2(Math.sin(a), Math.cos(a)); // normalize to [-PI, PI]
-      // Leave the +X corridor clear — that's where you travel to the indie island
-      // and where the sun sits, so peaks there would cut across the view.
-      if (Math.abs(ang) < 0.7) continue;
-      const r = 155 + random() * 50;
-      arr.push({
-        x: cx + Math.cos(a) * r,
-        z: Math.sin(a) * r,
-        h: 26 + random() * 32,
-        w: 28 + random() * 24,
-      });
-    }
-    return arr;
-  }, [cx]);
+  const ref = useRef<THREE.InstancedMesh>(null);
+  useEffect(() => {
+    const mesh = ref.current;
+    if (!mesh) return;
+    MOUNTAIN_MATRICES.forEach((matrix, index) => mesh.setMatrixAt(index, matrix));
+    mesh.instanceMatrix.needsUpdate = true;
+    mesh.computeBoundingSphere();
+  }, []);
   return (
-    <group>
-      {peaks.map((p, i) => (
-        <mesh key={i} position={[p.x, WATER_Y + p.h / 2 - 2, p.z]} raycast={() => null}>
-          <coneGeometry args={[p.w, p.h, 4]} />
-          <meshStandardMaterial color={T.surface} flatShading />
-        </mesh>
-      ))}
-    </group>
+    <instancedMesh
+      ref={ref}
+      args={[MOUNTAIN_GEO, MOUNTAIN_MAT, DISTANT_PEAKS.length]}
+      raycast={() => null}
+    />
   );
 }
 
