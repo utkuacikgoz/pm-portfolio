@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { COINS, COIN_TOTAL, SURF_COLLIDERS, collectedCoins, CHECKPOINTS, CHECKPOINT_TOTAL } from "./surf-journey";
+import { SURF_LAUNCH, SURF_SPOTS } from "./surf-spots";
 
 // The coin trail loops through the breaks and back to where it started, so the
 // last stretch is as much of the ride as the first. An earlier `.slice(0, 42)`
@@ -85,5 +86,20 @@ describe("how I work checkpoints", () => {
       expect(c.text.length).toBeGreaterThan(20);
       expect(c.text).not.toContain("—"); // house style: dash free
     }
+  });
+});
+
+describe("named-break rides", () => {
+  it("gives every break a bounded player-controlled lift", () => {
+    for (const spot of SURF_SPOTS) {
+      expect(spot.ride.lift).toBeGreaterThan(0);
+      expect(spot.ride.lift).toBeLessThanOrEqual(5);
+    }
+  });
+
+  it("starts in open water rather than inside Bondi's catch zone", () => {
+    const bondi = SURF_SPOTS.find((spot) => spot.id === "bondi");
+    expect(bondi).toBeDefined();
+    expect(Math.hypot(SURF_LAUNCH.position[0] - bondi!.take[0], SURF_LAUNCH.position[1] - bondi!.take[1])).toBeGreaterThan(26);
   });
 });
