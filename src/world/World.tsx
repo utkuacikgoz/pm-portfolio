@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
-import { Instances, Instance, AdaptiveDpr, PerformanceMonitor, Stars } from "@react-three/drei";
+import { Instances, Instance, PerformanceMonitor, Stars } from "@react-three/drei";
 import { usePrefersReducedMotion } from "../ui/hooks/useReducedMotion";
 import { daylight } from "./daylight";
 import { PUBLISHED_PROJECTS } from "../projects/projects";
@@ -12,7 +12,7 @@ import SurfController from "./SurfController";
 import SurfSpots from "./SurfSpots";
 import type { SurfSpot } from "./surf-spots";
 import type { Checkpoint } from "./surf-journey";
-import { Water, IndieIsland, Ripples, LightShaft, SunDisc, DistantMountains } from "./Ocean";
+import { Water, IslandShadows, IndieIsland, Ripples, LightShaft, SunDisc, DistantMountains } from "./Ocean";
 import { T } from "../theme";
 
 // Horizon color the fog fades islands into — the logo-derived dusk haze, matching
@@ -104,10 +104,13 @@ export default function World({ activeIndex, entered, surfing, onOpen, onNearSpo
   const cubes = useMemo(() => buildWorld(PUBLISHED_PROJECTS), []);
   const accent = PUBLISHED_PROJECTS[activeIndex]?.accent ?? "#6E86D6";
   const [dpr, setDpr] = useState(1.5);
+  // Surf is already the heaviest scene. Keep it crisp while it moves instead of
+  // accepting the rail's adaptive low-resolution mode on every input frame.
+  const canvasDpr = surfing ? 1.5 : dpr;
 
   return (
     <Canvas
-      dpr={dpr}
+      dpr={canvasDpr}
       frameloop={frameloop}
       // Let r3f drop internal resolution while the camera moves, then snap back
       // to crisp when it settles — keeps orbit/travel smooth on weaker GPUs.
@@ -128,15 +131,13 @@ export default function World({ activeIndex, entered, surfing, onOpen, onNearSpo
 
       {/* A few faint stars in the upper dusk sky. */}
       <StarField />
-      <SunDisc />
+      {!surfing && <SunDisc />}
       <DistantMountains />
 
       <PerformanceMonitor
         onDecline={() => setDpr(1)}
         onIncline={() => setDpr(1.5)}
       />
-      <AdaptiveDpr pixelated />
-
       <Instances limit={cubes.length} range={cubes.length}>
         <boxGeometry args={[1, 1, 1]} />
         <meshStandardMaterial flatShading roughness={0.55} metalness={0.05} />
@@ -146,8 +147,9 @@ export default function World({ activeIndex, entered, surfing, onOpen, onNearSpo
       </Instances>
 
       <Water />
-      <Ripples active={activeIndex} />
-      <LightShaft active={activeIndex} />
+        <IslandShadows />
+        {!surfing && <Ripples active={activeIndex} />}
+        {!surfing && <LightShaft active={activeIndex} />}
       <IndieIsland />
       <Emblems active={activeIndex} onOpen={onOpen} />
       {/* Legendary breaks only exist while surfing → the rail diorama stays clean. */}

@@ -264,7 +264,7 @@ export default function WorldExperience() {
               onCoin={setCoins}
               onCheckpoint={setCheckpoint}
               onComplete={onRunComplete}
-              frameloop={visible ? "always" : "never"}
+              frameloop={visible && !panelOpen ? "always" : "never"}
             />
           </Suspense>
         </ErrorBoundary>

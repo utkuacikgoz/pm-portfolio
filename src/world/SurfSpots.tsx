@@ -21,13 +21,15 @@ const GULL = "#0b0d14";
 // ── Shared materials (created once, reused across every spot) ────────────────
 const std = (color: string, o: Partial<THREE.MeshStandardMaterialParameters> = {}) =>
   new THREE.MeshStandardMaterial({ color, flatShading: true, ...o });
+const wave = (color: string) => new THREE.MeshBasicMaterial({ color, side: THREE.DoubleSide });
 
 const M = {
   foam: std(FOAM),
-  foamSoft: std(FOAM, { transparent: true, opacity: 0.8 }),
-  waveBody: std("#0e7f86", { transparent: true, opacity: 0.9, side: THREE.DoubleSide }),
-  waveSlab: std("#0a4a52", { transparent: true, opacity: 0.95, side: THREE.DoubleSide }),
-  waveGentle: std("#1a99a0", { transparent: true, opacity: 0.88, side: THREE.DoubleSide }),
+  foamSoft: std(FOAM, { transparent: true, opacity: 0.34 }),
+  shore: new THREE.MeshBasicMaterial({ color: "#d0f5ed", transparent: true, opacity: 0.14, side: THREE.DoubleSide }),
+  waveBody: wave("#0e7f86"),
+  waveSlab: wave("#0a4a52"),
+  waveGentle: wave("#1a99a0"),
   rockLight: std("#b8ad95"),
   rockMid: std("#8f8672"),
   rockDark: std("#6d6552"),
@@ -147,9 +149,9 @@ function Rock({
   );
 }
 
-// A curved breaking wave: an open half-pipe cylinder (crest along X, concave face
-// opening toward +Z) with a foam lip + a whitewater wash, heaving on the swell.
-// Throws a spray burst when the matching break is caught (via surfSignal).
+// A rising wave face, not a hollow cylinder. The old cylinder made every break
+// read like a dark tunnel and let the scripted ride pass through its interior.
+// This open face keeps the crest visible from the chase camera.
 function Barrel({
   spotId,
   width,
@@ -167,6 +169,46 @@ function Barrel({
   const spray = useRef<THREE.Group>(null);
   const reduced = usePrefersReducedMotion();
   const baseY = radius * 0.92;
+  const waveFace = useMemo(() => {
+    const across = 36;
+    const rise = 14;
+    const vertices: number[] = [];
+    const indices: number[] = [];
+    for (let xi = 0; xi <= across; xi++) {
+      const xProgress = xi / across;
+      const x = THREE.MathUtils.lerp(-width / 2, width / 2, xProgress);
+      const crestLift = Math.sin(xProgress * Math.PI) * radius * 0.07;
+      for (let yi = 0; yi <= rise; yi++) {
+        const yProgress = yi / rise;
+        vertices.push(
+          x,
+          yProgress * radius + crestLift * yProgress,
+          Math.sin(yProgress * Math.PI) * radius * 0.32
+        );
+      }
+    }
+    for (let xi = 0; xi < across; xi++) {
+      for (let yi = 0; yi < rise; yi++) {
+        const a = xi * (rise + 1) + yi;
+        const b = a + rise + 1;
+        indices.push(a, b, a + 1, b, b + 1, a + 1);
+      }
+    }
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
+    geometry.setIndex(indices);
+    geometry.computeVertexNormals();
+    return geometry;
+  }, [radius, width]);
+  const foamCrest = useMemo(() => {
+    const curve = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(-width * 0.5, radius * 0.98, 0),
+      new THREE.Vector3(-width * 0.16, radius * 1.08, 0),
+      new THREE.Vector3(width * 0.16, radius * 1.08, 0),
+      new THREE.Vector3(width * 0.5, radius * 0.98, 0),
+    ]);
+    return new THREE.TubeGeometry(curve, 40, Math.max(0.1, radius * 0.045), 6, false);
+  }, [radius, width]);
   const dirs = useMemo(
     () =>
       Array.from({ length: SPRAY_N }, () => ({
@@ -200,22 +242,11 @@ function Barrel({
       }
     }
   });
-  const thetaStart = -0.12 * Math.PI;
-  const thetaLength = 1.16 * Math.PI; // just past vertical → an overhanging lip
   return (
     <group ref={g} position={[0, baseY, 0]}>
-      {/* the curling face */}
-      <mesh rotation={[0, 0, Math.PI / 2]} material={mat} raycast={() => null}>
-        <cylinderGeometry args={[radius, radius, width, 22, 1, true, thetaStart, thetaLength]} />
-      </mesh>
-      {/* foam lip along the overhang */}
-      <mesh rotation={[0, 0, Math.PI / 2]} material={M.foam} raycast={() => null}>
-        <cylinderGeometry args={[radius * 1.02, radius * 1.02, width, 22, 1, true, 0.72 * Math.PI, 0.34 * Math.PI]} />
-      </mesh>
-      {/* whitewater wash at the base, in front */}
-      <mesh position={[0, -radius * 0.75, radius * 0.7]} material={M.foamSoft} raycast={() => null}>
-        <boxGeometry args={[width * 1.02, radius * 0.5, radius * 0.6]} />
-      </mesh>
+      <mesh geometry={waveFace} material={mat} raycast={() => null} />
+      {/* A narrow crest keeps the curl readable without turning into a white wall. */}
+      <mesh geometry={foamCrest} material={M.foam} raycast={() => null} />
       {/* spray burst on drop-in */}
       <group ref={spray} visible={false}>
         {dirs.map((_, i) => (
@@ -251,8 +282,8 @@ function Buoy({ color }: { color: string }) {
 
 function Shore({ radius }: { radius: number }) {
   return (
-    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.06, 0]} material={M.foamSoft} raycast={() => null}>
-      <ringGeometry args={[radius * 0.78, radius, 44]} />
+    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.06, 0]} material={M.shore} raycast={() => null}>
+      <ringGeometry args={[radius * 0.97, radius, 44]} />
     </mesh>
   );
 }
@@ -321,8 +352,8 @@ function LighthouseBeam() {
   return (
     <group ref={g}>
       <mesh position={[9, 0, 0]} rotation={[0, 0, -Math.PI / 2]} raycast={() => null}>
-        <coneGeometry args={[2.4, 18, 12, 1, true]} />
-        <meshBasicMaterial color="#ffe6a0" transparent opacity={0.11} depthWrite={false} blending={THREE.AdditiveBlending} side={THREE.DoubleSide} />
+        <coneGeometry args={[1.4, 14, 12, 1, true]} />
+        <meshBasicMaterial color="#ffe6a0" transparent opacity={0.035} depthWrite={false} blending={THREE.AdditiveBlending} side={THREE.DoubleSide} />
       </mesh>
     </group>
   );
@@ -445,7 +476,9 @@ function Coins() {
     const kids = ref.current.children;
     for (let i = 0; i < kids.length; i++) {
       const g = kids[i];
-      g.visible = !collectedCoins.has(COINS[i].id);
+      const coin = COINS[i];
+      const nearBreak = SURF_SPOTS.some((spot) => Math.hypot(coin.x - spot.pos[0], coin.z - spot.pos[1]) < 24);
+      g.visible = !collectedCoins.has(coin.id) && !nearBreak && t - surfSignal.rideStart > 6;
       if (!reduced) g.rotation.y = t * 2.5 + i * 0.7;
     }
   });

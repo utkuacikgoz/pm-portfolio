@@ -21,7 +21,7 @@ const CENTER_X = ((EMP_COUNT - 1) / 2) * SPACING;
 // plus its floating icon stay in frame. Easier to navigate + no grazing-angle
 // crop/z-fight than the old low orbit.
 const ISO = new THREE.Vector3(1, 0.82, 1).normalize();
-const ISO_DIST = 42;
+const ISO_DIST = 30;
 const LOOK_Y = 2.5;
 // Spring that carries the camera between islands: underdamped so travel gives a
 // little bounce (the "3D universe" feel) rather than a flat glide. Softened so
@@ -120,7 +120,7 @@ export default function CameraRig({ activeIndex, accent, entered, surfing }: Pro
 
   return (
     <>
-      <pointLight ref={lightRef} color={accent} intensity={240} distance={55} decay={2} position={[0, 9, 5]} />
+      <pointLight ref={lightRef} visible={!surfing} color={accent} intensity={240} distance={55} decay={2} position={[0, 9, 5]} />
       {/* Hidden easter egg: only visible (and clickable) while surfing the gap. */}
       <group
         ref={boardRef}

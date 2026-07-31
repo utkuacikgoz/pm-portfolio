@@ -1,117 +1,135 @@
-import { useMemo, useRef } from "react";
+import { useRef } from "react";
 import { useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
 import * as THREE from "three";
 import { PUBLISHED_PROJECTS, type Project, type StructureType } from "../projects/projects";
 import { islandPosition } from "./geometry";
 import { usePrefersReducedMotion } from "../ui/hooks/useReducedMotion";
 
-// A literal, floating domain icon over each island (a bitcoin over BiLira, a cart
-// over Mestores, ...) so the monument's meaning reads at a glance. Emoji/glyphs
-// drawn to a CanvasTexture on a camera-facing sprite (always readable), over a
-// soft accent halo. Cheap: a couple of sprites per island, textures cached.
+// Floating low-poly domain marks make each island legible without depending on
+// platform emoji fonts or screen-facing CanvasTexture stickers.
 
 // Hover height per structure: just above each silhouette, kept modest so a tall
 // tower's icon doesn't clip at the top of the frame.
 const HOVER_BY_STRUCTURE: Record<StructureType, number> = {
-  tower: 11,
-  market: 7,
-  campus: 7,
-  arcade: 8,
-  bridge: 8,
-  beacon: 8,
+  tower: 8.5,
+  market: 6.1,
+  campus: 6.1,
+  arcade: 6.6,
+  bridge: 6.6,
+  beacon: 6.6,
 };
 
-function mix(a: string, b: string, t: number) {
-  const pa = [1, 3, 5].map((i) => parseInt(a.slice(i, i + 2), 16));
-  const pb = [1, 3, 5].map((i) => parseInt(b.slice(i, i + 2), 16));
-  return "#" + pa.map((v, i) => Math.round(v + (pb[i] - v) * t).toString(16).padStart(2, "0")).join("");
-}
+function DomainMark({ project }: { project: Project }) {
+  const material = {
+    color: project.accent,
+    emissive: project.accent,
+    emissiveIntensity: 0.3,
+    roughness: 0.38,
+    metalness: 0.16,
+  };
 
-// ── Cached canvas textures ───────────────────────────────────────────────────
-const ICON_SIZE = 256;
-function drawGlyph(ctx: CanvasRenderingContext2D, char: string, color: string) {
-  ctx.clearRect(0, 0, ICON_SIZE, ICON_SIZE);
-  ctx.font = `${Math.floor(ICON_SIZE * 0.72)}px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  // A soft dark shadow so the glyph reads against the glowing halo + bright sky.
-  ctx.shadowColor = "rgba(0,0,0,0.6)";
-  ctx.shadowBlur = ICON_SIZE * 0.06;
-  ctx.shadowOffsetY = ICON_SIZE * 0.02;
-  // fillStyle colors plain glyphs (e.g. the bitcoin symbol); color emoji ignore it.
-  ctx.fillStyle = color;
-  ctx.fillText(char, ICON_SIZE / 2, ICON_SIZE * 0.54);
-  ctx.shadowColor = "transparent";
-  ctx.shadowBlur = 0;
-  ctx.shadowOffsetY = 0;
-}
-
-const iconCache = new Map<string, THREE.Texture>();
-function iconTexture(char: string, color: string): THREE.Texture {
-  const key = char + color;
-  const hit = iconCache.get(key);
-  if (hit) return hit;
-  const c = document.createElement("canvas");
-  c.width = c.height = ICON_SIZE;
-  const ctx = c.getContext("2d")!;
-  drawGlyph(ctx, char, color);
-  const tex = new THREE.CanvasTexture(c);
-  tex.colorSpace = THREE.SRGBColorSpace;
-  tex.anisotropy = 4;
-  // Emoji fonts often aren't ready on first paint → the glyph draws blank. Redraw
-  // once fonts load so icons like the cart actually appear.
-  if (typeof document !== "undefined" && document.fonts?.ready) {
-    document.fonts.ready.then(() => {
-      drawGlyph(ctx, char, color);
-      tex.needsUpdate = true;
-    });
+  switch (project.structure) {
+    case "tower":
+      return (
+        <group rotation={[0.35, 0.45, 0]}>
+          <mesh>
+            <icosahedronGeometry args={[1.55, 1]} />
+            <meshStandardMaterial {...material} flatShading />
+          </mesh>
+          <mesh rotation={[Math.PI / 2, 0, 0]}>
+            <torusGeometry args={[1.05, 0.16, 8, 20]} />
+            <meshStandardMaterial {...material} emissiveIntensity={0.7} />
+          </mesh>
+        </group>
+      );
+    case "market":
+      return (
+        <group>
+          {[-0.85, 0, 0.85].map((x) => (
+            <mesh key={x} position={[x, 0, 0]} rotation={[0.2, 0.4, 0]}>
+              <boxGeometry args={[0.55, 1.8, 0.55]} />
+              <meshStandardMaterial {...material} flatShading />
+            </mesh>
+          ))}
+          <mesh position={[0, 0.92, 0]} rotation={[0, 0.4, 0]}>
+            <boxGeometry args={[3, 0.2, 0.9]} />
+            <meshStandardMaterial {...material} emissiveIntensity={0.6} />
+          </mesh>
+        </group>
+      );
+    case "campus":
+      return (
+        <group rotation={[0.2, 0.5, 0]}>
+          <mesh>
+            <octahedronGeometry args={[1.35, 0]} />
+            <meshStandardMaterial {...material} flatShading />
+          </mesh>
+          <mesh rotation={[0, 0, Math.PI / 2]}>
+            <torusGeometry args={[1.65, 0.1, 8, 16]} />
+            <meshStandardMaterial {...material} emissiveIntensity={0.8} />
+          </mesh>
+        </group>
+      );
+    case "arcade":
+      return (
+        <group rotation={[0.4, 0.4, 0]}>
+          <mesh>
+            <dodecahedronGeometry args={[1.4, 0]} />
+            <meshStandardMaterial {...material} flatShading />
+          </mesh>
+          <mesh rotation={[Math.PI / 2, 0, 0]}>
+            <torusGeometry args={[1.7, 0.12, 6, 16]} />
+            <meshStandardMaterial {...material} emissiveIntensity={0.8} />
+          </mesh>
+        </group>
+      );
+    case "bridge":
+      return (
+        <group rotation={[0.15, 0.5, 0]}>
+          <mesh position={[-0.95, 0, 0]}>
+            <coneGeometry args={[0.48, 2.4, 5]} />
+            <meshStandardMaterial {...material} flatShading />
+          </mesh>
+          <mesh position={[0.95, 0, 0]}>
+            <coneGeometry args={[0.48, 2.4, 5]} />
+            <meshStandardMaterial {...material} flatShading />
+          </mesh>
+          <mesh position={[0, 0.5, 0]} rotation={[0, 0, Math.PI / 2]}>
+            <cylinderGeometry args={[0.13, 0.13, 2.1, 8]} />
+            <meshStandardMaterial {...material} emissiveIntensity={0.8} />
+          </mesh>
+        </group>
+      );
+    default:
+      return (
+        <mesh rotation={[0.25, 0.4, 0]}>
+          <icosahedronGeometry args={[1.3, 1]} />
+          <meshStandardMaterial {...material} flatShading />
+        </mesh>
+      );
   }
-  iconCache.set(key, tex);
-  return tex;
 }
 
-const haloCache = new Map<string, THREE.Texture>();
-function haloTexture(color: string): THREE.Texture {
-  const hit = haloCache.get(color);
-  if (hit) return hit;
-  const size = 128;
-  const c = document.createElement("canvas");
-  c.width = c.height = size;
-  const ctx = c.getContext("2d")!;
-  const g = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
-  g.addColorStop(0, color + "ee");
-  g.addColorStop(0.35, color + "66");
-  g.addColorStop(1, color + "00");
-  ctx.fillStyle = g;
-  ctx.fillRect(0, 0, size, size);
-  const tex = new THREE.CanvasTexture(c);
-  haloCache.set(color, tex);
-  return tex;
-}
-
-function EmojiEmblem({ project, index, active, reduced }: { project: Project; index: number; active: boolean; reduced: boolean }) {
+function Emblem({ project, index, active, reduced }: { project: Project; index: number; active: boolean; reduced: boolean }) {
   const ref = useRef<THREE.Group>(null);
   const [px, , pz] = islandPosition(index);
   const hoverY = HOVER_BY_STRUCTURE[project.structure] ?? 8;
-  const bright = mix(project.accent, "#ffffff", 0.55);
-  const tex = useMemo(() => iconTexture(project.icon ?? "✨", bright), [project.icon, bright]);
-  const halo = useMemo(() => haloTexture(project.accent), [project.accent]);
+  const scale = 0.72;
 
   useFrame((state) => {
     if (!ref.current) return;
     const t = state.clock.elapsedTime;
     ref.current.position.y = hoverY + (reduced ? 0 : Math.sin(t * 1.1 + index) * 0.3);
-    ref.current.scale.setScalar(active && !reduced ? 1 + Math.sin(t * 2.4) * 0.06 : 1);
+    ref.current.scale.setScalar(scale * (active && !reduced ? 1 + Math.sin(t * 2.4) * 0.06 : 1));
   });
 
   return (
-    <group ref={ref} position={[px, hoverY, pz]}>
-      <sprite scale={[10, 10, 1]} position={[0, 0, -0.1]} raycast={() => null}>
-        <spriteMaterial map={halo} transparent depthWrite={false} opacity={active ? 0.8 : 0.5} blending={THREE.AdditiveBlending} />
-      </sprite>
-      <sprite scale={[7, 7, 1]} raycast={() => null}>
-        <spriteMaterial map={tex} transparent depthWrite={false} />
-      </sprite>
+    <group ref={ref} position={[px, hoverY, pz]} scale={scale}>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} raycast={() => null}>
+        <ringGeometry args={[1.8, 1.92, 8]} />
+        <meshBasicMaterial color={project.accent} transparent opacity={active ? 0.68 : 0.32} depthWrite={false} blending={THREE.AdditiveBlending} />
+      </mesh>
+      <DomainMark project={project} />
     </group>
   );
 }
@@ -158,7 +176,7 @@ export default function Emblems({ active, onOpen }: { active: number; onOpen: (i
   return (
     <>
       {PUBLISHED_PROJECTS.map((p, i) => (
-        <EmojiEmblem key={p.id} project={p} index={i} active={i === active} reduced={reduced} />
+        <Emblem key={p.id} project={p} index={i} active={i === active} reduced={reduced} />
       ))}
       {PUBLISHED_PROJECTS.map((p, i) => (
         <Hitbox key={`hit-${p.id}`} index={i} onOpen={onOpen} />

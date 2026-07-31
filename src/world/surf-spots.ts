@@ -11,6 +11,7 @@ export interface SurfSpot {
   blurb: string; // one line, dash-free, accent-free
   pos: [number, number]; // [x, z] landmark origin (beacon + label anchor)
   take: [number, number]; // [x, z] the wave's takeoff point — where you catch it
+  ride: { lift: number };
   accent: string; // neon marker + beacon color
 }
 
@@ -21,6 +22,7 @@ export const SURF_SPOTS: SurfSpot[] = [
     blurb: "Tahiti. A slab that breaks below sea level.",
     pos: [40, 58],
     take: [40, 58],
+    ride: { lift: 1.7 },
     accent: "#6E86D6",
   },
   {
@@ -29,6 +31,7 @@ export const SURF_SPOTS: SurfSpot[] = [
     blurb: "Sydney, Australia. Where half the world learns to surf.",
     pos: [0, -58],
     take: [0, -55],
+    ride: { lift: 0.9 },
     accent: "#3FA46A",
   },
   {
@@ -37,6 +40,7 @@ export const SURF_SPOTS: SurfSpot[] = [
     blurb: "Bali, Indonesia. A long peeling limestone wall.",
     pos: [-25, 25],
     take: [-22, 27],
+    ride: { lift: 1.8 },
     accent: "#E0A45C",
   },
   {
@@ -45,6 +49,7 @@ export const SURF_SPOTS: SurfSpot[] = [
     blurb: "Oahu, Hawaii. The heaviest reef barrel on Earth.",
     pos: [120, 48],
     take: [122, 46],
+    ride: { lift: 2.3 },
     accent: "#E7684A",
   },
   {
@@ -53,9 +58,17 @@ export const SURF_SPOTS: SurfSpot[] = [
     blurb: "Portugal. The biggest wave anyone has paddled.",
     pos: [155, -72],
     take: [162, -71],
+    ride: { lift: 4.4 },
     accent: "#6E86D6",
   },
 ];
+
+// Open-water launch: Bondi is ahead, but the player reaches it under their own
+// control rather than surf mode beginning inside its catch zone.
+export const SURF_LAUNCH = {
+  position: [38, -12] as [number, number],
+  heading: Math.atan2(-38, -43),
+};
 
 // Nearest break whose TAKEOFF is within `radius` of (x,z), or null. This is the
 // catch test: surf into the takeoff zone and you drop in. Squared distance so we

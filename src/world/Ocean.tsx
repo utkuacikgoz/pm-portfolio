@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { INDIE_PROJECTS, PUBLISHED_PROJECTS } from "../projects/projects";
-import { islandPosition, INDIE_INDEX, WATER_Y, EMP_COUNT, SPACING } from "./geometry";
+import { islandPosition, INDIE_INDEX, WATER_Y, EMP_COUNT, SPACING, rng } from "./geometry";
 import { usePrefersReducedMotion } from "../ui/hooks/useReducedMotion";
 import { T } from "../theme";
 import { daylight } from "./daylight";
@@ -58,7 +58,7 @@ export function Water() {
 
   return (
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[60, WATER_Y, 0]} raycast={() => null}>
-      <planeGeometry args={[600, 320, 96, 64]} />
+      <planeGeometry args={[600, 320, 120, 80]} />
       {/* Periwinkle-dusk sea (logo palette), reflective enough to catch the sun. */}
       <meshStandardMaterial
         ref={matRef}
@@ -67,9 +67,52 @@ export function Water() {
         metalness={0.5}
         transparent
         opacity={0.96}
+        depthWrite={false}
         onBeforeCompile={onBeforeCompile}
       />
     </mesh>
+  );
+}
+
+// Dark, faceted contact pools anchor the floating islands to the water without
+// paying for a second shadow-map render pass.
+export function IslandShadows() {
+  return (
+    <>
+      {PUBLISHED_PROJECTS.map((project, index) => {
+        const [x, , z] = islandPosition(index);
+        return (
+          <group key={project.id}>
+            <mesh
+              position={[x, WATER_Y + 0.04, z]}
+              rotation={[-Math.PI / 2, 0, 0]}
+              scale={[1.35, 0.62, 1]}
+              renderOrder={1}
+              raycast={() => null}
+            >
+              <circleGeometry args={[5.2, 8]} />
+              <meshBasicMaterial color="#03050c" transparent opacity={0.42} depthWrite={false} />
+            </mesh>
+            <mesh
+              position={[x, WATER_Y + 0.06, z]}
+              rotation={[-Math.PI / 2, 0, 0]}
+              scale={[1.35, 0.62, 1]}
+              renderOrder={2}
+              raycast={() => null}
+            >
+              <ringGeometry args={[4.35, 5.25, 8]} />
+              <meshBasicMaterial
+                color={project.accent}
+                transparent
+                opacity={0.24}
+                depthWrite={false}
+                blending={THREE.AdditiveBlending}
+              />
+            </mesh>
+          </group>
+        );
+      })}
+    </>
   );
 }
 
@@ -100,19 +143,20 @@ export function DistantMountains() {
   const cx = ((EMP_COUNT - 1) / 2) * SPACING;
   const peaks = useMemo(() => {
     const arr: { x: number; z: number; h: number; w: number }[] = [];
+    const random = rng(54017);
     const N = 26;
     for (let i = 0; i < N; i++) {
-      const a = (i / N) * Math.PI * 2 + (Math.random() - 0.5) * 0.16;
+      const a = (i / N) * Math.PI * 2 + (random() - 0.5) * 0.16;
       const ang = Math.atan2(Math.sin(a), Math.cos(a)); // normalize to [-PI, PI]
       // Leave the +X corridor clear — that's where you travel to the indie island
       // and where the sun sits, so peaks there would cut across the view.
       if (Math.abs(ang) < 0.7) continue;
-      const r = 155 + Math.random() * 50;
+      const r = 155 + random() * 50;
       arr.push({
         x: cx + Math.cos(a) * r,
         z: Math.sin(a) * r,
-        h: 26 + Math.random() * 32,
-        w: 28 + Math.random() * 24,
+        h: 26 + random() * 32,
+        w: 28 + random() * 24,
       });
     }
     return arr;
