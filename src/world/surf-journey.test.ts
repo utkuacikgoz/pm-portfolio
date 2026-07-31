@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { COINS, COIN_TOTAL, SURF_COLLIDERS, collectedCoins, CHECKPOINTS, CHECKPOINT_TOTAL } from "./surf-journey";
+import { COINS, COIN_TOTAL, COIN_Y, SURF_COLLIDERS, collectedCoins, CHECKPOINTS, CHECKPOINT_TOTAL } from "./surf-journey";
 import { SURF_LAUNCH, SURF_SPOTS } from "./surf-spots";
+import { WATER_Y, seaHeight } from "./geometry";
 
 // The coin trail loops through the breaks and back to where it started, so the
 // last stretch is as much of the ride as the first. An earlier `.slice(0, 42)`
@@ -29,6 +30,14 @@ describe("coin trail", () => {
     for (const c of COINS) {
       for (const s of SURF_COLLIDERS) {
         expect(Math.hypot(c.x - s.x, c.z - s.z)).toBeGreaterThanOrEqual(s.r);
+      }
+    }
+  });
+
+  it("keeps every coin visibly above the moving water", () => {
+    for (const coin of COINS) {
+      for (const time of [0, 1.25, 3.7, 8.4]) {
+        expect(COIN_Y).toBeGreaterThan(WATER_Y + seaHeight(coin.x, coin.z, time) + 0.35);
       }
     }
   });

@@ -11,9 +11,9 @@ body {
   font-optical-sizing: auto;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  /* Dusk indigo base so there's never a black flash behind the gradient wrapper. */
-  background: #0a0e24;
-  color: #fff;
+  /* Taupe ink prevents a blue-black flash behind the themed page wrapper. */
+  background: #1D1816;
+  color: #fbfaf9;
   overflow-x: hidden;
 }
 
@@ -50,8 +50,8 @@ h1, h2, h3, h4, h5, h6 {
   left: 16px;
   z-index: 200;
   padding: 12px 20px;
-  background: #fff;
-  color: #000;
+  background: #fbfaf9;
+  color: #1d1816;
   font-weight: 800;
   font-size: 14px;
   transition: top 0.15s ease;
@@ -61,7 +61,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 :focus-visible {
-  outline: 2px solid #CB7BC7;
+  outline: 2px solid #C57EC2;
   outline-offset: 2px;
 }
 
@@ -76,10 +76,10 @@ h1, h2, h3, h4, h5, h6 {
   to { transform: translateY(0); opacity: 1; filter: blur(0); }
 }
 
-/* CTA: slow neon breathe (cyan halo + magenta core). */
+/* CTA: slow palette-led breathe (ocean halo + coral core). */
 @keyframes ctaGlow {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(0, 255, 255, 0), 0 8px 30px rgba(255, 0, 128, 0.35); }
-  50% { box-shadow: 0 0 34px 3px rgba(0, 255, 255, 0.5), 0 8px 30px rgba(255, 0, 128, 0.6); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(46, 134, 171, 0), 0 8px 30px rgba(215, 111, 83, 0.32); }
+  50% { box-shadow: 0 0 34px 3px rgba(46, 134, 171, 0.42), 0 8px 30px rgba(215, 111, 83, 0.56); }
 }
 
 /* Begin → camera dive punctuation: a quick accent wash that clears to the world. */

@@ -21,11 +21,11 @@ const HORIZON = T.fog;
 
 // Dusk <-> daytime cross-fade colors.
 const FOG_DUSK = new THREE.Color(T.fog);
-const FOG_DAY = new THREE.Color("#bfe3ec");
+const FOG_DAY = new THREE.Color(T.seafoam);
 const SKY_DUSK = new THREE.Color(T.skyBounce);
-const SKY_DAY = new THREE.Color("#dff0ff");
+const SKY_DAY = new THREE.Color(T.sage);
 const SUN_DUSK = new THREE.Color(T.sunLight);
-const SUN_DAY = new THREE.Color("#fff3e0");
+const SUN_DAY = new THREE.Color(T.gold);
 const mlerp = THREE.MathUtils.lerp;
 
 // Eases the scene lighting + fog toward bright daytime while surfing (back to dusk
@@ -102,7 +102,7 @@ interface Props {
  */
 export default function World({ activeIndex, entered, surfing, onOpen, onNearSpot, onCoin, onCheckpoint, onComplete, frameloop = "always" }: Props) {
   const cubes = useMemo(() => buildWorld(PUBLISHED_PROJECTS), []);
-  const accent = PUBLISHED_PROJECTS[activeIndex]?.accent ?? "#6E86D6";
+  const accent = PUBLISHED_PROJECTS[activeIndex]?.accent ?? T.blue;
   const [dpr, setDpr] = useState(1.5);
   // Surf is already the heaviest scene. Keep it crisp while it moves instead of
   // accepting the rail's adaptive low-resolution mode on every input frame.

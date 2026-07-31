@@ -5,6 +5,7 @@ import { Metrics, Decisions, Initiatives, Stakeholders } from "./viz";
 import { CONTACT } from "../content/contact";
 import { markRead } from "../state/progress";
 import { sfx } from "../audio/sfx";
+import { T } from "../theme";
 
 // Nice labels for the canonical arc, keyed by beat id so inserting a new beat
 // (e.g. BiLira's "Stablecoin & DeFi") stays correctly labelled. A beat may also
@@ -149,7 +150,7 @@ export default function ProjectPanel({ project, onClose, onNext, nextTitle }: Pr
               fontSize: 10,
               fontWeight: 800,
               letterSpacing: 1,
-              color: "#000",
+              color: T.ink,
               background: project.accent,
               padding: "4px 9px",
               borderRadius: 4,
@@ -158,8 +159,8 @@ export default function ProjectPanel({ project, onClose, onNext, nextTitle }: Pr
           >
             BUILDING NOW
           </span>
-          <p style={{ color: "#e7e9ee", fontSize: 18, lineHeight: 1.6, marginBottom: 14 }}>{project.tagline}</p>
-          {project.glimpse && <p style={{ color: "#9aa0ac", fontSize: 15, lineHeight: 1.7 }}>{project.glimpse}</p>}
+          <p style={{ color: T.text, fontSize: 18, lineHeight: 1.6, marginBottom: 14 }}>{project.tagline}</p>
+          {project.glimpse && <p style={{ color: T.textMuted, fontSize: 15, lineHeight: 1.7 }}>{project.glimpse}</p>}
           <CTA accent={project.accent} />
         </div>
       </Shell>
@@ -185,7 +186,7 @@ export default function ProjectPanel({ project, onClose, onNext, nextTitle }: Pr
             <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.5, color: project.accent, marginBottom: 12 }}>
               {String(i + 1).padStart(2, "0")} / {String(beats.length).padStart(2, "0")} · {label.toUpperCase()}
             </div>
-            <h3 style={{ color: "#f4f6fa", fontSize: 27, fontWeight: 900, lineHeight: 1.15, marginBottom: 20 }}>{label}</h3>
+            <h3 style={{ color: T.text, fontSize: 27, fontWeight: 900, lineHeight: 1.15, marginBottom: 20 }}>{label}</h3>
 
             {b.body.map((p, j) => (
               <p
@@ -193,7 +194,7 @@ export default function ProjectPanel({ project, onClose, onNext, nextTitle }: Pr
                 style={{
                   fontSize: 17,
                   lineHeight: 1.7,
-                  color: j === 0 ? "#eceef2" : "#c4c8d2",
+                  color: j === 0 ? T.text : T.textSoft,
                   marginBottom: 20,
                   maxWidth: "34em",
                 }}
@@ -239,10 +240,10 @@ export default function ProjectPanel({ project, onClose, onNext, nextTitle }: Pr
 // so the panel skims instead of reading as a wall of text.
 function Lead({ text }: { text: string }) {
   const cut = text.indexOf(". ");
-  if (cut === -1) return <strong style={{ color: "#fff", fontWeight: 800 }}>{text}</strong>;
+  if (cut === -1) return <strong style={{ color: T.text, fontWeight: 800 }}>{text}</strong>;
   return (
     <>
-      <strong style={{ color: "#fff", fontWeight: 800 }}>{text.slice(0, cut + 1)}</strong>{" "}
+      <strong style={{ color: T.text, fontWeight: 800 }}>{text.slice(0, cut + 1)}</strong>{" "}
       {text.slice(cut + 2)}
     </>
   );
@@ -252,7 +253,7 @@ function InsightCallout({ accent, text }: { accent: string; text: string }) {
   return (
     <div style={{ margin: "30px 0 6px", paddingLeft: 20, borderLeft: `3px solid ${accent}` }}>
       <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: 2, color: accent, marginBottom: 8 }}>THE INSIGHT</div>
-      <p style={{ fontSize: 19, lineHeight: 1.45, fontWeight: 800, color: "#eceef2", letterSpacing: -0.2 }}>{text}</p>
+      <p style={{ fontSize: 19, lineHeight: 1.45, fontWeight: 800, color: T.text, letterSpacing: -0.2 }}>{text}</p>
     </div>
   );
 }
@@ -261,7 +262,7 @@ function CTA({ accent }: { accent: string }) {
   return (
     <div style={{ marginTop: 36, padding: "26px 24px", background: `${accent}12`, border: `1.5px solid ${accent}`, borderRadius: 12 }}>
       <h3 style={{ fontSize: 22, fontWeight: 900, marginBottom: 8 }}>Like how I work?</h3>
-      <p style={{ fontSize: 14.5, color: "#c4c8d2", lineHeight: 1.6, marginBottom: 20 }}>
+      <p style={{ fontSize: 14.5, color: T.textSoft, lineHeight: 1.6, marginBottom: 20 }}>
         I'm open to senior product roles, and I build my own products on the side. If you want to talk, grab a slot or drop me a line.
       </p>
       <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
@@ -269,7 +270,7 @@ function CTA({ accent }: { accent: string }) {
           href={CONTACT.calendar}
           target="_blank"
           rel="noopener"
-          style={{ padding: "12px 22px", background: accent, color: "#000", fontSize: 14, fontWeight: 800, letterSpacing: 0.3 }}
+          style={{ padding: "12px 22px", background: accent, color: T.ink, fontSize: 14, fontWeight: 800, letterSpacing: 0.3 }}
         >
           Book a 20-min call →
         </a>
@@ -305,9 +306,9 @@ function StickyHeader({
         top: 0,
         zIndex: 2,
         padding: "16px clamp(20px, 5vw, 40px) 14px",
-        background: "rgba(9,10,15,0.94)",
+        background: "rgba(29,24,22,0.94)",
         backdropFilter: "blur(10px)",
-        borderBottom: "1px solid #1b1f2c",
+        borderBottom: `1px solid ${T.border}`,
       }}
     >
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
@@ -342,7 +343,7 @@ function StickyHeader({
               aria-selected={i === active}
               aria-label={`Section ${i + 1}`}
               onClick={() => onJump(i)}
-              style={{ flex: 1, height: 4, padding: 0, border: "none", cursor: "pointer", background: i <= active ? accent : "#252a3a" }}
+              style={{ flex: 1, height: 4, padding: 0, border: "none", cursor: "pointer", background: i <= active ? accent : T.border }}
             />
           ))}
         </div>
@@ -375,7 +376,7 @@ function Shell({
         right: 0,
         height: "100dvh",
         width: "min(620px, 100vw)",
-        background: "rgba(7,8,12,0.97)",
+        background: "rgba(29,24,22,0.97)",
         backdropFilter: "blur(10px)",
         borderLeft: `3px solid ${accent}`,
         boxShadow: "-20px 0 60px rgba(0,0,0,0.6)",

@@ -4,6 +4,7 @@
 // directions from the spawn near the islands, close enough that you actually
 // cross them while roaming (the reported "never reach a spot" problem). Spellings
 // are plain Latin (house rule: no accents in any rendered copy).
+import { T } from "../theme";
 
 export interface SurfSpot {
   id: string;
@@ -12,7 +13,7 @@ export interface SurfSpot {
   pos: [number, number]; // [x, z] landmark origin (beacon + label anchor)
   take: [number, number]; // [x, z] the wave's takeoff point — where you catch it
   ride: { lift: number };
-  accent: string; // neon marker + beacon color
+  accent: string; // palette marker + beacon color
 }
 
 export const SURF_SPOTS: SurfSpot[] = [
@@ -23,7 +24,7 @@ export const SURF_SPOTS: SurfSpot[] = [
     pos: [40, 58],
     take: [40, 58],
     ride: { lift: 1.7 },
-    accent: "#6E86D6",
+    accent: T.blue,
   },
   {
     id: "bondi",
@@ -32,7 +33,7 @@ export const SURF_SPOTS: SurfSpot[] = [
     pos: [0, -58],
     take: [0, -55],
     ride: { lift: 0.9 },
-    accent: "#3FA46A",
+    accent: T.seafoam,
   },
   {
     id: "impossibles",
@@ -41,7 +42,7 @@ export const SURF_SPOTS: SurfSpot[] = [
     pos: [-25, 25],
     take: [-22, 27],
     ride: { lift: 1.8 },
-    accent: "#E0A45C",
+    accent: T.gold,
   },
   {
     id: "pipeline",
@@ -50,7 +51,7 @@ export const SURF_SPOTS: SurfSpot[] = [
     pos: [120, 48],
     take: [122, 46],
     ride: { lift: 2.3 },
-    accent: "#E7684A",
+    accent: T.coral,
   },
   {
     id: "nazare",
@@ -59,7 +60,7 @@ export const SURF_SPOTS: SurfSpot[] = [
     pos: [155, -72],
     take: [162, -71],
     ride: { lift: 4.4 },
-    accent: "#6E86D6",
+    accent: T.blue,
   },
 ];
 

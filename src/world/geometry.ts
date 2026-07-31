@@ -64,8 +64,8 @@ export function rng(seed: number): () => number {
   return () => (s = (s * 16807) % 2147483647) / 2147483647;
 }
 
-const TERRAIN_DARK = "#0e1019";
-const TERRAIN_MID = "#161a27";
+const TERRAIN_DARK = "#2B2422";
+const TERRAIN_MID = "#473C39";
 
 // X position per island index. Employment islands are evenly spaced; the indie
 // island sits past a wide water gap (you surf across it).
@@ -123,7 +123,7 @@ function buildPath(i: number): Cube[] {
     cubes.push({
       position: [ax + (bx - ax) * t, -0.6, az + (bz - az) * t],
       scale: [0.7, 0.25, 0.7],
-      color: "#26304a",
+      color: "#7265A6",
     });
   }
   return cubes;

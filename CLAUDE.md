@@ -41,13 +41,13 @@ where each island = a project, with the narrative + metrics in a fast DOM overla
   optional **free surf mode** (`SurfController`) lets you hop on a board and roam the
   ocean with WASD/arrows; it's a bonus, the rails remain the default path.
 - **Stylized low-poly / flat-shaded** (subtle voxel nod), NOT literal Minecraft.
-- **Palette:** **logo-derived** (see `src/theme.ts`) — accents green `#3FA46A`, coral
-  `#E7684A`, periwinkle `#6E86D6`, mauve `#CB7BC7`, sand `#E0A45C`. The **entrance/hero
-  stays on black** with a faint coral/periwinkle glow; the **world is a logo dusk**
-  (green-navy → periwinkle → coral CSS sky behind a transparent canvas, warm low sun,
-  periwinkle-dusk water). `theme.ts` `T` owns the atmosphere; per-project `accent` lives
-  in `projects.ts`. (Old neon palette retired; `og-image.png` still shows the old colors,
-  regenerate when tooling allows.)
+- **Palette:** use the **taupe + forest/coral/mauve/blue** system in `src/theme.ts` and
+  `docs/design-system.md`. Main accents: forest `#2C4832`, coral `#D76F53`, mauve
+  `#C57EC2`, blue `#6273BF`; project green is seafoam `#80B192` for accessible contrast.
+  UI surfaces are taupe ink `#1D1816` / raised ink `#2B2422` / surface `#473C39` / border
+  `#5B4F4B`, with text `#FBFAF9`. The hero stays dark with coral/ocean glow; the world is
+  forest → taupe → coral dusk with an amber sun and ocean-blue water. `theme.ts` `T` owns
+  the atmosphere and components must use its tokens rather than add ad hoc hex values.
 - **Sound is OFF by default**; it turns on only via the in-world `SoundToggle`. The
   AudioContext suspends while the tab is hidden. Entering the world no longer starts sound.
 - **Entrance flow:** static hero first (no Canvas mounted) → Enter → character-select →
@@ -88,8 +88,8 @@ Single source of truth → single Canvas → one draw path.
   stakeholders) as **SVG, not WebGL** (no extra GL contexts; accessible).
 - `src/ui/WorldNav.tsx` — sr-only keyboard/screen-reader path (Tab travels, Enter opens).
 - `src/ui/EscapeHatch.tsx` + `src/pages/Resume.tsx` — persistent "skip to résumé".
-- Routing (`react-router-dom`): `/`, `/p/:id` (deep-linkable), `/resume`. URL is the
-  source of truth for the open panel.
+- Routing (`src/router.tsx`): `/`, `/p/:id` (deep-linkable), `/resume`. URL is the source
+  of truth for the open panel.
 
 ## Content truth (IMPORTANT)
 The real CV is the source of truth (Senior PM, 8+ yrs; roles: **BiLira, Upshift, Lean
@@ -125,9 +125,9 @@ the quantified outcomes are the gold.
 - **Lighting is physically-based** (r3f v9): light intensities are intentionally large
   (point light ~240 with inverse-square decay; ambient/hemisphere carry base visibility).
   Don't "fix" them down to old 0.5–2 values or the scene goes black.
-- Styling: **inline styles**, logo-derived accents (see Locked decisions + `src/theme.ts`):
-  periwinkle `#6E86D6`, coral `#E7684A`, green `#3FA46A`, mauve `#CB7BC7`, sand `#E0A45C`.
-  Atmosphere tokens live in `theme.ts` `T`. Font: Plus Jakarta Sans, headings weight 900.
+- Styling: **inline styles**, palette tokens from `src/theme.ts` `T`; see
+  `docs/design-system.md` for approved values and roles. Font: Plus Jakarta Sans, headings
+  weight 900.
 - `src/global.d.ts` has a permissive JSX intrinsic shim so r3f elements type-check —
   leave it.
 - `npm run build` runs **vite only (no tsc)** — type-check separately with

@@ -91,7 +91,9 @@ function spread(raw: Coin[]): Coin[] {
 
 export const COINS: Coin[] = spread(buildCoins());
 export const COIN_TOTAL = COINS.length;
-export const COIN_Y = WATER_Y + 1.4;
+// The ocean shader can crest roughly 1.3 units above its base. Keep the coin
+// disc comfortably clear of that peak so it never appears half-submerged.
+export const COIN_Y = WATER_Y + 2.1;
 
 // Collected coins live here (module state) so the controller (collection) and the
 // visuals (hide) share it without routing per-frame data through React. Module

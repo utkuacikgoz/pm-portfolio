@@ -1,5 +1,6 @@
 import { CASE_STUDIES } from "../content";
 import type { CaseStudy } from "../content/types";
+import { T } from "../theme";
 
 // Silhouette archetype for the procedural low-poly island. The world renders
 // every project from this one registry, so adding PassATS / Stats XI later is
@@ -18,7 +19,7 @@ export interface Project {
   tagline: string;
   kind: "employment" | "indie";
   published: boolean;
-  accent: string; // logo-family accent (see src/theme.ts)
+  accent: string; // palette accent (see src/theme.ts)
   structure: StructureType;
   icon?: string; // emoji floating over the island (conveys the domain at a glance)
   content?: CaseStudy; // omitted for indie glimpses (no full case study yet)
@@ -36,7 +37,7 @@ export const PROJECTS: Project[] = [
     tagline: "Regulated fintech at scale · 35% faster AML review",
     kind: "employment",
     published: true,
-    accent: "#6E86D6",
+    accent: T.blue,
     structure: "tower",
     icon: "₿",
     content: C.bilira,
@@ -48,7 +49,7 @@ export const PROJECTS: Project[] = [
     tagline: "Ecommerce zero to one · +163% conversion, $500K recovered",
     kind: "employment",
     published: true,
-    accent: "#E0A45C",
+    accent: T.gold,
     structure: "market",
     icon: "🛍️",
     content: C.mestores,
@@ -60,7 +61,7 @@ export const PROJECTS: Project[] = [
     tagline: "Healthcare transformation · $2M/yr saved",
     kind: "employment",
     published: true,
-    accent: "#E7684A",
+    accent: T.coral,
     structure: "campus",
     icon: "🩺",
     content: C.apollo,
@@ -72,7 +73,7 @@ export const PROJECTS: Project[] = [
     tagline: "Gaming super app · 6× DAU in 10 weeks",
     kind: "employment",
     published: true,
-    accent: "#CB7BC7",
+    accent: T.mauve,
     structure: "arcade",
     icon: "🎮",
     content: C.la3eb,
@@ -84,7 +85,7 @@ export const PROJECTS: Project[] = [
     tagline: "HRtech marketplace · churn halved to 4%, built the PM function",
     kind: "employment",
     published: true,
-    accent: "#3FA46A",
+    accent: T.seafoam,
     structure: "bridge",
     icon: "📈",
     content: C.upshift,
@@ -99,7 +100,7 @@ export const PROJECTS: Project[] = [
     tagline: "trading signal bot",
     kind: "indie",
     published: false,
-    accent: "#3FA46A",
+    accent: T.seafoam,
     structure: "beacon",
     glimpse: "A bot that watches the market and flags buyback signals in real time.",
   },
@@ -109,7 +110,7 @@ export const PROJECTS: Project[] = [
     tagline: "beat the resume robots",
     kind: "indie",
     published: false,
-    accent: "#CB7BC7",
+    accent: T.mauve,
     structure: "beacon",
     glimpse: "Helps job seekers get past automated tracking filters.",
   },
@@ -119,7 +120,7 @@ export const PROJECTS: Project[] = [
     tagline: "cofounder matching",
     kind: "indie",
     published: false,
-    accent: "#E0A45C",
+    accent: T.gold,
     structure: "beacon",
     glimpse: "A matching app for finding a cofounder, the right person at the right time.",
   },
@@ -130,7 +131,7 @@ export const PROJECTS: Project[] = [
     tagline: "HR platform with no code · 150+ employees in 4 weeks",
     kind: "employment",
     published: false,
-    accent: "#3FA46A",
+    accent: T.seafoam,
     structure: "campus",
     content: C.mona,
   },
