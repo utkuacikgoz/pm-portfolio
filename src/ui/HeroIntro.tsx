@@ -57,8 +57,11 @@ export default function HeroIntro({ onBegin }: { onBegin: () => void }) {
         8+ years across fintech, blockchain, HRtech &amp; SaaS. Explore the work as a
         world. Each island is a product I built.
       </p>
+      <p style={{ marginTop: 10, fontSize: 12.5, fontWeight: 700, color: "#8f96a5", ...rise(0.31) }}>
+        Five career stops. One optional surf run. Resume always one click away.
+      </p>
 
-      <ProofRow reduced={reduced} style={rise(0.36)} />
+      <ProofRow reduced={reduced} style={rise(0.38)} />
 
       <MagneticCTA reduced={reduced} onClick={onBegin} delay={0.46} />
 

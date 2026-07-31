@@ -1,5 +1,7 @@
 import { WATER_Y, islandPosition, EMP_COUNT, INDIE_INDEX } from "./geometry";
 import { T } from "../theme";
+import { SURF_SPOTS } from "./surf-spots";
+import { DISTANT_PEAKS } from "./distant-mountains";
 
 // The free-surf "journey": solid obstacles you can't pass through, a trail of
 // coins to collect, and checkpoints that surface how Utku works. Positions are in
@@ -36,7 +38,13 @@ function islandColliders(): Collider[] {
 
 // The board resolves against all of these each frame → it bounces instead of
 // ghosting through cliffs/reefs/beaches and the career monuments.
-export const SURF_COLLIDERS: Collider[] = [...BREAK_COLLIDERS, ...islandColliders()];
+const MOUNTAIN_COLLIDERS: Collider[] = DISTANT_PEAKS.map((peak) => ({
+  x: peak.x,
+  z: peak.z,
+  r: peak.w + 1.6,
+}));
+
+export const SURF_COLLIDERS: Collider[] = [...BREAK_COLLIDERS, ...islandColliders(), ...MOUNTAIN_COLLIDERS];
 
 interface Coin {
   id: number;
@@ -63,12 +71,20 @@ function buildCoins(): Coin[] {
     const [ax, az] = WAYPOINTS[s];
     const [bx, bz] = WAYPOINTS[s + 1];
     const dist = Math.hypot(bx - ax, bz - az);
-    const n = Math.max(2, Math.round(dist / 9));
+    // Start dense, then spread down to the final 42. Extra samples let us cut a
+    // generous clean-water pocket around every break without starving the run.
+    const n = Math.max(2, Math.round(dist / 5));
     for (let i = 1; i < n; i++) {
       const t = i / n;
       const x = ax + (bx - ax) * t;
       const z = az + (bz - az) * t;
       if (SURF_COLLIDERS.some((c) => Math.hypot(x - c.x, z - c.z) < c.r + 3)) continue;
+      // Never hide a collectible inside a landmark or wave face. The route goes
+      // around each break, while the takeoff itself stays visually clean.
+      if (SURF_SPOTS.some((spot) =>
+        Math.hypot(x - spot.pos[0], z - spot.pos[1]) < 24 ||
+        Math.hypot(x - spot.take[0], z - spot.take[1]) < 24
+      )) continue;
       coins.push({ id: id++, x, z });
     }
   }

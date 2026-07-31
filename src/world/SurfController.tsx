@@ -28,7 +28,7 @@ const SWELL_FOLLOW = 0.28;
 const ease = (p: number) => p * p * (3 - 2 * p); // smoothstep
 const CATCH_RADIUS = 26; // enter this close to a break's takeoff and you drop in
 const CATCH_MIN_SPEED = 4; // need some pace to catch
-const RIDE_DUR = 3.6; // seconds a caught ride lasts
+const RIDE_DUR = 5; // enough time to feel a full face, carve, and clean exit
 const REVEAL_HOLD = 5; // seconds the break's name stays on the HUD after catching
 const RIDE_ENTRY_RADIUS = 10; // catches happen close enough to cleanly enter the authored line
 const MAX_YAW = 0.6; // how far the cursor can swing the view (radians)
@@ -37,6 +37,9 @@ const SPIN_RATE = 9.4; // ~one full board rotation per ollie
 const TRICK_SPRAY_N = 8;
 const TRICK_SPRAY_GEO = new THREE.SphereGeometry(0.22, 6, 6);
 const TRICK_SPRAY_MAT = new THREE.MeshStandardMaterial({ color: "#dff6f1", transparent: true, opacity: 0.9, flatShading: true });
+const WAKE_N = 20;
+const WAKE_DUR = 1.8;
+const WAKE_GEO = new THREE.CircleGeometry(0.34, 7);
 
 export default function SurfController({
   active,
@@ -105,6 +108,10 @@ export default function SurfController({
   const spinning = useRef(false);
   const spraySpawn = useRef(-99);
   const trickSpray = useRef<THREE.Group>(null);
+  const wakeMeshes = useRef<(THREE.Mesh | null)[]>([]);
+  const wakeSlots = useRef(Array.from({ length: WAKE_N }, () => ({ born: -99, x: 0, z: 0, heading: 0 })));
+  const wakeCursor = useRef(0);
+  const lastWakeAt = useRef(-99);
   const trickDirs = useMemo(
     () =>
       Array.from({ length: TRICK_SPRAY_N }, () => ({
@@ -175,6 +182,8 @@ export default function SurfController({
     stamina.current = 1;
     spinning.current = false;
     spraySpawn.current = -99;
+    wakeCursor.current = 0;
+    lastWakeAt.current = -99;
     introStart.current = -1; // begin the paddle-in intro on the first frame
     turnVel.current = 0;
     riderPitch.current = PRONE_PITCH; // start prone (belly down, head toward the nose)
@@ -274,7 +283,12 @@ export default function SurfController({
         airY.current = 0;
         surfSignal.rideSpotId = null;
       } else if (spot) {
-        speed.current = Math.max(speed.current, 28);
+        // Ease onto the authored face, then hand steering back progressively.
+        // This gives the drop-in shape without snapping onto an invisible rail.
+        const rideHeading = Math.atan2(spot.ride.direction[0], spot.ride.direction[1]);
+        const headingDelta = Math.atan2(Math.sin(rideHeading - heading.current), Math.cos(rideHeading - heading.current));
+        heading.current += headingDelta * (1 - rp) * (1 - Math.exp(-2.4 * d));
+        speed.current = Math.max(speed.current, 27 + Math.sin(rp * Math.PI) * 7);
         airY.current = Math.sin(rp * Math.PI) * spot.ride.lift;
       }
     }
@@ -298,6 +312,35 @@ export default function SurfController({
 
     pos.current.x += Math.sin(heading.current) * speed.current * d;
     pos.current.z += Math.cos(heading.current) * speed.current * d;
+
+    // Reused wake pool: one small foam patch every few frames. Each patch
+    // expands and fades in place, producing a persistent tail without creating
+    // or destroying objects during the render loop.
+    if (!intro && airY.current < 0.12 && Math.abs(speed.current) > 3 && t - lastWakeAt.current > 0.09) {
+      const slot = wakeSlots.current[wakeCursor.current % WAKE_N];
+      slot.born = t;
+      slot.x = pos.current.x - Math.sin(heading.current) * 1.35;
+      slot.z = pos.current.z - Math.cos(heading.current) * 1.35;
+      slot.heading = heading.current;
+      wakeCursor.current += 1;
+      lastWakeAt.current = t;
+    }
+    for (let i = 0; i < WAKE_N; i++) {
+      const mesh = wakeMeshes.current[i];
+      if (!mesh) continue;
+      const slot = wakeSlots.current[i];
+      const age = t - slot.born;
+      if (age < 0 || age > WAKE_DUR) {
+        mesh.visible = false;
+        continue;
+      }
+      const p = age / WAKE_DUR;
+      mesh.visible = true;
+      mesh.position.set(slot.x, WATER_Y + 0.16, slot.z);
+      mesh.rotation.set(-Math.PI / 2, slot.heading, 0);
+      mesh.scale.set(0.7 + p * 2.6, 0.45 + p * 1.2, 1);
+      (mesh.material as THREE.MeshBasicMaterial).opacity = (1 - p) * (riding.current ? 0.62 : 0.38);
+    }
 
     // Soft glide-away off a surface: only when heading INTO it (dot < 0), ease
     // the heading toward the deflected direction over a few frames and keep most
@@ -460,13 +503,28 @@ export default function SurfController({
 
   if (!active) return null;
   return (
-    <group ref={board}>
-      <Surfer ref={rider} />
-      <group ref={trickSpray} visible={false}>
-        {trickDirs.map((_, i) => (
-          <mesh key={i} geometry={TRICK_SPRAY_GEO} material={TRICK_SPRAY_MAT} raycast={() => null} />
+    <>
+      <group ref={board}>
+        <Surfer ref={rider} />
+        <group ref={trickSpray} visible={false}>
+          {trickDirs.map((_, i) => (
+            <mesh key={i} geometry={TRICK_SPRAY_GEO} material={TRICK_SPRAY_MAT} raycast={() => null} />
+          ))}
+        </group>
+      </group>
+      <group>
+        {wakeSlots.current.map((_, i) => (
+          <mesh
+            key={i}
+            ref={(mesh) => { wakeMeshes.current[i] = mesh; }}
+            visible={false}
+            raycast={() => null}
+          >
+            <primitive object={WAKE_GEO} attach="geometry" />
+            <meshBasicMaterial color="#e6f7f2" transparent opacity={0} depthWrite={false} />
+          </mesh>
         ))}
       </group>
-    </group>
+    </>
   );
 }

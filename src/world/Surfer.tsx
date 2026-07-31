@@ -1,140 +1,103 @@
 import { forwardRef, useMemo } from "react";
 import * as THREE from "three";
 
-// A low-poly surfer — muscular, tanned, long-haired — shared by the free-surf
-// board (SurfController) and the water-gap easter-egg board (CameraRig). Rounded
-// capsule limbs + a smooth shortboard. The RIDER sits in its own group, exposed
-// via `ref`, so SurfController can lean it into carves AND pitch it prone for the
-// paddle-in intro each frame without re-rendering React. All meshes opt out of
-// raycast; hit-testing (the egg click) lives on the parent group.
-
-const SKIN = "#e3a878"; // tanned
-const HAIR = "#6e4a26"; // sun-bleached brown
-const BOARD = "#f4ead2";
-
+const SKIN = "#c98252";
+const HAIR = "#3b2418";
+const BOARD_TOP = "#f4eedf";
 const Y_UP = new THREE.Vector3(0, 1, 0);
 
-// A capsule limb spanning two points — computes midpoint + orientation so legs
-// and arms can be posed by endpoints rather than hand-tuned euler angles.
-function Limb({
-  a,
-  b,
-  r,
-  color,
-  flat = false,
-}: {
-  a: [number, number, number];
-  b: [number, number, number];
-  r: number;
-  color: string;
-  flat?: boolean;
-}) {
-  const { pos, quat, len } = useMemo(() => {
+function Limb({ a, b, radius, color }: { a: [number, number, number]; b: [number, number, number]; radius: number; color: string }) {
+  const transform = useMemo(() => {
     const from = new THREE.Vector3(...a);
     const to = new THREE.Vector3(...b);
-    const dir = new THREE.Vector3().subVectors(to, from);
-    const l = dir.length();
-    const mid = new THREE.Vector3().addVectors(from, to).multiplyScalar(0.5);
-    const q = new THREE.Quaternion().setFromUnitVectors(Y_UP, dir.clone().normalize());
-    return { pos: mid, quat: q, len: l };
+    const direction = new THREE.Vector3().subVectors(to, from);
+    return {
+      position: new THREE.Vector3().addVectors(from, to).multiplyScalar(0.5),
+      quaternion: new THREE.Quaternion().setFromUnitVectors(Y_UP, direction.clone().normalize()),
+      length: direction.length(),
+    };
   }, [a, b]);
   return (
-    <mesh position={pos} quaternion={quat} raycast={() => null}>
-      <capsuleGeometry args={[r, Math.max(0.02, len - r * 2), 4, 10]} />
-      <meshStandardMaterial color={color} roughness={0.7} flatShading={flat} />
+    <mesh position={transform.position} quaternion={transform.quaternion} raycast={() => null}>
+      <capsuleGeometry args={[radius, Math.max(0.02, transform.length - radius * 2), 3, 6]} />
+      <meshStandardMaterial color={color} roughness={0.78} flatShading />
     </mesh>
   );
 }
 
-function Blob({ pos, r, color, scale }: { pos: [number, number, number]; r: number; color: string; scale?: [number, number, number] }) {
+function Joint({ position, radius, color, scale = [1, 1, 1] }: { position: [number, number, number]; radius: number; color: string; scale?: [number, number, number] }) {
   return (
-    <mesh position={pos} scale={scale} raycast={() => null}>
-      <sphereGeometry args={[r, 12, 10]} />
-      <meshStandardMaterial color={color} roughness={0.75} />
+    <mesh position={position} scale={scale} raycast={() => null}>
+      <icosahedronGeometry args={[radius, 1]} />
+      <meshStandardMaterial color={color} roughness={0.8} flatShading />
     </mesh>
   );
 }
 
-// A foot: rounded (scaled sphere, not a hard box) and yawed across the board so
-// the stance reads as surfing rather than skiing. Toes are a second, smaller blob
-// so the silhouette tapers instead of ending in a slab.
-function Foot({ pos, yaw }: { pos: [number, number, number]; yaw: number }) {
+function Board({ accent }: { accent: string }) {
+  const geometry = useMemo(() => {
+    const outline = new THREE.Shape();
+    outline.moveTo(0, 1.75);
+    outline.bezierCurveTo(0.46, 1.55, 0.56, 0.7, 0.48, -0.7);
+    outline.bezierCurveTo(0.42, -1.35, 0.25, -1.65, 0, -1.72);
+    outline.bezierCurveTo(-0.25, -1.65, -0.42, -1.35, -0.48, -0.7);
+    outline.bezierCurveTo(-0.56, 0.7, -0.46, 1.55, 0, 1.75);
+    const built = new THREE.ExtrudeGeometry(outline, { depth: 0.09, bevelEnabled: true, bevelSize: 0.045, bevelThickness: 0.035, bevelSegments: 2, curveSegments: 12 });
+    built.rotateX(Math.PI / 2);
+    built.translate(0, 0.02, 0);
+    built.computeVertexNormals();
+    return built;
+  }, []);
   return (
-    <group position={pos} rotation={[0, yaw, 0]}>
-      <mesh raycast={() => null} scale={[0.15, 0.06, 0.24]}>
-        <sphereGeometry args={[1, 10, 8]} />
-        <meshStandardMaterial color={SKIN} roughness={0.8} />
+    <group>
+      <mesh geometry={geometry} raycast={() => null}>
+        <meshStandardMaterial color={BOARD_TOP} roughness={0.42} flatShading />
       </mesh>
-      <mesh position={[0, -0.01, 0.2]} raycast={() => null} scale={[0.12, 0.045, 0.09]}>
-        <sphereGeometry args={[1, 8, 6]} />
-        <meshStandardMaterial color={SKIN} roughness={0.8} />
+      <mesh position={[0, 0.105, 0]} scale={[0.025, 0.015, 1.48]} raycast={() => null}>
+        <boxGeometry />
+        <meshStandardMaterial color={accent} roughness={0.5} />
+      </mesh>
+      <mesh position={[0, -0.16, -1.32]} rotation={[0.2, 0, 0]} raycast={() => null}>
+        <coneGeometry args={[0.13, 0.38, 5]} />
+        <meshStandardMaterial color={accent} roughness={0.65} flatShading />
       </mesh>
     </group>
   );
 }
 
+/** Deliberately stylized low-poly rider with a readable, balanced surf stance. */
 const Surfer = forwardRef<THREE.Group, { accent?: string }>(function Surfer({ accent = "#6E86D6" }, riderRef) {
   return (
     <group>
-      {/* ── Shortboard (smooth, rounded nose + tail) ── */}
-      <mesh position={[0, 0.06, 0]} scale={[0.52, 0.11, 1.75]} raycast={() => null}>
-        <sphereGeometry args={[1, 16, 12]} />
-        <meshStandardMaterial color={BOARD} roughness={0.35} metalness={0.05} />
-      </mesh>
-      <mesh position={[0, 0.15, 0]} raycast={() => null}>
-        <boxGeometry args={[0.05, 0.03, 3.1]} />
-        <meshStandardMaterial color={accent} emissive={accent} emissiveIntensity={0.25} />
-      </mesh>
-      <mesh position={[0, -0.16, -1.4]} rotation={[0.5, 0, 0]} raycast={() => null}>
-        <coneGeometry args={[0.16, 0.44, 4]} />
-        <meshStandardMaterial color={accent} flatShading />
-      </mesh>
+      <Board accent={accent} />
+      <group ref={riderRef} position={[0, 0.14, 0]}>
+        {/* Bent knees and an open stance keep the silhouette athletic, not mannequin-like. */}
+        <Limb a={[-0.25, 0.1, 0.55]} b={[-0.12, 0.43, 0.3]} radius={0.105} color={SKIN} />
+        <Limb a={[-0.12, 0.43, 0.3]} b={[0.02, 0.68, 0.05]} radius={0.14} color={accent} />
+        <Limb a={[0.25, 0.1, -0.52]} b={[0.14, 0.42, -0.28]} radius={0.105} color={SKIN} />
+        <Limb a={[0.14, 0.42, -0.28]} b={[0.02, 0.68, 0.02]} radius={0.14} color={accent} />
+        <Joint position={[-0.25, 0.08, 0.56]} radius={0.12} color={SKIN} scale={[1.5, 0.45, 1]} />
+        <Joint position={[0.25, 0.08, -0.52]} radius={0.12} color={SKIN} scale={[1.5, 0.45, 1]} />
 
-      {/* ── Rider (own group → leaned / pitched by the parent) ── */}
-      <group ref={riderRef} position={[0, 0.16, 0]}>
-        {/* Feet: a real surf stance. Both were axis-aligned boxes pointing down
-            the board like skis, which read as flat and toy-like. Now they are
-            rounded and angled off the stringer (front foot open ~35 degrees, back
-            foot across ~55) the way a rider actually stands, with short ankles
-            joining them to the shins. */}
-        <Foot pos={[0.02, 0.05, 0.54]} yaw={0.6} />
-        <Foot pos={[-0.04, 0.05, -0.52]} yaw={0.95} />
-        <Blob pos={[0.02, 0.14, 0.5]} r={0.1} color={SKIN} scale={[1, 0.9, 1]} />
-        <Blob pos={[-0.04, 0.14, -0.48]} r={0.1} color={SKIN} scale={[1, 0.9, 1]} />
+        {/* One clean torso mass and rash vest replace anatomical decoration. */}
+        <mesh position={[0, 0.92, 0.08]} rotation={[0.08, 0, 0]} raycast={() => null}>
+          <coneGeometry args={[0.22, 0.62, 7]} />
+          <meshStandardMaterial color="#e7d7bd" roughness={0.72} flatShading />
+        </mesh>
+        <Joint position={[0, 0.66, 0.03]} radius={0.23} color={accent} scale={[1.15, 0.62, 1]} />
+        <Joint position={[0, 1.18, 0.1]} radius={0.17} color={SKIN} scale={[0.9, 1.08, 0.92]} />
+        <mesh position={[0, 1.25, 0.02]} rotation={[0.15, 0, 0]} raycast={() => null}>
+          <sphereGeometry args={[0.18, 8, 6, 0, Math.PI * 2, 0, Math.PI * 0.62]} />
+          <meshStandardMaterial color={HAIR} roughness={0.88} flatShading />
+        </mesh>
 
-        {/* legs: bare shins (skin) + boardshorts on the thighs (accent) */}
-        <Limb a={[0.02, 0.12, 0.54]} b={[0.05, 0.46, 0.34]} r={0.14} color={SKIN} />
-        <Limb a={[0.05, 0.44, 0.36]} b={[0.02, 0.64, 0.06]} r={0.17} color={accent} />
-        <Limb a={[-0.04, 0.12, -0.52]} b={[-0.03, 0.44, -0.28]} r={0.14} color={SKIN} />
-        <Limb a={[-0.03, 0.42, -0.3]} b={[-0.02, 0.64, -0.04]} r={0.17} color={accent} />
-        {/* boardshorts waistband */}
-        <Blob pos={[0.01, 0.64, 0.0]} r={0.24} color={accent} scale={[1, 0.6, 1]} />
-
-        {/* muscular torso (shirtless, tanned) + pecs */}
-        <Limb a={[0.0, 0.66, 0.0]} b={[0.05, 1.02, 0.14]} r={0.27} color={SKIN} />
-        <Blob pos={[0.14, 0.92, 0.3]} r={0.12} color={SKIN} />
-        <Blob pos={[-0.06, 0.92, 0.32]} r={0.12} color={SKIN} />
-
-        {/* broad shoulders (delts) */}
-        <Blob pos={[0.32, 1.0, 0.06]} r={0.15} color={SKIN} />
-        <Blob pos={[-0.28, 1.02, 0.02]} r={0.15} color={SKIN} />
-
-        {/* thick arms: leading down-forward, trailing up-back for balance */}
-        <Limb a={[0.32, 1.0, 0.08]} b={[0.52, 0.6, 0.5]} r={0.12} color={SKIN} />
-        <Limb a={[-0.28, 1.02, 0.02]} b={[-0.56, 1.2, -0.36]} r={0.12} color={SKIN} />
-        {/* hands: the arms used to just stop mid-air */}
-        <Blob pos={[0.53, 0.57, 0.53]} r={0.11} color={SKIN} scale={[0.9, 1, 1.1]} />
-        <Blob pos={[-0.59, 1.23, -0.39]} r={0.11} color={SKIN} scale={[0.9, 1, 1.1]} />
-
-        {/* head */}
-        <Blob pos={[0.08, 1.22, 0.18]} r={0.17} color={SKIN} />
-
-        {/* long, sun-bleached hair: a crown cap + strands flowing down the back */}
-        <Blob pos={[0.06, 1.3, 0.06]} r={0.2} color={HAIR} scale={[1, 0.85, 1.05]} />
-        <Limb a={[0.05, 1.34, 0.02]} b={[0.02, 0.82, -0.2]} r={0.07} color={HAIR} flat />
-        <Limb a={[0.17, 1.3, 0.05]} b={[0.2, 0.9, -0.12]} r={0.06} color={HAIR} flat />
-        <Limb a={[-0.06, 1.3, 0.05]} b={[-0.14, 0.9, -0.12]} r={0.06} color={HAIR} flat />
-        <Limb a={[0.22, 1.24, 0.2]} b={[0.27, 0.98, 0.18]} r={0.045} color={HAIR} flat />
+        {/* Long counterbalanced arms communicate carve direction at a glance. */}
+        <Limb a={[-0.2, 1.02, 0.08]} b={[-0.62, 0.88, 0.42]} radius={0.085} color={SKIN} />
+        <Limb a={[-0.62, 0.88, 0.42]} b={[-0.82, 0.72, 0.56]} radius={0.075} color={SKIN} />
+        <Limb a={[0.2, 1.02, 0.08]} b={[0.58, 1.12, -0.28]} radius={0.085} color={SKIN} />
+        <Limb a={[0.58, 1.12, -0.28]} b={[0.78, 1.2, -0.48]} radius={0.075} color={SKIN} />
+        <Joint position={[-0.83, 0.71, 0.57]} radius={0.085} color={SKIN} />
+        <Joint position={[0.79, 1.21, -0.49]} radius={0.085} color={SKIN} />
       </group>
     </group>
   );

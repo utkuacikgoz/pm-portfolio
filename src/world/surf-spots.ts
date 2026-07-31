@@ -11,7 +11,7 @@ export interface SurfSpot {
   blurb: string; // one line, dash-free, accent-free
   pos: [number, number]; // [x, z] landmark origin (beacon + label anchor)
   take: [number, number]; // [x, z] the wave's takeoff point — where you catch it
-  ride: { lift: number };
+  ride: { lift: number; direction: [number, number] };
   accent: string; // neon marker + beacon color
 }
 
@@ -22,7 +22,7 @@ export const SURF_SPOTS: SurfSpot[] = [
     blurb: "Tahiti. A slab that breaks below sea level.",
     pos: [40, 58],
     take: [40, 58],
-    ride: { lift: 1.7 },
+    ride: { lift: 1.7, direction: [80, -10] },
     accent: "#6E86D6",
   },
   {
@@ -31,7 +31,7 @@ export const SURF_SPOTS: SurfSpot[] = [
     blurb: "Sydney, Australia. Where half the world learns to surf.",
     pos: [0, -58],
     take: [0, -55],
-    ride: { lift: 0.9 },
+    ride: { lift: 0.9, direction: [-25, 83] },
     accent: "#3FA46A",
   },
   {
@@ -40,7 +40,7 @@ export const SURF_SPOTS: SurfSpot[] = [
     blurb: "Bali, Indonesia. A long peeling limestone wall.",
     pos: [-25, 25],
     take: [-22, 27],
-    ride: { lift: 1.8 },
+    ride: { lift: 1.8, direction: [85, -25] },
     accent: "#E0A45C",
   },
   {
@@ -49,7 +49,7 @@ export const SURF_SPOTS: SurfSpot[] = [
     blurb: "Oahu, Hawaii. The heaviest reef barrel on Earth.",
     pos: [120, 48],
     take: [122, 46],
-    ride: { lift: 2.3 },
+    ride: { lift: 2.3, direction: [35, -120] },
     accent: "#E7684A",
   },
   {
@@ -58,7 +58,7 @@ export const SURF_SPOTS: SurfSpot[] = [
     blurb: "Portugal. The biggest wave anyone has paddled.",
     pos: [155, -72],
     take: [162, -71],
-    ride: { lift: 4.4 },
+    ride: { lift: 4.4, direction: [-155, 14] },
     accent: "#6E86D6",
   },
 ];

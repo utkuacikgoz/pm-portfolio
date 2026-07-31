@@ -12,6 +12,7 @@ import EggToast from "../ui/EggToast";
 import SoundToggle from "../ui/SoundToggle";
 import StoryCaption from "../ui/StoryCaption";
 import AvatarSelect from "../ui/AvatarSelect";
+import SurfJourneyStatus from "../ui/SurfJourneyStatus";
 import { readAvatar } from "../ui/avatars";
 import type { SurfSpot } from "../world/surf-spots";
 import type { Checkpoint } from "../world/surf-journey";
@@ -47,6 +48,7 @@ export default function WorldExperience() {
   // Journey HUD: coins collected + the checkpoint card currently showing.
   const [coins, setCoins] = useState(0);
   const [checkpoint, setCheckpoint] = useState<Checkpoint | null>(null);
+  const [visitedCheckpoints, setVisitedCheckpoints] = useState<Set<number>>(() => new Set());
   // Finishing the run (all 42) earns the one real ask of the whole experience.
   // Once per visit: re-entering surf must not re-fire it.
   const [runComplete, setRunComplete] = useState(false);
@@ -100,6 +102,18 @@ export default function WorldExperience() {
     setCheckpoint(null);
     setSurfHint(true);
     sfx.play("enter");
+  }, []);
+
+  const onSurfCheckpoint = useCallback((next: Checkpoint | null) => {
+    setCheckpoint(next);
+    if (next) {
+      setVisitedCheckpoints((visited) => {
+        if (visited.has(next.id)) return visited;
+        const updated = new Set(visited);
+        updated.add(next.id);
+        return updated;
+      });
+    }
   }, []);
 
   // Hide the surf hint after a few seconds, or as soon as the surfer moves.
@@ -262,7 +276,7 @@ export default function WorldExperience() {
               onOpen={open}
               onNearSpot={setNearSpot}
               onCoin={setCoins}
-              onCheckpoint={setCheckpoint}
+              onCheckpoint={onSurfCheckpoint}
               onComplete={onRunComplete}
               frameloop={visible && !panelOpen ? "always" : "never"}
             />
@@ -343,7 +357,7 @@ export default function WorldExperience() {
             onNext={() => setActive((a) => Math.min(projects.length - 1, a + 1))}
             onOpen={() => open(active)}
           />
-          <button
+          {active === projects.length - 1 && <button
             onClick={() => setActive(INDIE_INDEX)}
             style={{
               position: "fixed",
@@ -361,7 +375,7 @@ export default function WorldExperience() {
             }}
           >
             🚀 What I'm building →
-          </button>
+          </button>}
         </>
       )}
 
@@ -384,7 +398,7 @@ export default function WorldExperience() {
             backdropFilter: "blur(6px)",
           }}
         >
-          🏄 Free surf
+          🏄 Bonus: free surf
         </button>
       )}
 
@@ -435,6 +449,7 @@ export default function WorldExperience() {
           >
             🪙 {coins} / {COIN_TOTAL}
           </div>
+          <SurfJourneyStatus coins={coins} visited={visitedCheckpoints.size} />
           {nearSpot && <SpotLabel key={nearSpot.id} spot={nearSpot} />}
           {checkpoint && <CheckpointCard key={checkpoint.id} cp={checkpoint} />}
           {runComplete && (
@@ -474,8 +489,14 @@ export default function WorldExperience() {
         <ProjectPanel
           project={projects[openIndex]}
           onClose={close}
-          nextTitle={projects[(openIndex + 1) % projects.length].title}
-          onNext={() => open((openIndex + 1) % projects.length)}
+          nextTitle={openIndex === projects.length - 1 ? "What I'm building" : projects[openIndex + 1].title}
+          onNext={() => {
+            if (openIndex < projects.length - 1) open(openIndex + 1);
+            else {
+              navigate("/");
+              setActive(INDIE_INDEX);
+            }
+          }}
         />
       )}
     </div>

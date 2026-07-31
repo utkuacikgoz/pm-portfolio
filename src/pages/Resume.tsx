@@ -42,7 +42,7 @@ export default function Resume() {
           Senior Product Manager
         </p>
         <p style={{ color: "#c4c8d2", fontSize: 15, marginTop: 12, lineHeight: 1.75 }}>
-          8+ years and 11+ products shipped across fintech, blockchain, e-commerce, food delivery and
+          8+ years and 11+ products shipped across fintech, blockchain, ecommerce, food delivery and
           marketplaces. I lead distributed teams, up to 25 people across Turkey, the UAE, KSA and the
           US, and lean hard on analytics and AI to ship. Certified Scrum Master (PSM I) and Product
           Owner (PSPO I).

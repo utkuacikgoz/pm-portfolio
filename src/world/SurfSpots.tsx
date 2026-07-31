@@ -477,8 +477,7 @@ function Coins() {
     for (let i = 0; i < kids.length; i++) {
       const g = kids[i];
       const coin = COINS[i];
-      const nearBreak = SURF_SPOTS.some((spot) => Math.hypot(coin.x - spot.pos[0], coin.z - spot.pos[1]) < 24);
-      g.visible = !collectedCoins.has(coin.id) && !nearBreak && t - surfSignal.rideStart > 6;
+      g.visible = !collectedCoins.has(coin.id) && t - surfSignal.rideStart > 6;
       if (!reduced) g.rotation.y = t * 2.5 + i * 0.7;
     }
   });

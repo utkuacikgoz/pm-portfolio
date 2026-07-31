@@ -54,7 +54,7 @@ export default function AvatarSelect({ onPick }: { onPick: (id: string) => void 
         padding: "24px 16px",
         overflowY: "auto",
         background:
-          "radial-gradient(120% 80% at 50% 6%, rgba(255,0,128,0.10), transparent 46%), radial-gradient(120% 80% at 50% 100%, rgba(0,255,255,0.08), transparent 52%), radial-gradient(circle at 50% 42%, #0a0a14 0%, #050509 64%, #020204 100%)",
+          "radial-gradient(120% 80% at 50% 6%, rgba(231,104,74,0.10), transparent 46%), radial-gradient(120% 80% at 50% 100%, rgba(110,134,214,0.09), transparent 52%), radial-gradient(circle at 50% 42%, #0a0a14 0%, #050509 64%, #020204 100%)",
       }}
     >
       {/* CRT scanlines */}

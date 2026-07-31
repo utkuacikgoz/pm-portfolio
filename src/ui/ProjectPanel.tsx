@@ -271,7 +271,7 @@ function CTA({ accent }: { accent: string }) {
           rel="noopener"
           style={{ padding: "12px 22px", background: accent, color: "#000", fontSize: 14, fontWeight: 800, letterSpacing: 0.3 }}
         >
-          Book a 20-min call →
+          Book a 20 min call →
         </a>
         <a href={`mailto:${CONTACT.email}`} style={{ padding: "12px 22px", border: `2px solid ${accent}`, color: accent, fontSize: 14, fontWeight: 800 }}>
           Email me
