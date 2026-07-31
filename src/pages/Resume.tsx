@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link } from "../router";
 import { PUBLISHED_PROJECTS, INDIE_PROJECTS } from "../projects/projects";
 import { useProgress } from "../state/progress";
 

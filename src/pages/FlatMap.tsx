@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link } from "../router";
 import type { Project } from "../projects/projects";
 import { INDIE_PROJECTS } from "../projects/projects";
 import { useProgress, markEgg } from "../state/progress";

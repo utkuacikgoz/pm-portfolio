@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link } from "../router";
 
 /**
  * Persistent "skip the world / see résumé" escape hatch. Always visible so a
