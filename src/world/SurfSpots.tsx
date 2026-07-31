@@ -6,6 +6,7 @@ import { usePrefersReducedMotion } from "../ui/hooks/useReducedMotion";
 import { SURF_SPOTS } from "./surf-spots";
 import { surfSignal } from "./surf-signal";
 import { COINS, COIN_Y, collectedCoins, CHECKPOINTS } from "./surf-journey";
+import { T } from "../theme";
 
 // Low-poly landmarks for the legendary breaks the free-surf ocean tours. Mounted
 // by World only while surfing, so the on-rails diorama stays clean and the extra
@@ -16,7 +17,7 @@ import { COINS, COIN_Y, collectedCoins, CHECKPOINTS } from "./surf-journey";
 // and every mesh opts out of raycast; all motion respects reduced-motion.
 
 const FOAM = "#e6f7f2";
-const GULL = "#0b0d14";
+const GULL = T.ink;
 
 // ── Shared materials (created once, reused across every spot) ────────────────
 const std = (color: string, o: Partial<THREE.MeshStandardMaterialParameters> = {}) =>
@@ -437,9 +438,9 @@ function Bondi() {
       <Rock pos={[0, 0.6, -7]} size={[22, 1.2, 7]} mat={M.sand} seed={51} ampScale={0.4} />
       <Rock pos={[-10, 0.6, -4]} size={[7, 1.2, 6]} mat={M.sand} seed={52} rot={[0, 0.5, 0]} ampScale={0.4} />
       <Rock pos={[10, 0.6, -4]} size={[7, 1.2, 6]} mat={M.sand} seed={53} rot={[0, -0.5, 0]} ampScale={0.4} />
-      <Cabana pos={[-4, 1.2, -6]} color="#6E86D6" />
-      <Cabana pos={[0, 1.2, -7]} color="#6E86D6" />
-      <Cabana pos={[4, 1.2, -6]} color="#E0A45C" />
+      <Cabana pos={[-4, 1.2, -6]} color={T.blue} />
+      <Cabana pos={[0, 1.2, -7]} color={T.blue} />
+      <Cabana pos={[4, 1.2, -6]} color={T.gold} />
       {/* gentle rolling wave */}
       <group position={[0, 0, 3]}>
         <Barrel spotId="bondi" width={22} radius={4} mat={M.waveGentle} phase={0.9} />

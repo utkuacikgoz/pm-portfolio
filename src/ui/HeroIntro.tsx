@@ -32,12 +32,12 @@ export default function HeroIntro({ onBegin }: { onBegin: () => void }) {
         // Entrance stays black (Utku's call): opaque black base with a faint
         // coral/periwinkle glow (logo palette). The dusk world is revealed only
         // after entering dives the camera in.
-        background: `radial-gradient(120% 80% at 50% 8%, ${T.entranceGlow.coral}, transparent 46%), radial-gradient(120% 80% at 50% 100%, ${T.entranceGlow.peri}, transparent 52%), radial-gradient(circle at 50% 42%, #0a0a14 0%, #050509 62%, #020204 100%)`,
+        background: `radial-gradient(120% 80% at 50% 8%, ${T.entranceGlow.coral}, transparent 46%), radial-gradient(120% 80% at 50% 100%, ${T.entranceGlow.blue}, transparent 52%), radial-gradient(circle at 50% 42%, ${T.inkRaised} 0%, ${T.ink} 62%, #0C0A09 100%)`,
         textShadow: "0 2px 24px rgba(0,0,0,0.85), 0 1px 3px rgba(0,0,0,0.9)",
       }}
     >
       <img src="/utku-logo.svg" alt="" width={56} height={56} style={{ marginBottom: 20, ...rise(0) }} />
-      <p style={{ letterSpacing: 5, fontSize: 12, fontWeight: 700, color: "#9aa0ac", marginBottom: 16, ...rise(0.04) }}>
+      <p style={{ letterSpacing: 5, fontSize: 12, fontWeight: 700, color: T.textMuted, marginBottom: 16, ...rise(0.04) }}>
         UTKU ACIKGOZ
       </p>
       <h1 style={{ fontSize: "clamp(40px, 8vw, 82px)", fontWeight: 900, lineHeight: 1.05, maxWidth: 900 }}>
@@ -47,7 +47,7 @@ export default function HeroIntro({ onBegin }: { onBegin: () => void }) {
       <p
         style={{
           fontSize: "clamp(15px, 2.5vw, 19px)",
-          color: "#dfe2e9",
+          color: T.text,
           marginTop: 20,
           maxWidth: 620,
           lineHeight: 1.6,
@@ -68,7 +68,7 @@ export default function HeroIntro({ onBegin }: { onBegin: () => void }) {
           marginTop: 18,
           fontSize: 13,
           fontWeight: 700,
-          color: "#9aa0ac",
+          color: T.textMuted,
           textDecoration: "underline",
           ...rise(0.54),
         }}
@@ -101,12 +101,12 @@ function ProofRow({ reduced, style }: { reduced: boolean; style: React.CSSProper
     >
       {STATS.map((s, i) => (
         <div key={s.label} style={{ display: "flex", alignItems: "center", gap: "8px 22px" }}>
-          {i > 0 && <span aria-hidden style={{ color: "#4a4f5e", fontSize: 18 }}>·</span>}
+          {i > 0 && <span aria-hidden style={{ color: T.border, fontSize: 18 }}>·</span>}
           <span style={{ display: "inline-flex", alignItems: "baseline", gap: 8 }}>
-            <span style={{ fontSize: 26, fontWeight: 900, color: "#CB7BC7", letterSpacing: 0.5 }}>
+            <span style={{ fontSize: 26, fontWeight: 900, color: T.mauve, letterSpacing: 0.5 }}>
               <CountUp target={s.n} suffix={s.suffix} reduced={reduced} />
             </span>
-            <span style={{ fontSize: 12.5, fontWeight: 600, color: "#9aa0ac" }}>{s.label}</span>
+            <span style={{ fontSize: 12.5, fontWeight: 600, color: T.textMuted }}>{s.label}</span>
           </span>
         </div>
       ))}
@@ -187,8 +187,8 @@ function MagneticCTA({
         fontSize: 15,
         fontWeight: 800,
         letterSpacing: 1,
-        background: "#6E86D6",
-        color: "#fff",
+        background: T.blue,
+        color: T.text,
         border: "none",
         cursor: "pointer",
         transition: "transform .18s cubic-bezier(.22,.61,.36,1)",

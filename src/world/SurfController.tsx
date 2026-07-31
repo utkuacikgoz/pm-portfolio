@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { WATER_Y, seaHeight } from "./geometry";
@@ -7,6 +7,7 @@ import { nearestTakeoff, SURF_LAUNCH, type SurfSpot } from "./surf-spots";
 import { surfSignal } from "./surf-signal";
 import { SURF_COLLIDERS, COINS, COIN_TOTAL, CHECKPOINTS, collectedCoins, type Checkpoint } from "./surf-journey";
 import { sfx } from "../audio/sfx";
+import { BOARD_CLEARANCE, boardFloatY, isDoubleSpacePress } from "./surf-controls";
 
 // Free-roam surf mode: hop on a board and steer around the ocean with WASD /
 // arrow keys, third-person chase camera. Active only while `active` is true;
@@ -22,9 +23,6 @@ const JUMP_V = 10; // ollie pop
 // (belly down); the entry seed and the intro target MUST share this constant or
 // the pop-up plays mirrored.
 const PRONE_PITCH = 1.5;
-// How much of the swell the board actually follows. Tracking it 1:1 at speed made
-// the board (and the whole camera) shake, so ride a damped share of it.
-const SWELL_FOLLOW = 0.28;
 const ease = (p: number) => p * p * (3 - 2 * p); // smoothstep
 const CATCH_RADIUS = 26; // enter this close to a break's takeoff and you drop in
 const CATCH_MIN_SPEED = 4; // need some pace to catch
@@ -33,10 +31,17 @@ const REVEAL_HOLD = 5; // seconds the break's name stays on the HUD after catchi
 const RIDE_ENTRY_RADIUS = 10; // catches happen close enough to cleanly enter the authored line
 const MAX_YAW = 0.6; // how far the cursor can swing the view (radians)
 const MAX_PITCH = 0.45;
-const SPIN_RATE = 9.4; // ~one full board rotation per ollie
-const TRICK_SPRAY_N = 8;
-const TRICK_SPRAY_GEO = new THREE.SphereGeometry(0.22, 6, 6);
-const TRICK_SPRAY_MAT = new THREE.MeshStandardMaterial({ color: "#dff6f1", transparent: true, opacity: 0.9, flatShading: true });
+const SPIN_DUR = 0.48; // a fast but readable 360 after the second Space press
+const LANDING_SPLASH_DUR = 2.4;
+const LANDING_RING_GEO = new THREE.RingGeometry(0.5, 0.68, 24);
+const LANDING_DROP_GEO = new THREE.ConeGeometry(0.09, 0.52, 4);
+const LANDING_RING_MAT = new THREE.MeshBasicMaterial({ color: "#e6f7f2", transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide });
+const LANDING_DROP_MAT = new THREE.MeshBasicMaterial({ color: "#e6f7f2", transparent: true, opacity: 0, depthWrite: false });
+const LANDING_DROPLETS = Array.from({ length: 8 }, (_, i) => ({
+  angle: (i / 8) * Math.PI * 2 + 0.18,
+  distance: 0.65 + (i % 3) * 0.18,
+  height: 0.6 + (i % 4) * 0.16,
+}));
 
 export default function SurfController({
   active,
@@ -58,6 +63,8 @@ export default function SurfController({
   const speed = useRef(0);
   const keys = useRef<Record<string, boolean>>({});
   const jumpQueued = useRef(false);
+  const spinQueued = useRef(false);
+  const lastSpaceDown = useRef(-Infinity);
   const vy = useRef(0); // vertical velocity for the ollie
   const airY = useRef(0); // height above the water line
   const riding = useRef(false);
@@ -100,21 +107,15 @@ export default function SurfController({
   const bobSmooth = useRef(-1); // low-passed swell height (-1 = unseeded)
   const bounceUntil = useRef(0); // per-contact cooldown so a bounce fires once
   const riderPitch = useRef(0);
-  // Trick-on-jump: air spin + a board-local spray burst.
-  const jumpStart = useRef(0);
+  // Trick-on-jump: a second Space while airborne turns an ollie into a 360.
+  const spinStart = useRef(0);
   const spinning = useRef(false);
-  const spraySpawn = useRef(-99);
-  const trickSpray = useRef<THREE.Group>(null);
-  const trickDirs = useMemo(
-    () =>
-      Array.from({ length: TRICK_SPRAY_N }, () => ({
-        x: (Math.random() * 2 - 1) * 1.2,
-        y: 0.6 + Math.random(),
-        z: (Math.random() * 2 - 1) * 1.2,
-        r: 0.5 + Math.random(),
-      })),
-    []
-  );
+  // A ride exits into a small, world-anchored splash. It is deliberately not a
+  // child of the board, so it stays behind in the water instead of reading as
+  // bubbles glued to the surfboard.
+  const landingSplash = useRef<THREE.Group>(null);
+  const splashStart = useRef(-Infinity);
+  const splashPos = useRef(new THREE.Vector3());
 
   useEffect(() => {
     if (!active) return;
@@ -122,7 +123,12 @@ export default function SurfController({
       const k = e.key.toLowerCase();
       if (k === " " || k === "spacebar") {
         e.preventDefault();
-        if (!e.repeat) jumpQueued.current = true; // edge-triggered: one pop per press
+        if (!e.repeat) {
+          const now = performance.now() / 1000;
+          if (isDoubleSpacePress(now, lastSpaceDown.current)) spinQueued.current = true;
+          else jumpQueued.current = true;
+          lastSpaceDown.current = now;
+        }
         return;
       }
       if (["w", "a", "s", "d", "arrowup", "arrowdown", "arrowleft", "arrowright", "shift"].includes(k)) {
@@ -174,7 +180,9 @@ export default function SurfController({
     onCoinRef.current?.(coinCount.current);
     stamina.current = 1;
     spinning.current = false;
-    spraySpawn.current = -99;
+    spinQueued.current = false;
+    lastSpaceDown.current = -Infinity;
+    splashStart.current = -Infinity;
     introStart.current = -1; // begin the paddle-in intro on the first frame
     turnVel.current = 0;
     riderPitch.current = PRONE_PITCH; // start prone (belly down, head toward the nose)
@@ -230,17 +238,19 @@ export default function SurfController({
     if (turnIn !== 0 && speed.current > 6) targetSpeed += Math.min(8, speed.current * 0.35);
     speed.current += (targetSpeed - speed.current) * (1 - Math.exp(-3 * d));
 
-    // ── Jump (ollie) + trick spin ────────────────────────────────────────────
+    // ── Jump (ollie) + double-Space 360 ─────────────────────────────────────
     if (jumpQueued.current) {
       jumpQueued.current = false;
       if (!intro && airY.current <= 0.05 && !riding.current) {
         vy.current = JUMP_V;
-        jumpStart.current = t;
-        // The 360 is opt-in now: a plain Space is a clean ollie, Shift+Space
-        // throws the spin. Forcing it on every hop made the board feel chaotic.
-        spinning.current = !!k["shift"];
-        spraySpawn.current = t; // spray off the takeoff
       }
+    }
+    // A second Space during the ollie throws one smooth, complete board 360.
+    // Waiting for air keeps a double tap from spinning the board on the water.
+    if (spinQueued.current && airY.current > 0.05 && !spinning.current) {
+      spinning.current = true;
+      spinStart.current = t;
+      spinQueued.current = false;
     }
 
     // ── Auto drop-in: entering a break's takeoff zone with pace catches it ────
@@ -273,6 +283,8 @@ export default function SurfController({
         rideSpot.current = null;
         airY.current = 0;
         surfSignal.rideSpotId = null;
+        splashStart.current = t;
+        splashPos.current.set(pos.current.x, 0, pos.current.z);
       } else if (spot) {
         speed.current = Math.max(speed.current, 28);
         airY.current = Math.sin(rp * Math.PI) * spot.ride.lift;
@@ -286,9 +298,7 @@ export default function SurfController({
         // Absorb the landing instead of hard-zeroing: keep a little of the
         // downward velocity as compression so the board settles rather than
         // stopping dead against the water.
-        const landed = vy.current < -1;
         vy.current = 0;
-        if (landed) spraySpawn.current = t;
         if (spinning.current) {
           spinning.current = false;
           sfx.play("open"); // a soft snap when you stomp the landing
@@ -384,14 +394,16 @@ export default function SurfController({
     // the same value, the entire view. So: follow a damped share of the swell and
     // low-pass it. Everything downstream (board, camera position, camera look)
     // reads the SMOOTHED value — the unfiltered one was the main source of jitter.
-    const bobRaw = WATER_Y + seaHeight(pos.current.x, pos.current.z, t) * SWELL_FOLLOW + 0.4;
+    const surfaceY = WATER_Y + seaHeight(pos.current.x, pos.current.z, t);
+    const bobRaw = surfaceY + BOARD_CLEARANCE;
     if (bobSmooth.current < 0) bobSmooth.current = bobRaw; // first frame: no lurch
     bobSmooth.current += (bobRaw - bobSmooth.current) * (1 - Math.exp(-4.5 * d));
-    const bobY = bobSmooth.current;
+    const bobY = boardFloatY(surfaceY, bobSmooth.current);
     board.current.position.set(pos.current.x, bobY + airY.current, pos.current.z);
     const airPitch = airY.current * 0.06; // nose lifts as it leaves the water
     const carveRoll = riding.current ? Math.sin((t - rideStart.current) * 4.2) * 0.4 : 0;
-    const trickSpin = spinning.current ? (t - jumpStart.current) * SPIN_RATE : 0; // air 360
+    const spinP = spinning.current ? THREE.MathUtils.clamp((t - spinStart.current) / SPIN_DUR, 0, 1) : 0;
+    const trickSpin = spinP * spinP * (3 - 2 * spinP) * Math.PI * 2;
     const turnRatio = THREE.MathUtils.clamp(turnVel.current / 1.9, -1, 1);
     board.current.rotation.set(
       Math.sin(t * 1.4) * 0.05 - airPitch,
@@ -407,19 +419,31 @@ export default function SurfController({
       rider.current.rotation.x = riderPitch.current;
     }
 
-    // Trick spray burst (takeoff + landing): little foam flecks off the board.
-    if (trickSpray.current) {
-      const age = t - spraySpawn.current;
-      const on = age >= 0 && age < 0.5;
-      trickSpray.current.visible = on;
+    // Ride exit splash: two soft ripples and angular water droplets, fading out
+    // in place over a few seconds. It stays on the real wave height, never below it.
+    if (landingSplash.current) {
+      const age = t - splashStart.current;
+      const on = age >= 0 && age < LANDING_SPLASH_DUR;
+      landingSplash.current.visible = on;
       if (on) {
-        const p = age / 0.5;
-        const kids = trickSpray.current.children;
-        for (let i = 0; i < kids.length; i++) {
-          const m = kids[i] as THREE.Mesh;
-          const dd = trickDirs[i];
-          m.position.set(dd.x * 3 * p, 0.3 + dd.y * 3 * p - p * p * 2.2, dd.z * 3 * p);
-          m.scale.setScalar(Math.max(0.001, (1 - p) * dd.r));
+        const p = age / LANDING_SPLASH_DUR;
+        const { x, z } = splashPos.current;
+        landingSplash.current.position.set(x, WATER_Y + seaHeight(x, z, t) + 0.035, z);
+        LANDING_RING_MAT.opacity = (1 - p) * 0.46;
+        LANDING_DROP_MAT.opacity = (1 - p) * (1 - p) * 0.72;
+        const kids = landingSplash.current.children as THREE.Mesh[];
+        kids[0].scale.setScalar(1 + p * 5.2);
+        kids[1].scale.setScalar(1 + p * 8.4);
+        for (let i = 0; i < LANDING_DROPLETS.length; i++) {
+          const drop = LANDING_DROPLETS[i];
+          const m = kids[i + 2];
+          const distance = drop.distance + p * 2.4;
+          m.position.set(
+            Math.cos(drop.angle) * distance,
+            0.12 + Math.sin(p * Math.PI) * drop.height,
+            Math.sin(drop.angle) * distance
+          );
+          m.scale.setScalar(Math.max(0.001, 1 - p * 0.7));
         }
       }
     }
@@ -460,13 +484,17 @@ export default function SurfController({
 
   if (!active) return null;
   return (
-    <group ref={board}>
-      <Surfer ref={rider} />
-      <group ref={trickSpray} visible={false}>
-        {trickDirs.map((_, i) => (
-          <mesh key={i} geometry={TRICK_SPRAY_GEO} material={TRICK_SPRAY_MAT} raycast={() => null} />
+    <>
+      <group ref={board}>
+        <Surfer ref={rider} />
+      </group>
+      <group ref={landingSplash} visible={false}>
+        <mesh rotation={[-Math.PI / 2, 0, 0]} geometry={LANDING_RING_GEO} material={LANDING_RING_MAT} raycast={() => null} />
+        <mesh rotation={[-Math.PI / 2, 0.5, 0]} geometry={LANDING_RING_GEO} material={LANDING_RING_MAT} raycast={() => null} />
+        {LANDING_DROPLETS.map((_, i) => (
+          <mesh key={i} geometry={LANDING_DROP_GEO} material={LANDING_DROP_MAT} raycast={() => null} />
         ))}
       </group>
-    </group>
+    </>
   );
 }

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { usePrefersReducedMotion } from "./hooks/useReducedMotion";
 import { AVATARS, writeAvatar } from "./avatars";
+import { T } from "../theme";
 
 // "Choose your character" gate, styled as an arcade cabinet select: pixel-stepped
 // frames, CRT scanlines, segmented stat blocks, a blinking PRESS ENTER. Fun label
@@ -10,7 +11,7 @@ import { AVATARS, writeAvatar } from "./avatars";
 // Octagonal 8-bit notch, used for the slot frame + its inner fill.
 const NOTCH =
   "polygon(0 7px, 7px 0, calc(100% - 7px) 0, 100% 7px, 100% calc(100% - 7px), calc(100% - 7px) 100%, 7px 100%, 0 calc(100% - 7px))";
-const PIXEL_SHADOW = "3px 3px 0 rgba(0,0,0,0.65)";
+const PIXEL_SHADOW = "3px 3px 0 rgba(12,10,9,0.65)";
 
 export default function AvatarSelect({ onPick }: { onPick: (id: string) => void }) {
   const reduced = usePrefersReducedMotion();
@@ -54,7 +55,7 @@ export default function AvatarSelect({ onPick }: { onPick: (id: string) => void 
         padding: "24px 16px",
         overflowY: "auto",
         background:
-          "radial-gradient(120% 80% at 50% 6%, rgba(255,0,128,0.10), transparent 46%), radial-gradient(120% 80% at 50% 100%, rgba(0,255,255,0.08), transparent 52%), radial-gradient(circle at 50% 42%, #0a0a14 0%, #050509 64%, #020204 100%)",
+          `radial-gradient(120% 80% at 50% 6%, ${T.coral}24, transparent 46%), radial-gradient(120% 80% at 50% 100%, ${T.ocean}20, transparent 52%), radial-gradient(circle at 50% 42%, ${T.inkRaised} 0%, ${T.ink} 64%, #0C0A09 100%)`,
       }}
     >
       {/* CRT scanlines */}
@@ -74,7 +75,7 @@ export default function AvatarSelect({ onPick }: { onPick: (id: string) => void 
       />
 
       <div>
-        <p style={{ letterSpacing: 6, fontSize: 12, fontWeight: 800, color: "#7f8694", marginBottom: 6 }}>
+        <p style={{ letterSpacing: 6, fontSize: 12, fontWeight: 800, color: T.textMuted, marginBottom: 6 }}>
           SELECT YOUR CHARACTER
         </p>
         <h2
@@ -93,7 +94,7 @@ export default function AvatarSelect({ onPick }: { onPick: (id: string) => void 
       <div style={{ display: "flex", gap: 18, justifyContent: "center", flexWrap: "wrap", maxWidth: 900 }}>
         {AVATARS.map((a, i) => {
           const active = i === focus;
-          const border = active ? a.accent : "#252a38";
+          const border = active ? a.accent : T.border;
           return (
             <button
               key={a.id}
@@ -121,8 +122,8 @@ export default function AvatarSelect({ onPick }: { onPick: (id: string) => void 
                 style={{
                   clipPath: NOTCH,
                   background: active
-                    ? `radial-gradient(120% 90% at 50% 0%, ${a.accent}14, #0a0d16 60%)`
-                    : "#090c14",
+                    ? `radial-gradient(120% 90% at 50% 0%, ${a.accent}14, ${T.inkRaised} 60%)`
+                    : T.ink,
                   padding: "18px 16px 16px",
                   textAlign: "center",
                 }}
@@ -135,7 +136,7 @@ export default function AvatarSelect({ onPick }: { onPick: (id: string) => void 
                     margin: "0 auto 12px",
                     display: "grid",
                     placeItems: "center",
-                    background: "#05060a",
+                    background: "#0C0A09",
                     border: `2px solid ${border}`,
                     boxShadow: active ? `inset 0 0 20px ${a.accent}22` : "none",
                   }}
@@ -154,16 +155,16 @@ export default function AvatarSelect({ onPick }: { onPick: (id: string) => void 
                     fontSize: 18,
                     fontWeight: 900,
                     letterSpacing: 0.5,
-                    color: active ? a.accent : "#c4c8d2",
+                    color: active ? a.accent : T.textSoft,
                     textShadow: active ? PIXEL_SHADOW : "none",
                   }}
                 >
                   {a.label}
                 </div>
-                <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: 1.5, color: "#8b919e", margin: "3px 0 9px" }}>
+                <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: 1.5, color: T.textMuted, margin: "3px 0 9px" }}>
                   {a.title.toUpperCase()}
                 </div>
-                <div style={{ fontSize: 12.5, color: "#c4c8d2", lineHeight: 1.45, minHeight: 34, marginBottom: 12 }}>
+                <div style={{ fontSize: 12.5, color: T.textSoft, lineHeight: 1.45, minHeight: 34, marginBottom: 12 }}>
                   {a.pun}
                 </div>
 
@@ -171,7 +172,7 @@ export default function AvatarSelect({ onPick }: { onPick: (id: string) => void 
                 <div style={{ display: "grid", gap: 6, textAlign: "left" }}>
                   {a.stats.map((s, si) => (
                     <div key={s.label} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <span style={{ width: 74, fontSize: 10, fontWeight: 700, color: "#8b919e", letterSpacing: 0.2 }}>
+                      <span style={{ width: 74, fontSize: 10, fontWeight: 700, color: T.textMuted, letterSpacing: 0.2 }}>
                         {s.label}
                       </span>
                       <span
@@ -186,7 +187,7 @@ export default function AvatarSelect({ onPick }: { onPick: (id: string) => void 
                         {Array.from({ length: 10 }).map((_, b) => (
                           <span
                             key={b}
-                            style={{ flex: 1, height: 8, background: b < s.value ? a.accent : "#1b2030" }}
+                            style={{ flex: 1, height: 8, background: b < s.value ? a.accent : T.surface }}
                           />
                         ))}
                       </span>
@@ -214,7 +215,7 @@ export default function AvatarSelect({ onPick }: { onPick: (id: string) => void 
         })}
       </div>
 
-      <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1, color: "#7f8694" }}>◄ ► SELECT&nbsp;&nbsp;&nbsp;ENTER START</p>
+      <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1, color: T.textMuted }}>◄ ► SELECT&nbsp;&nbsp;&nbsp;ENTER START</p>
     </div>
   );
 }

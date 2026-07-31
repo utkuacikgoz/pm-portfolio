@@ -3,6 +3,7 @@
 import hrPortrait from "./avatars/hr.svg";
 import managerPortrait from "./avatars/manager.svg";
 import stalkerPortrait from "./avatars/stalker.svg";
+import { T } from "../theme";
 
 const AVATAR_KEY = "pmworld.avatar";
 
@@ -28,7 +29,7 @@ export const AVATARS: Avatar[] = [
     label: "HR",
     title: "The Culture Keeper",
     pun: "Here for the culture fit.",
-    accent: "#3FA46A",
+    accent: T.seafoam,
     stats: [
       { label: "Empathy", value: 9 },
       { label: "Process", value: 8 },
@@ -42,7 +43,7 @@ export const AVATARS: Avatar[] = [
     label: "Hiring Manager",
     title: "The Decision Maker",
     pun: "Show me the outcomes.",
-    accent: "#E0A45C",
+    accent: T.gold,
     stats: [
       { label: "Outcomes", value: 10 },
       { label: "Skepticism", value: 8 },
@@ -56,7 +57,7 @@ export const AVATARS: Avatar[] = [
     label: "Stalker",
     title: "The Deep Diver",
     pun: "I already read your LinkedIn.",
-    accent: "#6E86D6",
+    accent: T.blue,
     stats: [
       { label: "Recon", value: 10 },
       { label: "Persistence", value: 9 },

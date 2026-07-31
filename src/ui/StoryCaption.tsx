@@ -1,5 +1,6 @@
 import { usePrefersReducedMotion } from "./hooks/useReducedMotion";
 import type { Project } from "../projects/projects";
+import { T } from "../theme";
 
 /**
  * Narrated fly-through caption. As the camera arrives at an island, a one-line
@@ -24,7 +25,7 @@ export default function StoryCaption({ project }: { project: Project }) {
         pointerEvents: "none",
         // Half-elliptic scrim so the title/description never vanish into the world.
         background:
-          "radial-gradient(120% 130% at 50% 0%, rgba(6,7,12,0.74) 0%, rgba(6,7,12,0.44) 42%, transparent 72%)",
+          "radial-gradient(120% 130% at 50% 0%, rgba(29,24,22,0.78) 0%, rgba(29,24,22,0.44) 42%, transparent 72%)",
         animation: reduced ? undefined : "captionIn .7s cubic-bezier(.22,.61,.36,1) both",
       }}
     >
@@ -45,7 +46,7 @@ export default function StoryCaption({ project }: { project: Project }) {
           fontSize: "clamp(18px, 3vw, 26px)",
           fontWeight: 800,
           lineHeight: 1.35,
-          color: "#f2f4f8",
+          color: T.text,
           textShadow: "0 2px 18px rgba(0,0,0,0.85)",
         }}
       >

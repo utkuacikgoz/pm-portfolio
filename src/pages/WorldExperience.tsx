@@ -286,7 +286,7 @@ export default function WorldExperience() {
             inset: 0,
             zIndex: 65,
             pointerEvents: "none",
-            background: `radial-gradient(circle at 50% 45%, ${projects[active]?.accent ?? "#6E86D6"}, transparent 70%)`,
+            background: `radial-gradient(circle at 50% 45%, ${projects[active]?.accent ?? T.blue}, transparent 70%)`,
             animation: "diveFlash .42s ease-out forwards",
           }}
         />
@@ -302,7 +302,7 @@ export default function WorldExperience() {
             pointerEvents: "none",
             mixBlendMode: "screen",
             background:
-              "conic-gradient(from 0deg, #6E86D6, #E0A45C, #3FA46A, #CB7BC7, #E7684A, #6E86D6)",
+              `conic-gradient(from 0deg, ${T.blue}, ${T.gold}, ${T.seafoam}, ${T.mauve}, ${T.coral}, ${T.blue})`,
             animation: "konamiSweep 1.6s ease-out forwards",
           }}
         />
@@ -318,11 +318,11 @@ export default function WorldExperience() {
             zIndex: 45,
             padding: "8px 16px",
             background: "rgba(7,8,12,0.8)",
-            border: "1px solid #23283a",
+            border: `1px solid ${T.border}`,
             borderRadius: 999,
             fontSize: 12.5,
             fontWeight: 600,
-            color: "#c4c8d2",
+            color: T.textSoft,
             whiteSpace: "nowrap",
             pointerEvents: "none",
             animation: "panelIn .4s ease",
@@ -352,8 +352,8 @@ export default function WorldExperience() {
               zIndex: 44,
               padding: "11px 18px",
               background: "rgba(7,8,12,0.85)",
-              border: "2px solid #3FA46A",
-              color: "#3FA46A",
+              border: `2px solid ${T.seafoam}`,
+              color: T.seafoam,
               fontSize: 13,
               fontWeight: 800,
               cursor: "pointer",
@@ -376,8 +376,8 @@ export default function WorldExperience() {
             zIndex: 44,
             padding: "10px 16px",
             background: "rgba(7,8,12,0.85)",
-            border: "2px solid #6E86D6",
-            color: "#6E86D6",
+            border: `2px solid ${T.blue}`,
+            color: T.blue,
             fontSize: 13,
             fontWeight: 800,
             cursor: "pointer",
@@ -404,16 +404,16 @@ export default function WorldExperience() {
                 zIndex: 45,
                 padding: "8px 16px",
                 background: "rgba(7,8,12,0.8)",
-                border: "1px solid #23283a",
+                border: `1px solid ${T.border}`,
                 borderRadius: 999,
                 fontSize: 12.5,
                 fontWeight: 600,
-                color: "#c4c8d2",
+                color: T.textSoft,
                 whiteSpace: "nowrap",
                 pointerEvents: "none",
               }}
             >
-              🏄 WASD to surf · Space to jump, Shift for a spin · Esc to come back
+              🏄 WASD to surf · Space to jump · Double Space for a 360 · Esc to come back
             </div>
           )}
           <div
@@ -457,8 +457,8 @@ export default function WorldExperience() {
               zIndex: 44,
               padding: "11px 20px",
               background: "rgba(7,8,12,0.85)",
-              border: "2px solid #6E86D6",
-              color: "#6E86D6",
+              border: `2px solid ${T.blue}`,
+              color: T.blue,
               fontSize: 13,
               fontWeight: 800,
               cursor: "pointer",
@@ -491,7 +491,7 @@ function WorldLoading() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        color: "#7f8694",
+        color: T.textMuted,
         fontSize: 14,
         fontWeight: 700,
         letterSpacing: 2,
@@ -531,7 +531,7 @@ function SpotLabel({ spot }: { spot: SurfSpot }) {
       <div style={{ fontSize: 25, fontWeight: 900, letterSpacing: 0.4, color: "#fff", marginBottom: 4 }}>
         {spot.name}
       </div>
-      <div style={{ fontSize: 12.5, color: "#c4c8d2", lineHeight: 1.5 }}>{spot.blurb}</div>
+      <div style={{ fontSize: 12.5, color: T.textSoft, lineHeight: 1.5 }}>{spot.blurb}</div>
     </div>
   );
 }
@@ -561,7 +561,7 @@ function CheckpointCard({ cp }: { cp: Checkpoint }) {
         🧭 HOW I WORK · {cp.id + 1} / {CHECKPOINT_TOTAL}
       </div>
       <div style={{ fontSize: 19, fontWeight: 900, letterSpacing: 0.3, color: "#fff", marginBottom: 6 }}>{cp.title}</div>
-      <div style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.5, color: "#c4c8d2" }}>{cp.text}</div>
+      <div style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.5, color: T.textSoft }}>{cp.text}</div>
     </div>
   );
 }
@@ -583,7 +583,7 @@ function RunCompleteCard({ onCases, onDismiss }: { onCases: () => void; onDismis
         zIndex: 46,
         width: "min(560px, calc(100vw - 32px))",
         background: "rgba(7,8,12,0.92)",
-        border: "2px solid #3FA46A",
+        border: `2px solid ${T.seafoam}`,
         borderRadius: 12,
         backdropFilter: "blur(8px)",
         padding: "20px 22px",
@@ -591,10 +591,10 @@ function RunCompleteCard({ onCases, onDismiss }: { onCases: () => void; onDismis
         animation: "captionIn .45s ease",
       }}
     >
-      <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.5, color: "#3FA46A", marginBottom: 8 }}>
+      <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.5, color: T.seafoam, marginBottom: 8 }}>
         🏄 RUN COMPLETE · {COIN_TOTAL} / {COIN_TOTAL}
       </div>
-      <div style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.55, color: "#eceef2", marginBottom: 16 }}>
+      <div style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.55, color: T.text, marginBottom: 16 }}>
         You surfed the whole loop and picked up every last coin. That is the same stubbornness I
         bring to shipping product. Want the real version?
       </div>
@@ -605,8 +605,8 @@ function RunCompleteCard({ onCases, onDismiss }: { onCases: () => void; onDismis
           rel="noopener"
           style={{
             padding: "12px 22px",
-            background: "#3FA46A",
-            color: "#07080c",
+            background: T.seafoam,
+            color: T.ink,
             fontSize: 14,
             fontWeight: 800,
             borderRadius: 8,
@@ -620,8 +620,8 @@ function RunCompleteCard({ onCases, onDismiss }: { onCases: () => void; onDismis
           style={{
             padding: "12px 22px",
             background: "transparent",
-            border: "2px solid #3FA46A",
-            color: "#3FA46A",
+            border: `2px solid ${T.seafoam}`,
+            color: T.seafoam,
             fontSize: 14,
             fontWeight: 800,
             borderRadius: 8,
@@ -661,16 +661,16 @@ function IndieOverlay({ onBack }: { onBack: () => void }) {
         zIndex: 44,
         width: "min(560px, calc(100vw - 32px))",
         background: "rgba(7,8,12,0.92)",
-        border: "2px solid #3FA46A",
+        border: `2px solid ${T.seafoam}`,
         backdropFilter: "blur(8px)",
         padding: "20px 22px",
         textAlign: "center",
       }}
     >
-      <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.5, color: "#3FA46A", marginBottom: 8 }}>
+      <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.5, color: T.seafoam, marginBottom: 8 }}>
         🏄 WHAT I'M BUILDING
       </div>
-      <p style={{ fontSize: 13.5, color: "#c4c8d2", lineHeight: 1.55, marginBottom: 16 }}>
+      <p style={{ fontSize: 13.5, color: T.textSoft, lineHeight: 1.55, marginBottom: 16 }}>
         53 countries travelled so far. Here's what I'm building next. No case studies yet, just bets.
       </p>
       <div style={{ display: "grid", gap: 8, marginBottom: 16 }}>
@@ -683,13 +683,13 @@ function IndieOverlay({ onBack }: { onBack: () => void }) {
               gap: 10,
               padding: "10px 14px",
               border: `1.5px solid ${p.accent}55`,
-              background: "#0b0d14",
+              background: T.inkRaised,
               textAlign: "left",
             }}
           >
             <span style={{ width: 9, height: 9, borderRadius: "50%", background: p.accent, flexShrink: 0 }} />
             <span style={{ fontWeight: 800, fontSize: 14 }}>{p.title}</span>
-            <span style={{ fontSize: 12.5, color: "#9aa0ac" }}>{p.tagline}</span>
+            <span style={{ fontSize: 12.5, color: T.textMuted }}>{p.tagline}</span>
             <span style={{ marginLeft: "auto", fontSize: 10, fontWeight: 800, letterSpacing: 0.5, color: p.accent }}>
               COMING SOON
             </span>
@@ -701,8 +701,8 @@ function IndieOverlay({ onBack }: { onBack: () => void }) {
         style={{
           padding: "10px 20px",
           background: "transparent",
-          border: "2px solid #3FA46A",
-          color: "#3FA46A",
+          border: `2px solid ${T.seafoam}`,
+          color: T.seafoam,
           fontSize: 13,
           fontWeight: 800,
           cursor: "pointer",
@@ -759,7 +759,7 @@ function TitleCard({
         ))}
       </div>
       <div style={{ fontSize: 22, fontWeight: 900, letterSpacing: 0.5 }}>{project.title}</div>
-      <div style={{ fontSize: 12.5, color: "#9aa0ac", margin: "6px 0 14px", lineHeight: 1.5 }}>
+      <div style={{ fontSize: 12.5, color: T.textMuted, margin: "6px 0 14px", lineHeight: 1.5 }}>
         {project.tagline}
       </div>
       <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
