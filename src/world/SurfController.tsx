@@ -7,7 +7,7 @@ import { nearestTakeoff, SURF_LAUNCH, type SurfSpot } from "./surf-spots";
 import { surfSignal } from "./surf-signal";
 import { SURF_COLLIDERS, COINS, COIN_TOTAL, CHECKPOINTS, collectedCoins, type Checkpoint } from "./surf-journey";
 import { sfx } from "../audio/sfx";
-import { BOARD_CLEARANCE, boardFloatY, isDoubleSpacePress } from "./surf-controls";
+import { BOARD_CLEARANCE, SURF_BOUNDS, boardFloatY, isDoubleSpacePress } from "./surf-controls";
 
 // Free-roam surf mode: hop on a board and steer around the ocean with WASD /
 // arrow keys, third-person chase camera. Active only while `active` is true;
@@ -365,10 +365,10 @@ export default function SurfController({
     };
 
     // ── Walls: soft-bounce off the ocean bounds (no wedging into corners) ────
-    if (pos.current.x <= -60) { pos.current.x = -60; softDeflect(1, 0); }
-    else if (pos.current.x >= 220) { pos.current.x = 220; softDeflect(-1, 0); }
-    if (pos.current.z <= -130) { pos.current.z = -130; softDeflect(0, 1); }
-    else if (pos.current.z >= 130) { pos.current.z = 130; softDeflect(0, -1); }
+    if (pos.current.x <= SURF_BOUNDS.minX) { pos.current.x = SURF_BOUNDS.minX; softDeflect(1, 0); }
+    else if (pos.current.x >= SURF_BOUNDS.maxX) { pos.current.x = SURF_BOUNDS.maxX; softDeflect(-1, 0); }
+    if (pos.current.z <= SURF_BOUNDS.minZ) { pos.current.z = SURF_BOUNDS.minZ; softDeflect(0, 1); }
+    else if (pos.current.z >= SURF_BOUNDS.maxZ) { pos.current.z = SURF_BOUNDS.maxZ; softDeflect(0, -1); }
 
     // ── Collision: bounce the board off solid landmasses (no ghosting) ───────
     for (const col of SURF_COLLIDERS) {

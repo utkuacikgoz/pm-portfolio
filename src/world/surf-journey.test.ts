@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { COINS, COIN_TOTAL, COIN_Y, SURF_COLLIDERS, collectedCoins, CHECKPOINTS, CHECKPOINT_TOTAL } from "./surf-journey";
 import { SURF_LAUNCH, SURF_SPOTS } from "./surf-spots";
+import { SURF_BOUNDS } from "./surf-controls";
 import { WATER_Y, seaHeight } from "./geometry";
 import { DISTANT_PEAKS } from "./distant-mountains";
 
@@ -51,6 +52,25 @@ describe("coin trail", () => {
     }
   });
 
+  // The peaks are meant to read as horizon. They used to be generated at radius
+  // 155 while the wall stood at z 130, so their collision volumes reached into
+  // the water you actually surf: you could bump a "distant" mountain, and the
+  // ocean felt small. Keep them a clear margin outside every reachable point.
+  it("keeps the horizon ring outside the water you can reach", () => {
+    const corners = [
+      [SURF_BOUNDS.minX, SURF_BOUNDS.minZ],
+      [SURF_BOUNDS.minX, SURF_BOUNDS.maxZ],
+      [SURF_BOUNDS.maxX, SURF_BOUNDS.minZ],
+      [SURF_BOUNDS.maxX, SURF_BOUNDS.maxZ],
+    ];
+    for (const peak of DISTANT_PEAKS) {
+      for (const [x, z] of corners) {
+        const clearance = Math.hypot(peak.x - x, peak.z - z) - (peak.w + 1.6);
+        expect(clearance).toBeGreaterThan(40);
+      }
+    }
+  });
+
   it("gives every coin a unique id so collection cannot double count", () => {
     expect(new Set(COINS.map((c) => c.id)).size).toBe(COINS.length);
   });
@@ -61,7 +81,7 @@ describe("coin trail", () => {
     }
   });
 
-  it("guides the player around every named break without hiding tokens inside it", () => {
+  it("guides the player around every break without hiding tokens inside it", () => {
     for (const spot of SURF_SPOTS) {
       const nearest = Math.min(...COINS.map((coin) => Math.hypot(coin.x - spot.take[0], coin.z - spot.take[1])));
       expect(nearest).toBeGreaterThanOrEqual(24);
@@ -134,7 +154,7 @@ describe("how I work checkpoints", () => {
   });
 });
 
-describe("named-break rides", () => {
+describe("break rides", () => {
   it("gives every break a bounded player-controlled lift", () => {
     for (const spot of SURF_SPOTS) {
       expect(spot.ride.lift).toBeGreaterThan(0);
@@ -143,7 +163,7 @@ describe("named-break rides", () => {
     }
   });
 
-  it("starts in open water rather than inside Bondi's catch zone", () => {
+  it("starts in open water rather than inside the beach break's catch zone", () => {
     const bondi = SURF_SPOTS.find((spot) => spot.id === "bondi");
     expect(bondi).toBeDefined();
     expect(Math.hypot(SURF_LAUNCH.position[0] - bondi!.take[0], SURF_LAUNCH.position[1] - bondi!.take[1])).toBeGreaterThan(26);
