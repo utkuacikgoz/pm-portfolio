@@ -8,7 +8,7 @@ import { surfSignal } from "./surf-signal";
 import { COINS, COIN_Y, collectedCoins, CHECKPOINTS } from "./surf-journey";
 import { T } from "../theme";
 
-// Low-poly landmarks for the legendary breaks the free-surf ocean tours. Mounted
+// Low-poly landmarks for the breaks the free-surf ocean tours. Mounted
 // by World only while surfing, so the on-rails diorama stays clean and the extra
 // geometry never costs anything on the default path. The realism lives in the
 // WAVES: curved, heaving barrels (open half-pipes, not flat boxes) that throw
