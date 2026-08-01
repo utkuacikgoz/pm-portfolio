@@ -100,6 +100,21 @@ export default function WorldExperience() {
     sfx.play("enter");
   }, []);
 
+  // The Canvas parks (frameloop "never") while a panel is open, so no GPU burns
+  // behind a full-height drawer. But "Next" moves the active island underneath
+  // that drawer, and a parked loop means CameraRig never runs its spring: you
+  // read the next case study with the previous monument still behind it, and
+  // closing the panel left you looking at the island you had already finished.
+  // Un-park for as long as the spring needs to arrive (~0.7s at STIFF 68 /
+  // DAMP 12), then let it park again.
+  const [travelling, setTravelling] = useState(false);
+  useEffect(() => {
+    if (!panelOpen) return;
+    setTravelling(true);
+    const t = setTimeout(() => setTravelling(false), 1200);
+    return () => clearTimeout(t);
+  }, [active, panelOpen]);
+
   const onSurfCheckpoint = useCallback((next: Checkpoint | null) => {
     setCheckpoint(next);
     if (next) {
@@ -273,7 +288,7 @@ export default function WorldExperience() {
               onCoin={setCoins}
               onCheckpoint={onSurfCheckpoint}
               onComplete={onRunComplete}
-              frameloop={visible && !panelOpen ? "always" : "never"}
+              frameloop={visible && (!panelOpen || travelling) ? "always" : "never"}
             />
           </Suspense>
         </ErrorBoundary>

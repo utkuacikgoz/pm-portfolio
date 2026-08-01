@@ -65,8 +65,12 @@ export function Water() {
   };
 
   return (
+    // Wide enough that the horizon ring (radius ~450 to 520) still has water
+    // under it and the sea edge stays outside the surf fog. Segment count grows
+    // with it so the swell keeps roughly its old wavelength rather than turning
+    // into slow rolling hills.
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[60, WATER_Y, 0]} raycast={() => null}>
-      <planeGeometry args={[600, 320, 120, 80]} />
+      <planeGeometry args={[1400, 1400, 180, 180]} />
       {/* Ocean-blue dusk sea, reflective enough to catch the sun. */}
       <meshStandardMaterial
         ref={matRef}

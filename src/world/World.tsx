@@ -27,6 +27,12 @@ const SUN_DUSK = new THREE.Color(T.sunLight);
 const SUN_DAY = new THREE.Color(T.gold);
 const mlerp = THREE.MathUtils.lerp;
 
+// Dusk keeps the diorama tight; surfing opens the view out to the horizon ring.
+const FOG_NEAR_DUSK = 34;
+const FOG_FAR_DUSK = 130;
+const FOG_NEAR_DAY = 90;
+const FOG_FAR_DAY = 620;
+
 // Eases the scene lighting + fog toward bright daytime while surfing (back to dusk
 // otherwise), and publishes the level to `daylight.v` so the water can brighten too.
 function DaylightRig({ surfing }: { surfing: boolean }) {
@@ -42,7 +48,11 @@ function DaylightRig({ surfing }: { surfing: boolean }) {
     const v = day.current;
     daylight.v = v;
     const fog = scene.fog as THREE.Fog | null;
-    if (fog) fog.color.lerpColors(FOG_DUSK, FOG_DAY, v);
+    if (fog) {
+      fog.color.lerpColors(FOG_DUSK, FOG_DAY, v);
+      fog.near = mlerp(FOG_NEAR_DUSK, FOG_NEAR_DAY, v);
+      fog.far = mlerp(FOG_FAR_DUSK, FOG_FAR_DAY, v);
+    }
     if (amb.current) amb.current.intensity = mlerp(1.15, 1.75, v);
     if (hemi.current) {
       hemi.current.intensity = mlerp(1.5, 2.3, v);
@@ -120,8 +130,12 @@ export default function World({ activeIndex, entered, surfing, onOpen, onCoin, o
       style={{ position: "fixed", inset: 0 }}
       aria-hidden="true"
     >
-      {/* Fog fades islands into the horizon color; far plane covers the wider world. */}
-      <fog attach="fog" args={[HORIZON, 34, 130]} />
+      {/* Fog fades islands into the horizon color. DaylightRig opens the near/far
+          planes right up while surfing — the rail diorama wants a tight haze that
+          hides the world's edge, but the open ocean needs to actually show its
+          horizon, and at 130 the distant mountains were invisible until you were
+          nearly on top of them. */}
+      <fog attach="fog" args={[HORIZON, FOG_NEAR_DUSK, FOG_FAR_DUSK]} />
 
       {/* Tropical-dusk lighting: teal sky bounce + a warm low sun. PBR intensities
           (r3f v9 / three r155+) — ambient + hemisphere carry base visibility. */}

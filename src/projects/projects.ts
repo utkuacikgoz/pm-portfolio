@@ -13,6 +13,20 @@ export type StructureType =
   | "bridge" // two-sided span — marketplace
   | "beacon"; // generic placeholder (indie, pre-launch)
 
+// The emblem hovering over an island. This is the one thing a visitor reads
+// before any copy loads, so it has to say what the product WAS. These used to be
+// abstract solids keyed off `structure` (an icosahedron in a ring, a dodecahedron
+// in a ring), which looked like decoration rather than meaning: nothing about a
+// dodecahedron says "gaming". Built from primitives rather than emoji so they do
+// not depend on a platform emoji font inside WebGL.
+export type MarkType =
+  | "coin" // currency / fintech
+  | "bag" // retail / ecommerce
+  | "cross" // health
+  | "joystick" // games
+  | "growth" // marketplace / retention curve
+  | "spark"; // generic placeholder (indie, pre-launch)
+
 export interface Project {
   id: string;
   title: string; // short display name on the island / card
@@ -21,7 +35,7 @@ export interface Project {
   published: boolean;
   accent: string; // palette accent (see src/theme.ts)
   structure: StructureType;
-  icon?: string; // emoji floating over the island (conveys the domain at a glance)
+  mark?: MarkType; // emblem floating over the island (conveys the domain at a glance)
   content?: CaseStudy; // omitted for indie glimpses (no full case study yet)
   glimpse?: string; // teaser line shown on the glimpse panel for indie products
   story?: string; // one-line narrative caption for the fly-through tour
@@ -39,7 +53,7 @@ export const PROJECTS: Project[] = [
     published: true,
     accent: T.blue,
     structure: "tower",
-    icon: "₿",
+    mark: "coin",
     content: C.bilira,
     story: "The one where I made compliance fast enough to actually ship.",
   },
@@ -51,7 +65,7 @@ export const PROJECTS: Project[] = [
     published: true,
     accent: T.gold,
     structure: "market",
-    icon: "🛍️",
+    mark: "bag",
     content: C.mestores,
     story: "The one where a broken store started printing money again.",
   },
@@ -63,7 +77,7 @@ export const PROJECTS: Project[] = [
     published: true,
     accent: T.coral,
     structure: "campus",
-    icon: "🩺",
+    mark: "cross",
     content: C.apollo,
     story: "The one where healthcare ops stopped bleeding two million a year.",
   },
@@ -75,7 +89,7 @@ export const PROJECTS: Project[] = [
     published: true,
     accent: T.mauve,
     structure: "arcade",
-    icon: "🎮",
+    mark: "joystick",
     content: C.la3eb,
     story: "The one where a gaming app found six times its players in ten weeks.",
   },
@@ -87,7 +101,7 @@ export const PROJECTS: Project[] = [
     published: true,
     accent: T.seafoam,
     structure: "bridge",
-    icon: "📈",
+    mark: "growth",
     content: C.upshift,
     story: "The one where I built the entire product function from scratch.",
   },
