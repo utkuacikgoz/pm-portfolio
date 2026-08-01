@@ -113,7 +113,7 @@ describe("portfolio journey", () => {
   it("makes the surf run goal and progress legible", () => {
     act(() => root.render(<SurfJourneyStatus coins={21} visited={2} />));
 
-    expect(container.textContent).toContain("FOLLOW THE COIN TRAIL");
+    expect(container.textContent).toContain("21 / 42");
     expect(container.textContent).toContain("50%");
     expect(container.textContent).toContain("2 / 4 product principles found");
     expect(container.querySelector<HTMLElement>('[data-testid="surf-progress-bar"]')?.style.width).toBe("50%");

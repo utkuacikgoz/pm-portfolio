@@ -10,7 +10,6 @@ import CameraRig from "./CameraRig";
 import Emblems from "./Emblems";
 import SurfController from "./SurfController";
 import SurfSpots from "./SurfSpots";
-import type { SurfSpot } from "./surf-spots";
 import type { Checkpoint } from "./surf-journey";
 import { Water, IslandShadows, IndieIsland, Ripples, LightShaft, SunDisc, DistantMountains } from "./Ocean";
 import { T } from "../theme";
@@ -86,7 +85,6 @@ interface Props {
   entered: boolean;
   surfing: boolean;
   onOpen: (i: number) => void;
-  onNearSpot?: (spot: SurfSpot | null) => void;
   onCoin?: (count: number) => void;
   onCheckpoint?: (cp: Checkpoint | null) => void;
   onComplete?: () => void;
@@ -100,7 +98,7 @@ interface Props {
  * across every island lives in a single <Instances> (one draw call, per-instance
  * color) — no per-cube draw calls. Lazy-loaded so three.js only ships here.
  */
-export default function World({ activeIndex, entered, surfing, onOpen, onNearSpot, onCoin, onCheckpoint, onComplete, frameloop = "always" }: Props) {
+export default function World({ activeIndex, entered, surfing, onOpen, onCoin, onCheckpoint, onComplete, frameloop = "always" }: Props) {
   const cubes = useMemo(() => buildWorld(PUBLISHED_PROJECTS), []);
   const accent = PUBLISHED_PROJECTS[activeIndex]?.accent ?? T.blue;
   const [dpr, setDpr] = useState(1.5);
@@ -152,9 +150,9 @@ export default function World({ activeIndex, entered, surfing, onOpen, onNearSpo
         {!surfing && <LightShaft active={activeIndex} />}
       <IndieIsland />
       <Emblems active={activeIndex} onOpen={onOpen} />
-      {/* Legendary breaks only exist while surfing → the rail diorama stays clean. */}
+      {/* The breaks only exist while surfing → the rail diorama stays clean. */}
       {surfing && <SurfSpots />}
-      <SurfController active={surfing} onNearSpot={onNearSpot} onCoin={onCoin} onCheckpoint={onCheckpoint} onComplete={onComplete} />
+      <SurfController active={surfing} onCoin={onCoin} onCheckpoint={onCheckpoint} onComplete={onComplete} />
       <CameraRig activeIndex={activeIndex} accent={accent} entered={entered} surfing={surfing} />
     </Canvas>
   );

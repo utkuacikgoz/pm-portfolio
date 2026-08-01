@@ -3,7 +3,8 @@ import * as THREE from "three";
 import { T } from "../theme";
 
 const SKIN = "#c98252";
-const HAIR = "#3b2418";
+const HAIR = "#E8C466"; // sun-bleached blonde
+const HAIR_SHADE = "#C9A344"; // the mane's underside, so it reads as volume not a slab
 const BOARD_TOP = "#f4eedf";
 const Y_UP = new THREE.Vector3(0, 1, 0);
 
@@ -87,12 +88,23 @@ const Surfer = forwardRef<THREE.Group, { accent?: string }>(function Surfer({ ac
         </mesh>
         <Joint position={[0, 0.66, 0.03]} radius={0.23} color={accent} scale={[1.15, 0.62, 1]} />
         <Joint position={[0, 1.18, 0.1]} radius={0.17} color={SKIN} scale={[0.9, 1.08, 0.92]} />
+        {/* Sun-bleached blonde: a cap over the skull, a mane falling to the
+            shoulder blades, and two loose strands. The chase camera sits behind
+            the rider, so the mane is the silhouette you actually read. */}
         <mesh position={[0, 1.25, 0.02]} rotation={[0.15, 0, 0]} raycast={() => null}>
-          <sphereGeometry args={[0.18, 8, 6, 0, Math.PI * 2, 0, Math.PI * 0.62]} />
+          <sphereGeometry args={[0.195, 8, 6, 0, Math.PI * 2, 0, Math.PI * 0.7]} />
           <meshStandardMaterial color={HAIR} roughness={0.88} flatShading />
         </mesh>
+        <Limb a={[0, 1.26, -0.08]} b={[0, 0.84, -0.26]} radius={0.15} color={HAIR} />
+        <Joint position={[0, 0.83, -0.27]} radius={0.14} color={HAIR_SHADE} scale={[1, 0.85, 0.8]} />
+        <Limb a={[-0.1, 1.21, -0.1]} b={[-0.15, 0.88, -0.31]} radius={0.05} color={HAIR_SHADE} />
+        <Limb a={[0.1, 1.21, -0.1]} b={[0.15, 0.88, -0.31]} radius={0.05} color={HAIR_SHADE} />
 
-        {/* Long counterbalanced arms communicate carve direction at a glance. */}
+        {/* Long counterbalanced arms communicate carve direction at a glance.
+            The shoulder joints matter: without them the capsules read as loose
+            sausages floating beside the torso from the chase camera. */}
+        <Joint position={[-0.2, 1.02, 0.08]} radius={0.1} color={accent} />
+        <Joint position={[0.2, 1.02, 0.08]} radius={0.1} color={accent} />
         <Limb a={[-0.2, 1.02, 0.08]} b={[-0.62, 0.88, 0.42]} radius={0.085} color={SKIN} />
         <Limb a={[-0.62, 0.88, 0.42]} b={[-0.82, 0.72, 0.56]} radius={0.075} color={SKIN} />
         <Limb a={[0.2, 1.02, 0.08]} b={[0.58, 1.12, -0.28]} radius={0.085} color={SKIN} />
