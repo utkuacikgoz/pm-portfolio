@@ -14,7 +14,6 @@ import StoryCaption from "../ui/StoryCaption";
 import AvatarSelect from "../ui/AvatarSelect";
 import SurfJourneyStatus from "../ui/SurfJourneyStatus";
 import { readAvatar } from "../ui/avatars";
-import type { SurfSpot } from "../world/surf-spots";
 import type { Checkpoint } from "../world/surf-journey";
 import { COIN_TOTAL, CHECKPOINT_TOTAL } from "../world/surf-journey";
 import { CONTACT } from "../content/contact";
@@ -42,9 +41,6 @@ export default function WorldExperience() {
   const [flashing, setFlashing] = useState(false);
   const [celebrate, setCelebrate] = useState(false);
   const [surfing, setSurfing] = useState(false);
-  // The legendary break the surfer is nearest to (or null in open water) — driven
-  // by SurfController, surfaced as a small DOM HUD label while surfing.
-  const [nearSpot, setNearSpot] = useState<SurfSpot | null>(null);
   // Journey HUD: coins collected + the checkpoint card currently showing.
   const [coins, setCoins] = useState(0);
   const [checkpoint, setCheckpoint] = useState<Checkpoint | null>(null);
@@ -274,7 +270,6 @@ export default function WorldExperience() {
               entered={entered}
               surfing={surfing}
               onOpen={open}
-              onNearSpot={setNearSpot}
               onCoin={setCoins}
               onCheckpoint={onSurfCheckpoint}
               onComplete={onRunComplete}
@@ -430,27 +425,9 @@ export default function WorldExperience() {
               🏄 WASD to surf · Space to jump · Double Space for a 360 · Esc to come back
             </div>
           )}
-          <div
-            style={{
-              position: "fixed",
-              top: 20,
-              left: 24,
-              zIndex: 45,
-              padding: "9px 15px",
-              background: "rgba(7,8,12,0.85)",
-              border: `2px solid ${T.sand}`,
-              color: T.sand,
-              fontSize: 14,
-              fontWeight: 800,
-              letterSpacing: 0.3,
-              backdropFilter: "blur(6px)",
-              pointerEvents: "none",
-            }}
-          >
-            🪙 {coins} / {COIN_TOTAL}
-          </div>
-          <SurfJourneyStatus coins={coins} visited={visitedCheckpoints.size} />
-          {nearSpot && <SpotLabel key={nearSpot.id} spot={nearSpot} />}
+          {/* Once the run is done the completion card reports the same totals,
+              so the running tally would just be clutter behind it. */}
+          {!runComplete && <SurfJourneyStatus coins={coins} visited={visitedCheckpoints.size} />}
           {checkpoint && <CheckpointCard key={checkpoint.id} cp={checkpoint} />}
           {runComplete && (
             <RunCompleteCard
@@ -462,13 +439,14 @@ export default function WorldExperience() {
               onDismiss={() => setRunComplete(false)}
             />
           )}
+          {/* Bottom right, not bottom center: the run-complete card owns the
+              center and used to bury this button underneath it. */}
           <button
             onClick={exitSurf}
             style={{
               position: "fixed",
-              bottom: "calc(28px + env(safe-area-inset-bottom))",
-              left: "50%",
-              transform: "translateX(-50%)",
+              bottom: "calc(24px + env(safe-area-inset-bottom))",
+              right: 24,
               zIndex: 44,
               padding: "11px 20px",
               background: "rgba(7,8,12,0.85)",
@@ -519,40 +497,6 @@ function WorldLoading() {
       }}
     >
       BUILDING WORLD…
-    </div>
-  );
-}
-
-// The reward for catching a wave: names the legendary break you just dropped in
-// on. Only appears once you jump on a spot and ride it — the breaks are otherwise
-// unlabelled, so finding and catching them is the discovery.
-function SpotLabel({ spot }: { spot: SurfSpot }) {
-  return (
-    <div
-      style={{
-        position: "fixed",
-        top: 120,
-        left: "50%",
-        transform: "translateX(-50%)",
-        zIndex: 45,
-        width: "min(440px, calc(100vw - 32px))",
-        padding: "14px 20px",
-        background: "rgba(7,8,12,0.86)",
-        border: `2px solid ${spot.accent}`,
-        borderRadius: 12,
-        textAlign: "center",
-        backdropFilter: "blur(6px)",
-        pointerEvents: "none",
-        animation: "captionIn .45s ease",
-      }}
-    >
-      <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: 2, color: spot.accent, marginBottom: 5 }}>
-        🤙 DROPPING IN
-      </div>
-      <div style={{ fontSize: 25, fontWeight: 900, letterSpacing: 0.4, color: "#fff", marginBottom: 4 }}>
-        {spot.name}
-      </div>
-      <div style={{ fontSize: 12.5, color: T.textSoft, lineHeight: 1.5 }}>{spot.blurb}</div>
     </div>
   );
 }
