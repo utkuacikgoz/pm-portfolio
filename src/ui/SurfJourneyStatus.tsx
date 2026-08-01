@@ -1,6 +1,8 @@
 import { CHECKPOINT_TOTAL, COIN_TOTAL } from "../world/surf-journey";
 import { T } from "../theme";
 
+// One panel for the whole run. The coin count used to live in a separate chip
+// stacked directly above this, which put the same number on screen twice.
 export default function SurfJourneyStatus({ coins, visited }: { coins: number; visited: number }) {
   const progress = Math.round((coins / COIN_TOTAL) * 100);
   return (
@@ -8,7 +10,7 @@ export default function SurfJourneyStatus({ coins, visited }: { coins: number; v
       aria-label="Surf journey progress"
       style={{
         position: "fixed",
-        top: 72,
+        top: 20,
         left: 24,
         zIndex: 45,
         width: 210,
@@ -19,9 +21,11 @@ export default function SurfJourneyStatus({ coins, visited }: { coins: number; v
         pointerEvents: "none",
       }}
     >
-      <div style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 10.5, fontWeight: 800, letterSpacing: 0.7 }}>
-        <span style={{ color: T.sand }}>FOLLOW THE COIN TRAIL</span>
-        <span style={{ color: T.textSoft }}>{progress}%</span>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
+        <span style={{ color: T.sand, fontSize: 15, fontWeight: 800, letterSpacing: 0.3 }}>
+          🪙 {coins} / {COIN_TOTAL}
+        </span>
+        <span style={{ color: T.textSoft, fontSize: 10.5, fontWeight: 800, letterSpacing: 0.7 }}>{progress}%</span>
       </div>
       <div style={{ height: 4, margin: "8px 0", background: T.border }}>
         <div data-testid="surf-progress-bar" style={{ width: `${progress}%`, height: "100%", background: T.sand, transition: "width .25s ease" }} />

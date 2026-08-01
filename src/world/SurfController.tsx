@@ -13,7 +13,7 @@ import { BOARD_CLEARANCE, boardFloatY, isDoubleSpacePress } from "./surf-control
 // arrow keys, third-person chase camera. Active only while `active` is true;
 // CameraRig goes inert during that time so the two don't fight over the camera.
 //
-// Reach a legendary break to catch a short player-steered boost. It adds speed
+// Reach a break to catch a short player-steered boost. It adds speed
 // and lift without teleporting the board onto a scripted rail. Space pops a
 // separate ollie anywhere. The cursor moves the view (move-look): point where
 // you want to look, center it to fall back behind the board.
@@ -27,7 +27,6 @@ const ease = (p: number) => p * p * (3 - 2 * p); // smoothstep
 const CATCH_RADIUS = 26; // enter this close to a break's takeoff and you drop in
 const CATCH_MIN_SPEED = 4; // need some pace to catch
 const RIDE_DUR = 5; // enough time to feel a full face, carve, and clean exit
-const REVEAL_HOLD = 5; // seconds the break's name stays on the HUD after catching
 const RIDE_ENTRY_RADIUS = 10; // catches happen close enough to cleanly enter the authored line
 const MAX_YAW = 0.6; // how far the cursor can swing the view (radians)
 const MAX_PITCH = 0.45;
@@ -50,13 +49,11 @@ const WAKE_GEO = new THREE.CircleGeometry(0.34, 7);
 
 export default function SurfController({
   active,
-  onNearSpot,
   onCoin,
   onCheckpoint,
   onComplete,
 }: {
   active: boolean;
-  onNearSpot?: (spot: SurfSpot | null) => void;
   onCoin?: (count: number) => void;
   onCheckpoint?: (cp: Checkpoint | null) => void;
   onComplete?: () => void;
@@ -86,13 +83,8 @@ export default function SurfController({
   const cameraLook = useRef(new THREE.Vector3());
   const camera = useThree((s) => s.camera);
   const regress = useThree((s) => s.performance.regress);
-  // Keep the callback in a ref so the frame loop always calls the latest one
-  // without re-subscribing effects; track the shown break so the HUD only fires
-  // on a real change, and time out the reveal so it fades after a ride.
-  const onNearSpotRef = useRef(onNearSpot);
-  onNearSpotRef.current = onNearSpot;
-  const shownSpotId = useRef<string | null>(null);
-  const revealUntil = useRef(0);
+  // Keep the callbacks in refs so the frame loop always calls the latest one
+  // without re-subscribing effects.
   // Journey: coin count + the checkpoint currently shown.
   const onCoinRef = useRef(onCoin);
   onCoinRef.current = onCoin;
@@ -165,7 +157,7 @@ export default function SurfController({
     };
   }, [active, regress]);
 
-  // Launch in open water with Bondi in the initial heading, outside its catch zone.
+  // Launch in open water with the gentle beach break ahead, outside its catch zone.
   useEffect(() => {
     if (!active) return;
     pos.current.set(SURF_LAUNCH.position[0], WATER_Y + 0.3, SURF_LAUNCH.position[1]);
@@ -202,11 +194,9 @@ export default function SurfController({
     cameraLook.current.set(pos.current.x, WATER_Y + 1, pos.current.z);
   }, [active, camera]);
 
-  // Leaving surf mode clears the HUD labels + spray signal.
+  // Leaving surf mode clears the checkpoint card + spray signal.
   useEffect(() => {
     if (!active) {
-      shownSpotId.current = null;
-      onNearSpotRef.current?.(null);
       shownCpId.current = null;
       onCheckpointRef.current?.(null);
       surfSignal.rideSpotId = null;
@@ -276,9 +266,6 @@ export default function SurfController({
       rodeThisVisit.current = true;
       vy.current = 0;
       turnVel.current = 0;
-      shownSpotId.current = zone.id;
-      revealUntil.current = t + REVEAL_HOLD;
-      onNearSpotRef.current?.(zone);
       surfSignal.rideSpotId = zone.id; // tell the wave to throw spray
       surfSignal.rideStart = t;
     }
@@ -520,12 +507,6 @@ export default function SurfController({
     cameraLook.current.lerp(lookTarget.current, 1 - Math.exp(-10 * d));
     camera.lookAt(cameraLook.current);
     if (Math.abs(speed.current) > 0.5 || turnIn !== 0 || intro || airY.current > 0.05) regress();
-
-    // Fade the reward label a few seconds after the ride.
-    if (shownSpotId.current && t > revealUntil.current) {
-      shownSpotId.current = null;
-      onNearSpotRef.current?.(null);
-    }
   });
 
   if (!active) return null;
