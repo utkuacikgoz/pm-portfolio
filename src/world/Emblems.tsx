@@ -28,78 +28,98 @@ function DomainMark({ project }: { project: Project }) {
     metalness: 0.16,
   };
 
-  switch (project.structure) {
-    case "tower":
+  // Each mark faces the fixed iso camera, so it is read as a flat symbol first
+  // and a solid second. Yaw is kept small for the same reason: turned far enough
+  // and a cross reads as two random slabs.
+  switch (project.mark) {
+    // A struck coin, standing on edge: fintech.
+    case "coin":
       return (
-        <group rotation={[0.35, 0.45, 0]}>
-          <mesh>
-            <icosahedronGeometry args={[1.55, 1]} />
+        <group rotation={[0.1, 0.3, 0]}>
+          <mesh rotation={[Math.PI / 2, 0, 0]}>
+            <cylinderGeometry args={[1.3, 1.3, 0.3, 16]} />
             <meshStandardMaterial {...material} flatShading />
           </mesh>
-          <mesh rotation={[Math.PI / 2, 0, 0]}>
-            <torusGeometry args={[1.05, 0.16, 8, 20]} />
-            <meshStandardMaterial {...material} emissiveIntensity={0.7} />
+          <mesh>
+            <torusGeometry args={[1.3, 0.11, 6, 20]} />
+            <meshStandardMaterial {...material} emissiveIntensity={0.75} />
+          </mesh>
+          {/* the vertical stroke through a currency glyph */}
+          <mesh position={[0, 0, 0.18]}>
+            <boxGeometry args={[0.17, 1.55, 0.1]} />
+            <meshStandardMaterial {...material} emissiveIntensity={0.95} />
           </mesh>
         </group>
       );
-    case "market":
+    // A shopping bag with a carry handle: retail.
+    case "bag":
       return (
-        <group>
-          {[-0.85, 0, 0.85].map((x) => (
-            <mesh key={x} position={[x, 0, 0]} rotation={[0.2, 0.4, 0]}>
-              <boxGeometry args={[0.55, 1.8, 0.55]} />
+        <group rotation={[0.1, 0.3, 0]}>
+          <mesh position={[0, -0.25, 0]}>
+            <boxGeometry args={[1.85, 1.7, 0.95]} />
+            <meshStandardMaterial {...material} flatShading />
+          </mesh>
+          <mesh position={[0, 0.6, 0]}>
+            <torusGeometry args={[0.52, 0.1, 6, 16, Math.PI]} />
+            <meshStandardMaterial {...material} emissiveIntensity={0.85} />
+          </mesh>
+        </group>
+      );
+    // A medical cross: health.
+    case "cross":
+      return (
+        <group rotation={[0.08, 0.28, 0]}>
+          <mesh>
+            <boxGeometry args={[0.78, 2.5, 0.6]} />
+            <meshStandardMaterial {...material} flatShading />
+          </mesh>
+          <mesh>
+            <boxGeometry args={[2.5, 0.78, 0.6]} />
+            <meshStandardMaterial {...material} flatShading />
+          </mesh>
+        </group>
+      );
+    // An arcade stick on its deck: games.
+    case "joystick":
+      return (
+        <group rotation={[0.12, 0.32, 0]}>
+          <mesh position={[0, -0.85, 0]}>
+            <boxGeometry args={[2.1, 0.45, 1.3]} />
+            <meshStandardMaterial {...material} flatShading />
+          </mesh>
+          <mesh position={[-0.35, -0.05, 0]}>
+            <cylinderGeometry args={[0.14, 0.14, 1.35, 8]} />
+            <meshStandardMaterial {...material} flatShading />
+          </mesh>
+          <mesh position={[-0.35, 0.75, 0]}>
+            <sphereGeometry args={[0.38, 10, 8]} />
+            <meshStandardMaterial {...material} emissiveIntensity={0.9} flatShading />
+          </mesh>
+          {[0.45, 0.92].map((x, i) => (
+            <mesh key={x} position={[x, -0.55, i === 0 ? 0.3 : -0.25]}>
+              <cylinderGeometry args={[0.21, 0.21, 0.16, 10]} />
+              <meshStandardMaterial {...material} emissiveIntensity={0.8} />
+            </mesh>
+          ))}
+        </group>
+      );
+    // Three rising bars under an arrow: a growth curve.
+    case "growth":
+      return (
+        <group rotation={[0.08, 0.3, 0]}>
+          {([[-0.9, 0.9], [0, 1.6], [0.9, 2.3]] as const).map(([x, h]) => (
+            <mesh key={x} position={[x, -1.25 + h / 2, 0]}>
+              <boxGeometry args={[0.58, h, 0.58]} />
               <meshStandardMaterial {...material} flatShading />
             </mesh>
           ))}
-          <mesh position={[0, 0.92, 0]} rotation={[0, 0.4, 0]}>
-            <boxGeometry args={[3, 0.2, 0.9]} />
-            <meshStandardMaterial {...material} emissiveIntensity={0.6} />
+          <mesh position={[0.9, 1.4, 0]}>
+            <coneGeometry args={[0.46, 0.78, 4]} />
+            <meshStandardMaterial {...material} emissiveIntensity={0.9} flatShading />
           </mesh>
         </group>
       );
-    case "campus":
-      return (
-        <group rotation={[0.2, 0.5, 0]}>
-          <mesh>
-            <octahedronGeometry args={[1.35, 0]} />
-            <meshStandardMaterial {...material} flatShading />
-          </mesh>
-          <mesh rotation={[0, 0, Math.PI / 2]}>
-            <torusGeometry args={[1.65, 0.1, 8, 16]} />
-            <meshStandardMaterial {...material} emissiveIntensity={0.8} />
-          </mesh>
-        </group>
-      );
-    case "arcade":
-      return (
-        <group rotation={[0.4, 0.4, 0]}>
-          <mesh>
-            <dodecahedronGeometry args={[1.4, 0]} />
-            <meshStandardMaterial {...material} flatShading />
-          </mesh>
-          <mesh rotation={[Math.PI / 2, 0, 0]}>
-            <torusGeometry args={[1.7, 0.12, 6, 16]} />
-            <meshStandardMaterial {...material} emissiveIntensity={0.8} />
-          </mesh>
-        </group>
-      );
-    case "bridge":
-      return (
-        <group rotation={[0.15, 0.5, 0]}>
-          <mesh position={[-0.95, 0, 0]}>
-            <coneGeometry args={[0.48, 2.4, 5]} />
-            <meshStandardMaterial {...material} flatShading />
-          </mesh>
-          <mesh position={[0.95, 0, 0]}>
-            <coneGeometry args={[0.48, 2.4, 5]} />
-            <meshStandardMaterial {...material} flatShading />
-          </mesh>
-          <mesh position={[0, 0.5, 0]} rotation={[0, 0, Math.PI / 2]}>
-            <cylinderGeometry args={[0.13, 0.13, 2.1, 8]} />
-            <meshStandardMaterial {...material} emissiveIntensity={0.8} />
-          </mesh>
-        </group>
-      );
+    // Pre-launch islands have nothing to symbolise yet, so they keep a spark.
     default:
       return (
         <mesh rotation={[0.25, 0.4, 0]}>
