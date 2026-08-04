@@ -9,6 +9,15 @@ updates:
     labels:
       - "dependencies"
     groups:
+      # These packages are a peer-dependent pair used only to regenerate the
+      # checked-in avatars. Keeping their updates in one PR prevents npm from
+      # resolving one against a stale version of the other during deployment.
+      dicebear:
+        patterns:
+          - "@dicebear/*"
+        update-types:
+          - "minor"
+          - "patch"
       # Group the low-risk minor/patch bumps into one PR to cut noise.
       minor-and-patch:
         update-types:

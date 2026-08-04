@@ -1,3 +1,14 @@
 {
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+  "installCommand": "npm ci",
+  "rewrites": [
+    { "source": "/ingest/static/:path*", "destination": "https://us-assets.i.posthog.com/static/:path*" },
+    { "source": "/ingest/:path*", "destination": "https://us.i.posthog.com/:path*" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ],
+  "headers": [
+    {
+      "source": "/(sitemap.xml|robots.txt)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=0, s-maxage=86400" }]
+    }
+  ]
 }

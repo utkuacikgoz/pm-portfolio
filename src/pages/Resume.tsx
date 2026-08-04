@@ -1,12 +1,17 @@
+import { useEffect } from "react";
 import { Link } from "../router";
 import { PUBLISHED_PROJECTS, INDIE_PROJECTS } from "../projects/projects";
 import { useProgress } from "../state/progress";
+import { CONTACT } from "../content/contact";
+import { EVENTS, track } from "../analytics/events";
 import { T } from "../theme";
 
+// "WEBSITE" used to point at utkuacikgoz.com, which is now this same site; the
+// slot is worth more as the booking link.
 const CONTACTS = [
-  { label: "EMAIL", href: "mailto:hello@utkuacikgoz.com", color: T.gold },
-  { label: "LINKEDIN", href: "https://linkedin.com/in/utkuacikgoz", color: T.blue },
-  { label: "WEBSITE", href: "https://utkuacikgoz.com", color: T.mauve },
+  { id: "email", label: "EMAIL", href: `mailto:${CONTACT.email}`, color: T.gold },
+  { id: "linkedin", label: "LINKEDIN", href: CONTACT.linkedin, color: T.blue },
+  { id: "book_call", label: "BOOK A CALL", href: CONTACT.calendar, color: T.mauve },
 ];
 
 const EMPLOYMENT = PUBLISHED_PROJECTS;
@@ -18,6 +23,13 @@ const INDIE = INDIE_PROJECTS;
  */
 export default function Resume() {
   const { read } = useProgress();
+
+  // The pageview already records the path; this names the moment so "arrived,
+  // then went straight for the resume" is one step in a funnel.
+  useEffect(() => {
+    track(EVENTS.resumeOpened);
+  }, []);
+
   return (
     <div className="page-in" style={{ minHeight: "100vh", padding: "64px 24px 96px", maxWidth: 800, margin: "0 auto" }}>
       <Link
@@ -52,6 +64,7 @@ export default function Resume() {
           <a
             href="/UtkuAcikgoz-CV.pdf"
             download
+            onClick={() => track(EVENTS.cvDownloaded, { location: "resume" })}
             style={{ padding: "9px 18px", background: T.text, color: T.ink, fontSize: 13, fontWeight: 800 }}
           >
             ↓ DOWNLOAD CV
@@ -62,6 +75,7 @@ export default function Resume() {
               href={c.href}
               target={c.href.startsWith("http") ? "_blank" : undefined}
               rel={c.href.startsWith("http") ? "noopener" : undefined}
+              onClick={() => track(EVENTS.ctaClicked, { cta: c.id, location: "resume" })}
               style={{ padding: "8px 16px", border: `2px solid ${c.color}`, color: c.color, fontSize: 13, fontWeight: 700 }}
             >
               {c.label}
