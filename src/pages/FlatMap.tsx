@@ -4,6 +4,7 @@ import type { Project } from "../projects/projects";
 import { INDIE_PROJECTS } from "../projects/projects";
 import { useProgress, markEgg } from "../state/progress";
 import { CONTACT } from "../content/contact";
+import { EVENTS, track } from "../analytics/events";
 import { T } from "../theme";
 
 interface Props {
@@ -168,6 +169,7 @@ export default function FlatMap({ projects, onOpen }: Props) {
             href={CONTACT.calendar}
             target="_blank"
             rel="noopener"
+            onClick={() => track(EVENTS.ctaClicked, { cta: "book_call", location: "flat_map" })}
             style={{ padding: "12px 22px", background: T.blue, color: T.text, fontSize: 14, fontWeight: 800 }}
           >
             Book a 20 min call →
@@ -175,6 +177,7 @@ export default function FlatMap({ projects, onOpen }: Props) {
           <a
             href="/UtkuAcikgoz-CV.pdf"
             download
+            onClick={() => track(EVENTS.cvDownloaded, { location: "flat_map" })}
             style={{ padding: "12px 22px", border: `2px solid ${T.text}`, color: T.text, fontSize: 14, fontWeight: 800 }}
           >
             ↓ Download CV

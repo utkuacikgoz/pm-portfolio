@@ -21,6 +21,7 @@ import { T } from "../theme";
 import { sfx, startSurfMusic, stopSurfMusic } from "../audio/sfx";
 import { useKeySequence, KONAMI, HIRE } from "../ui/hooks/useKeySequence";
 import { markEggId } from "../state/progress";
+import { EVENTS, track } from "../analytics/events";
 import FlatMap from "./FlatMap";
 
 // Lazy so three.js / r3f / drei only download on the interactive world path.
@@ -52,6 +53,9 @@ export default function WorldExperience() {
   const onRunComplete = useCallback(() => {
     if (completedOnce.current) return;
     completedOnce.current = true;
+    // Completion implies the full 42, so the totals add nothing; what matters is
+    // that this visitor went all the way, and what they clicked next.
+    track(EVENTS.surfRunCompleted);
     setRunComplete(true);
     sfx.play("egg"); // the existing reward sound
   }, []);
@@ -74,13 +78,17 @@ export default function WorldExperience() {
     KONAMI,
     useCallback(() => {
       markEggId("konami");
+      track(EVENTS.easterEggFound, { egg: "konami" });
       setCelebrate(true);
       setTimeout(() => setCelebrate(false), 1600);
     }, [])
   );
   useKeySequence(
     HIRE,
-    useCallback(() => markEggId("hire"), [])
+    useCallback(() => {
+      markEggId("hire");
+      track(EVENTS.easterEggFound, { egg: "hire" });
+    }, [])
   );
 
   // Track tab visibility → drives the Canvas frameloop (parked when hidden).
@@ -92,6 +100,7 @@ export default function WorldExperience() {
 
   // Free surf mode: hop on the board and roam the ocean; Esc comes back.
   const enterSurf = useCallback(() => {
+    track(EVENTS.surfEntered);
     setSurfing(true);
     // Coins are NOT reset here: the run persists for the visit, and the
     // controller reports the resumed count on entry.
@@ -162,6 +171,7 @@ export default function WorldExperience() {
   // Dive the camera into the world with a quick accent wash.
   const beginJourney = useCallback(() => {
     sfx.play("enter");
+    track(EVENTS.worldEntered);
     setEntered(true);
     setFlashing(true);
     setTimeout(() => setFlashing(false), 420);
@@ -176,6 +186,8 @@ export default function WorldExperience() {
 
   const onPickAvatar = useCallback(
     (id: string) => {
+      // Cosmetic label, but it is the visitor telling us who they are.
+      track(EVENTS.avatarPicked, { avatar: id });
       setAvatar(id);
       setChoosingAvatar(false);
       beginJourney();
@@ -203,12 +215,6 @@ export default function WorldExperience() {
     }
   }, [openIndex]);
 
-  // Per-route document title (helps shared links + crawlers that run JS).
-  useEffect(() => {
-    const base = "Utku Acikgoz, Senior Technical Product Manager";
-    document.title = openIndex >= 0 ? `${projects[openIndex].title} | ${base}` : base;
-  }, [openIndex, projects]);
-
   // One-time "how to interact" hint once you enter the world.
   useEffect(() => {
     if (mode !== "world" || !entered || panelOpen) return;
@@ -229,6 +235,7 @@ export default function WorldExperience() {
       opener.current = document.activeElement as HTMLElement;
       suppressTravel.current = true; // this island-change is an open, not a travel
       sfx.play("open");
+      track(EVENTS.caseStudyOpened, { project_id: projects[i].id, position: i + 1 });
       setActive(i); // keep the camera pointed at this island when the panel closes
       navigate(`/p/${projects[i].id}`);
     },
@@ -237,9 +244,10 @@ export default function WorldExperience() {
 
   const close = useCallback(() => {
     sfx.play("close");
+    track(EVENTS.caseStudyClosed, { project_id: projects[openIndex]?.id });
     navigate("/");
     requestAnimationFrame(() => opener.current?.focus?.());
-  }, [navigate]);
+  }, [navigate, openIndex, projects]);
 
   // Arrow-key travel + Enter to open, for mouse users focused on the canvas/body.
   // Skipped when focus is on an interactive element (WorldNav handles its own keys).
@@ -368,7 +376,10 @@ export default function WorldExperience() {
             onOpen={() => open(active)}
           />
           {active === projects.length - 1 && <button
-            onClick={() => setActive(INDIE_INDEX)}
+            onClick={() => {
+              track(EVENTS.indieShelfViewed, { source: "world_cta" });
+              setActive(INDIE_INDEX);
+            }}
             style={{
               position: "fixed",
               bottom: "calc(28px + env(safe-area-inset-bottom))",
@@ -583,6 +594,7 @@ function RunCompleteCard({ onCases, onDismiss }: { onCases: () => void; onDismis
           href={CONTACT.calendar}
           target="_blank"
           rel="noopener"
+          onClick={() => track(EVENTS.ctaClicked, { cta: "book_call", location: "surf_run_complete" })}
           style={{
             padding: "12px 22px",
             background: T.seafoam,

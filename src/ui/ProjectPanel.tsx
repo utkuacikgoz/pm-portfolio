@@ -5,6 +5,7 @@ import { Metrics, Decisions, Initiatives, Stakeholders } from "./viz";
 import { CONTACT } from "../content/contact";
 import { markRead } from "../state/progress";
 import { sfx } from "../audio/sfx";
+import { EVENTS, track } from "../analytics/events";
 import { T } from "../theme";
 
 // Nice labels for the canonical arc, keyed by beat id so inserting a new beat
@@ -96,6 +97,7 @@ export default function ProjectPanel({ project, onClose, onNext, nextTitle }: Pr
     if (active === content.beats.length - 1 && !readFired.current) {
       readFired.current = true;
       markRead(project.id);
+      track(EVENTS.caseStudyRead, { project_id: project.id });
       sfx.play("read");
     }
   }, [active, content, project.id]);
@@ -161,7 +163,7 @@ export default function ProjectPanel({ project, onClose, onNext, nextTitle }: Pr
           </span>
           <p style={{ color: T.text, fontSize: 18, lineHeight: 1.6, marginBottom: 14 }}>{project.tagline}</p>
           {project.glimpse && <p style={{ color: T.textMuted, fontSize: 15, lineHeight: 1.7 }}>{project.glimpse}</p>}
-          <CTA accent={project.accent} />
+          <CTA accent={project.accent} projectId={project.id} />
         </div>
       </Shell>
     );
@@ -209,10 +211,13 @@ export default function ProjectPanel({ project, onClose, onNext, nextTitle }: Pr
             {b.initiatives && <Initiatives initiatives={b.initiatives} accent={project.accent} />}
             {b.stakeholders && <Stakeholders stakeholders={b.stakeholders} accent={project.accent} />}
 
-            {isLast && <CTA accent={project.accent} />}
+            {isLast && <CTA accent={project.accent} projectId={project.id} />}
             {isLast && onNext && nextTitle && (
               <button
-                onClick={onNext}
+                onClick={() => {
+                  track(EVENTS.caseStudyAdvanced, { from_project_id: project.id, to: nextTitle });
+                  onNext();
+                }}
                 style={{
                   marginTop: 16,
                   width: "100%",
@@ -258,7 +263,7 @@ function InsightCallout({ accent, text }: { accent: string; text: string }) {
   );
 }
 
-function CTA({ accent }: { accent: string }) {
+function CTA({ accent, projectId }: { accent: string; projectId: string }) {
   return (
     <div style={{ marginTop: 36, padding: "26px 24px", background: `${accent}12`, border: `1.5px solid ${accent}`, borderRadius: 12 }}>
       <h3 style={{ fontSize: 22, fontWeight: 900, marginBottom: 8 }}>Like how I work?</h3>
@@ -270,11 +275,16 @@ function CTA({ accent }: { accent: string }) {
           href={CONTACT.calendar}
           target="_blank"
           rel="noopener"
+          onClick={() => track(EVENTS.ctaClicked, { cta: "book_call", location: "case_study", project_id: projectId })}
           style={{ padding: "12px 22px", background: accent, color: T.ink, fontSize: 14, fontWeight: 800, letterSpacing: 0.3 }}
         >
           Book a 20 min call →
         </a>
-        <a href={`mailto:${CONTACT.email}`} style={{ padding: "12px 22px", border: `2px solid ${accent}`, color: accent, fontSize: 14, fontWeight: 800 }}>
+        <a
+          href={`mailto:${CONTACT.email}`}
+          onClick={() => track(EVENTS.ctaClicked, { cta: "email", location: "case_study", project_id: projectId })}
+          style={{ padding: "12px 22px", border: `2px solid ${accent}`, color: accent, fontSize: 14, fontWeight: 800 }}
+        >
           Email me
         </a>
       </div>
