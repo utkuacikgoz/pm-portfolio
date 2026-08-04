@@ -90,6 +90,15 @@ Single source of truth → single Canvas → one draw path.
 - `src/ui/EscapeHatch.tsx` + `src/pages/Resume.tsx` — persistent "skip to résumé".
 - Routing (`src/router.tsx`): `/`, `/p/:id` (deep-linkable), `/resume`. URL is the source
   of truth for the open panel.
+- `src/seo/routes.ts` — title/description/JSON-LD/no-JS summary per route, **derived from
+  the project registry**. `scripts/vite-seo.ts` (Vite plugin) prerenders one static HTML
+  file per route plus `sitemap.xml` + `robots.txt` at build; `src/seo/useSeo.ts` keeps the
+  head correct on client-side navigation. Canonical domain is the apex
+  `https://utkuacikgoz.com`. See `docs/seo.md`.
+- `src/analytics/*` — PostHog provider (masked session replay, `/ingest` first-party
+  proxy), named funnel events (`events.ts`), and first/last-touch UTM attribution
+  (`attribution.ts`) registered as super properties. See `docs/analytics.md`;
+  `npm run utm -- --list` prints the tagged links to paste per channel.
 
 ## Content truth (IMPORTANT)
 The real CV is the source of truth (Senior PM, 8+ yrs; roles: **BiLira, Upshift, Lean

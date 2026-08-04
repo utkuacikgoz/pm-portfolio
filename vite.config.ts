@@ -1,9 +1,28 @@
 import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
+import { seo } from "./scripts/vite-seo";
+
+// PostHog is called through a first-party /ingest path so ad blockers do not
+// eat the events (see src/analytics/config.ts). Vercel rewrites it in prod;
+// this proxy is the same trick for `npm run dev`.
+const POSTHOG_INGEST = {
+  "/ingest/static": {
+    target: "https://us-assets.i.posthog.com",
+    changeOrigin: true,
+    rewrite: (p: string) => p.replace(/^\/ingest\/static/, "/static"),
+  },
+  "/ingest": {
+    target: "https://us.i.posthog.com",
+    changeOrigin: true,
+    rewrite: (p: string) => p.replace(/^\/ingest/, ""),
+  },
+};
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), seo()],
   base: "/",
+  server: { proxy: POSTHOG_INGEST },
+  preview: { proxy: POSTHOG_INGEST },
   resolve: {
     dedupe: ["react", "react-dom"],
   },
@@ -36,6 +55,8 @@ export default defineConfig({
         "src/world/geometry.ts",
         "src/projects/**",
         "src/content/**",
+        "src/analytics/attribution.ts",
+        "src/seo/routes.ts",
       ],
       thresholds: {
         statements: 80,

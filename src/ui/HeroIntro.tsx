@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { Link } from "../router";
 import { usePrefersReducedMotion } from "./hooks/useReducedMotion";
+import { EVENTS, track } from "../analytics/events";
 import { T } from "../theme";
 
 /**
@@ -67,6 +68,7 @@ export default function HeroIntro({ onBegin }: { onBegin: () => void }) {
 
       <Link
         to="/resume"
+        onClick={() => track(EVENTS.ctaClicked, { cta: "resume", location: "hero" })}
         style={{
           marginTop: 18,
           fontSize: 13,
