@@ -113,9 +113,11 @@ Ordered by value per unit of effort.
    styles need `'unsafe-inline'` in `style-src`, and PostHog's recorder needs
    `blob:` worker support. Ship it `Content-Security-Policy-Report-Only` first
    and read the violations before enforcing.
-4. **Trim the three.js chunk.** 1 MB raw / 305 kB gzip, already lazy so only the
+4. ~~**Trim the three.js chunk.** 1 MB raw / 305 kB gzip, already lazy so only the
    world path pays. If it needs to come down, drei is the place to look before
-   three itself.
+   three itself.~~ **Both halves of this were wrong.** It was not lazy (see
+   `docs/performance.md`), and drei is 0.6% of that chunk, not the place to look.
+   Fixed and corrected.
 5. **CI hardening.** Pin actions to commit SHAs (`sha_pinning_required` is off)
    and add a `concurrency` block so superseded PR runs cancel.
 
