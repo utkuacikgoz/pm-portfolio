@@ -78,7 +78,9 @@ Single source of truth → single Canvas → one draw path.
   per-frame allocation)**. (The old code allocated a `THREE.Group` every frame — don't.)
 - `src/state/useExperienceMode.ts` — returns `'world' | 'flat'`. Flat when small
   screen / reduced-motion / no-WebGL. `<World>` is lazy so the **flat path never
-  downloads the ~265 KB three chunk**.
+  downloads the three chunk** — true again as of 2026-08-07, after a `manualChunks`
+  bug had been welding that chunk to the entry for every visitor. Guard it: see
+  the verification note in `vite.config.ts` and `docs/performance.md`.
 - `src/pages/WorldExperience.tsx` — composer: owns active index + panel state, keyboard
   travel, renders World OR FlatMap, mounts overlays. (Shared state lives here, passed by
   props across the lazy boundary — intentionally no context.)
