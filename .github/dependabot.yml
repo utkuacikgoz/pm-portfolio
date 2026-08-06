@@ -24,6 +24,12 @@ updates:
           - "minor"
           - "patch"
     ignore:
+      # @dicebear/pixel-art has no v10 and pins `@dicebear/core@^9`, so a core
+      # major is unresolvable however the PRs are grouped: it fails `npm ci`
+      # with ERESOLVE (this is what killed PR #52). Drop this ignore once
+      # pixel-art ships a matching major.
+      - dependency-name: "@dicebear/core"
+        update-types: ["version-update:semver-major"]
       # Pinned deliberately (see CLAUDE.md): Vite 8 / plugin-react 6 target the
       # unreleased rolldown build and break the toolchain. Bump manually.
       - dependency-name: "vite"
