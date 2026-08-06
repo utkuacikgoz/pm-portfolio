@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { PUBLISHED_PROJECTS } from "../projects/projects";
-import { SEO_ROUTES, SITE_URL, canonicalUrl, seoForPath } from "./routes";
+import { INDEXABLE, ROBOTS_CONTENT, SEO_ROUTES, SITE_URL, canonicalUrl, seoForPath } from "./routes";
 
 describe("SEO_ROUTES", () => {
   it("covers home, resume and every published project", () => {
@@ -41,6 +41,15 @@ describe("SEO_ROUTES", () => {
       expect(route.summary.length).toBeGreaterThan(0);
       expect(route.jsonLd.length).toBeGreaterThan(0);
     }
+  });
+});
+
+describe("indexing posture", () => {
+  it("serves noindex, and never pairs it with a crawl block", () => {
+    // The pairing matters: a robots.txt Disallow would stop crawlers reading the
+    // noindex, which is how bare URLs end up listed anyway. See routes.ts.
+    expect(ROBOTS_CONTENT).toBe(INDEXABLE ? "index, follow, max-image-preview:large, max-snippet:-1" : "noindex, follow");
+    expect(ROBOTS_CONTENT).toContain("follow");
   });
 });
 
