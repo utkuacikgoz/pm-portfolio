@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { canonicalUrl, seoForPath } from "./routes";
+import { ROBOTS_CONTENT, canonicalUrl, seoForPath } from "./routes";
 
 // The build writes a static HTML file per route (scripts/vite-seo.ts), which is
 // what link unfurlers and non-JS crawlers read. This hook covers the other half:
@@ -31,6 +31,7 @@ export function useSeo(pathname: string): void {
 
     document.title = route.title;
     setMeta("name", "description", route.description);
+    setMeta("name", "robots", ROBOTS_CONTENT);
     setMeta("property", "og:url", url);
     setMeta("property", "og:title", route.title);
     setMeta("property", "og:description", route.description);
