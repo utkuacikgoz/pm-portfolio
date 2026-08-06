@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { memo, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { Instances, Instance, PerformanceMonitor, Stars } from "@react-three/drei";
@@ -108,13 +108,17 @@ interface Props {
  * across every island lives in a single <Instances> (one draw call, per-instance
  * color) — no per-cube draw calls. Lazy-loaded so three.js only ships here.
  */
-export default function World({ activeIndex, entered, surfing, onOpen, onCoin, onCheckpoint, onComplete, frameloop = "always" }: Props) {
+function World({ activeIndex, entered, surfing, onOpen, onCoin, onCheckpoint, onComplete, frameloop = "always" }: Props) {
   const cubes = useMemo(() => buildWorld(PUBLISHED_PROJECTS), []);
   const accent = PUBLISHED_PROJECTS[activeIndex]?.accent ?? T.blue;
   const [dpr, setDpr] = useState(1.5);
+  // Range form, not a scalar: r3f only clamps DPR to the actual devicePixelRatio
+  // when given [min, max]. A bare 1.5 was taken verbatim, so 1x displays (external
+  // monitors, plenty of laptops) supersampled to 2.25x the fragment work they can
+  // show. Retina is unaffected, it still lands on 1.5.
   // Surf is already the heaviest scene. Keep it crisp while it moves instead of
   // accepting the rail's adaptive low-resolution mode on every input frame.
-  const canvasDpr = surfing ? 1.5 : dpr;
+  const canvasDpr: [number, number] = surfing ? [1, 1.5] : [1, dpr];
 
   return (
     <Canvas
@@ -150,7 +154,12 @@ export default function World({ activeIndex, entered, surfing, onOpen, onCoin, o
         onDecline={() => setDpr(1)}
         onIncline={() => setDpr(1.5)}
       />
-      <Instances limit={cubes.length} range={cubes.length}>
+      {/* frames={3}: the cube field is built once in useMemo and never moves, but
+          drei's <Instances> defaults to frames=Infinity, so it was decomposing and
+          recomposing all 680 matrices and re-uploading ~52 KB of matrix + color
+          data to the GPU every single frame for a static field. Three passes is
+          enough for the instance subscriptions to settle. */}
+      <Instances limit={cubes.length} range={cubes.length} frames={3}>
         <boxGeometry args={[1, 1, 1]} />
         <meshStandardMaterial flatShading roughness={0.55} metalness={0.05} />
         {cubes.map((c, i) => (
@@ -171,3 +180,9 @@ export default function World({ activeIndex, entered, surfing, onOpen, onCoin, o
     </Canvas>
   );
 }
+
+// Every prop here is already referentially stable (numbers, booleans, useCallbacks),
+// so this memo actually bails out. Without it, surf-mode HUD state living in
+// WorldExperience (coins, checkpoints) re-rendered the whole scene on every coin
+// pickup — reconciling 680 <Instance> elements mid-run, when the scene is heaviest.
+export default memo(World);

@@ -67,7 +67,11 @@ export default function WorldExperience() {
   const [avatar, setAvatar] = useState<string | null>(() => readAvatar());
   const [choosingAvatar, setChoosingAvatar] = useState(false);
   // Park the render loop while the tab is backgrounded (no idle GPU/CPU heat).
-  const [visible, setVisible] = useState(true);
+  // Seeded from document.hidden rather than hardcoded true: visibilitychange only
+  // fires on change, so a deep link cmd-clicked into a background tab (which mounts
+  // the world immediately, since `entered` starts true) used to run a full
+  // WebGLRenderer at 60fps in a tab nobody was looking at.
+  const [visible, setVisible] = useState(() => !document.hidden);
   const opener = useRef<HTMLElement | null>(null);
   const prevActive = useRef(active);
   const suppressTravel = useRef(false);
@@ -94,9 +98,25 @@ export default function WorldExperience() {
   // Track tab visibility → drives the Canvas frameloop (parked when hidden).
   useEffect(() => {
     const onVis = () => setVisible(!document.hidden);
+    onVis(); // close the gap between mount and listener attach
     document.addEventListener("visibilitychange", onVis);
     return () => document.removeEventListener("visibilitychange", onVis);
   }, []);
+
+  // Warm the three.js chunk while the visitor reads the hero. It is genuinely
+  // lazy now (it used to be dragged onto the critical path by a chunking bug), so
+  // without this the ENTER click would start a ~240 KB download behind a bare
+  // loading string. Idle-time only, so it never competes with first paint.
+  useEffect(() => {
+    if (mode !== "world" || entered) return;
+    const warm = () => void import("../world/World");
+    const idle = window.requestIdleCallback?.(warm);
+    const timer = idle === undefined ? window.setTimeout(warm, 1200) : undefined;
+    return () => {
+      if (idle !== undefined) window.cancelIdleCallback?.(idle);
+      if (timer !== undefined) clearTimeout(timer);
+    };
+  }, [mode, entered]);
 
   // Free surf mode: hop on the board and roam the ocean; Esc comes back.
   const enterSurf = useCallback(() => {
