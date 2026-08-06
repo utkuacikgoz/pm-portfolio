@@ -126,9 +126,10 @@ the quantified outcomes are the gold.
 - **React 19 + Vite 7 + @vitejs/plugin-react 5 + @react-three/fiber 9 + drei 10 +
   three 0.184 + react-router 7 + TS 6.** TS **strict** + `verbatimModuleSyntax` → **use
   `import type` for type-only imports** (this bites otherwise).
-- **Node ≥20.19 required** (Vite 7). The machine's default `node` is **22.11**, which is
-  BELOW the floor — local `npm run build`/`dev` must use a compatible Node:
-  `source ~/.nvm/nvm.sh && nvm use 20.19.6` (installed) before building. Vercel honors
+- **Node ≥22.22.2 required** (jsdom 30 sets the floor; Vite 7 is fine above it).
+  The machine's default `node` is **22.11**, which is BELOW the floor — local
+  `npm run build`/`dev`/`test` must use a compatible Node:
+  `source ~/.nvm/nvm.sh && nvm use 22` (22.23.2 installed) before building. Vercel honors
   `engines` and builds fine. NOTE `@vitejs/plugin-react` is pinned to **5**, not 6 —
   plugin-react 6 targets the unreleased Vite 8 (rolldown) and imports `vite/internal`.
 - **Lighting is physically-based** (r3f v9): light intensities are intentionally large
@@ -144,6 +145,7 @@ the quantified outcomes are the gold.
 
 ## Commands
 - Dev: `npm run dev` (Vite, :5173) · Build: `npm run build` · Types: `npx tsc --noEmit -p tsconfig.app.json`
+- Dependency + delivery posture (held-back majors, why): `docs/dependency-audit.md`
 - Repo lives at `~/repos/pm-portfolio` (git-backed, Vercel). Stale duplicates exist
   elsewhere on disk — notably `~/Desktop/projects/pm-portfolio-main/pm-portfolio`, which
   is months behind. Ignore them.
@@ -155,7 +157,7 @@ chain end-to-end, no per-step hand-holding:
    Do **NOT** bump Vite past 7 or `@vitejs/plugin-react` past 5 (pinned — Vite 8/rolldown is
    breaking; see Stack section). The remaining 2 highs are esbuild/vite **dev-only** (never
    shipped to prod) and are accepted until the toolchain can move — don't `audit fix --force`.
-2. **Verify (always, with Node 20.19):** `source ~/.nvm/nvm.sh && nvm use 20.19.6` then
+2. **Verify (always, with Node 22):** `source ~/.nvm/nvm.sh && nvm use 22` then
    `npx tsc --noEmit -p tsconfig.app.json` (must be 0) **and** `npm run build` (vite-only, so
    tsc is separate). Never ship without both green.
 3. **Branch off main** (never commit straight to main), commit with a clear message,
