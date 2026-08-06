@@ -2,7 +2,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import type { Plugin } from "vite";
-import { SEO_ROUTES, SITE_URL, canonicalUrl, type SeoRoute } from "../src/seo/routes";
+import { INDEXABLE, ROBOTS_CONTENT, SEO_ROUTES, SITE_URL, canonicalUrl, type SeoRoute } from "../src/seo/routes";
 
 // This app is a single HTML file with client-side routing, so every URL used to
 // serve the same <title>, description and og:image. Crawlers that run JS
@@ -56,6 +56,11 @@ function renderRoute(template: string, route: SeoRoute): string {
   const description = escapeHtml(route.description);
 
   let html = template;
+  html = replaceTaggedLine(
+    html,
+    "robots",
+    `<meta data-seo="robots" name="robots" content="${ROBOTS_CONTENT}" />`
+  );
   html = replaceTaggedLine(html, "title", `<title data-seo="title">${title}</title>`);
   html = replaceTaggedLine(
     html,
@@ -111,16 +116,21 @@ function renderSitemap(routes: SeoRoute[], lastmod: string): string {
 }
 
 function renderRobots(): string {
-  return [
+  const lines = [
     "User-agent: *",
+    // Crawling stays allowed on purpose even while noindex: a Disallow would
+    // stop crawlers from ever reading the noindex meta (see routes.ts).
     "Allow: /",
     "",
     "# Analytics proxy path, nothing to index behind it.",
     "Disallow: /ingest/",
     "",
-    `Sitemap: ${SITE_URL}/sitemap.xml`,
-    "",
-  ].join("\n");
+  ];
+
+  if (INDEXABLE) lines.push(`Sitemap: ${SITE_URL}/sitemap.xml`, "");
+  else lines.push("# Pages serve noindex: this site is shared by link, not found by search.", "");
+
+  return lines.join("\n");
 }
 
 export function seo(): Plugin {
@@ -149,10 +159,16 @@ export function seo(): Plugin {
         await writeFile(target, html, "utf8");
       }
 
-      await writeFile(path.join(outDir, "sitemap.xml"), renderSitemap(SEO_ROUTES, lastmod), "utf8");
+      // A sitemap is an invitation to index, so it only ships when we want that.
+      if (INDEXABLE) {
+        await writeFile(path.join(outDir, "sitemap.xml"), renderSitemap(SEO_ROUTES, lastmod), "utf8");
+      }
       await writeFile(path.join(outDir, "robots.txt"), renderRobots(), "utf8");
 
-      this.info?.(`[seo] wrote ${SEO_ROUTES.length} prerendered routes, sitemap and robots.txt`);
+      this.info?.(
+        `[seo] wrote ${SEO_ROUTES.length} prerendered routes and robots.txt` +
+          (INDEXABLE ? " and sitemap.xml" : " (noindex: no sitemap)")
+      );
     },
   };
 }

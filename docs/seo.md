@@ -3,6 +3,27 @@
 The site is a client-rendered SPA, so search engines and (more importantly) link
 unfurlers need help. Three pieces do the work.
 
+## Indexing is OFF on purpose
+
+`INDEXABLE = false` in `src/seo/routes.ts`. Every page serves
+`<meta name="robots" content="noindex, follow">` and no sitemap is emitted.
+
+Why: the case studies carry numbers the CV does not, and traffic here comes from
+links pasted deliberately (LinkedIn, DMs, applications) rather than from ranking
+for anything. Staying out of search keeps the framing under Utku's control.
+
+**Do not "improve" this by adding `Disallow: /` to robots.txt.** Blocking the
+crawl stops Google from ever reading the noindex, and it can still list a bare
+URL it discovered through a link elsewhere. Crawlable plus noindex is the
+combination that actually keeps a page out. robots.txt therefore still says
+`Allow: /`.
+
+Link unfurlers (LinkedIn, Slack, WhatsApp) ignore robots directives, so all the
+per-route titles and OG cards below keep working while noindex is on.
+
+Flipping `INDEXABLE` to true switches the meta to `index, follow`, restores
+`sitemap.xml` and advertises it in robots.txt. Nothing else needs touching.
+
 ## 1. One source of truth: `src/seo/routes.ts`
 
 Title, description, no-JS summary, sitemap priority and JSON-LD for every
@@ -24,8 +45,8 @@ dist/index.html            /
 dist/resume/index.html     /resume
 dist/p/bilira/index.html   /p/bilira
 ...
-dist/sitemap.xml           generated with lastmod
 dist/robots.txt            generated
+dist/sitemap.xml           only when INDEXABLE is true
 ```
 
 Vercel checks the filesystem before the SPA rewrite in `vercel.json`, so
@@ -56,8 +77,8 @@ it. Two things to keep true outside the code:
 ```bash
 npm run build
 grep -o '<title[^>]*>[^<]*' dist/p/bilira/index.html   # route title landed
-cat dist/sitemap.xml                                    # every published project
+grep -o '<meta data-seo="robots"[^>]*>' dist/index.html # noindex still on
 ```
 
-Then, after deploy: Google Search Console (submit the sitemap once), and the
-LinkedIn Post Inspector / X card validator on one case-study URL.
+Then, after deploy: the LinkedIn Post Inspector / X card validator on one
+case-study URL. Search Console only becomes relevant if `INDEXABLE` is flipped.
