@@ -7,8 +7,11 @@ what was wrong, what is now guarded, and what is still open.
 
 | | raw | gzip |
 | --- | --- | --- |
-| Before | 1,464 KB | 428 KB |
-| Now | 564 KB | 185 KB |
+| Originally | 1,464 KB | 428 KB |
+| After the chunking fix | 564 KB | 185 KB |
+| Now | 302 KB | 100 KB |
+
+That is a 79% cut raw, 77% gzip.
 
 Everything below the first section is smaller than that one change.
 
@@ -88,30 +91,51 @@ Because the chunk is genuinely lazy now, `WorldExperience` warms it with
 - **The hero** writes to `textContent`/`style.transform` directly rather than
   setting state per frame.
 
+## Fixed: posthog-js, fonts and route splitting
+
+- **posthog-js is off the critical path.** 240 KB, and nothing it does is needed
+  before first paint: the first named event cannot fire until someone clicks. It
+  now loads via dynamic import on `requestIdleCallback`, and `events.ts` queues
+  any `track()` call made before it lands (bounded at 50) and flushes them in
+  order once the client attaches. Super properties are registered on the
+  instance *before* the drain, so queued events still carry their acquisition
+  properties.
+
+  `@posthog/react` was dropped entirely. Nothing consumed its hooks, and
+  mounting `PostHogProvider` around the app after load would have remounted the
+  whole tree and thrown away world state mid-session. The init is imperative
+  instead, which has no such effect.
+
+- **The font is self-hosted.** `fonts.googleapis.com` was the last
+  render-blocking third-party resource: a stylesheet at ~300 ms TTFB pointing at
+  a *second* origin for the woff2, serialized behind it. Both subsets now sit in
+  `public/fonts`, declared in `src/index.css` with Google's own unicode-ranges
+  kept, so latin-ext only downloads if a character needs it. The latin file is
+  preloaded so its fetch starts with the HTML parse.
+
+- **Routes are split.** `Resume`, `ProjectPanel` and `AvatarSelect` are lazy;
+  all three mount behind a user gesture or a separate route, so their Suspense
+  gap is invisible. Note this made `App.test.tsx` async: see `flushLazy()`, which
+  awaits the same dynamic imports rather than hoping one microtask tick is
+  enough.
+
 ## Still open
 
-1. **Defer posthog-js.** 243 KB, 65% of what remains on the critical path, and
-   nothing it does is needed before first paint: the first funnel event cannot
-   fire until the visitor clicks. Load it on idle behind a small queue so
-   `track()` calls made before it resolves are flushed on load. Also worth
-   re-deciding `disable_session_recording: false` — with everything masked,
-   replay buys mouse paths and DOM structure for a large chunk of that weight.
-2. **Self-host the font.** The Google Fonts stylesheet is the last
-   render-blocking third-party resource: measured TTFB 303 ms, and the woff2
-   (27 KB) sits behind a second origin, serialized after it. Copy the latin
-   variable woff2 into `/public`, declare `@font-face` in `src/index.css`,
-   preload it, and add `size-adjust`/`ascent-override` so the swap does not
-   reflow the hero.
-3. **Route-split `Resume`, `FlatMap`, `ProjectPanel`, `AvatarSelect`** (~31 KB).
-   Worth doing only after item 1, otherwise it measures as noise.
-4. **Instance the surf coins.** 42 coins x 3 meshes = 126 draw calls, 84 of them
+1. **Instance the surf coins.** 42 coins x 3 meshes = 126 draw calls, 84 of them
    transparent and depth-sorted, against roughly 50 to 60 for the entire rail
    path. Three `<Instances>` collapses it to 3. Surf mode only, which is a bonus
    path, so weight it accordingly.
-5. **Ocean plane density.** `[1400, 1400, 180, 180]` is 65K triangles with five
+2. **Ocean plane density.** `[1400, 1400, 180, 180]` is 65K triangles with five
    `waveH` evaluations per vertex, sized for surf mode but paid for on the rail,
    where fog far is 130 and most of it is invisible. Swap density on `surfing`,
    or compute the wave normal analytically instead of by four extra samples.
+3. **Font metric overrides.** `size-adjust` / `ascent-override` tuned against the
+   fallback stack would remove the swap reflow. Needs a browser to tune, so it
+   was left out rather than guessed at.
+4. **The hidden `mona` case study** still ships (~8.6 KB) because the registry
+   row holds a static `content` reference. Left alone deliberately: `CLAUDE.md`
+   treats "add row, flip `published`" as the extensibility contract, and making
+   unpublished content lazy is a change to that contract, not a cleanup.
 
 ## Unrelated thing worth an eyeball
 

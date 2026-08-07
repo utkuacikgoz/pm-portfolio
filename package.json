@@ -20,7 +20,6 @@
     "utm": "node scripts/utm.mjs"
   },
   "dependencies": {
-    "@posthog/react": "^1.10.3",
     "@react-three/drei": "^10.7.8",
     "@react-three/fiber": "^9.6.1",
     "@vercel/analytics": "^2.0.1",
