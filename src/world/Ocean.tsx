@@ -47,15 +47,25 @@ export function Water() {
           return sin(p.x*0.06 + uTime*0.8)*0.6
                + sin(p.y*0.09 - uTime*0.6)*0.4
                + sin((p.x+p.y)*0.05 + uTime*0.5)*0.3;
+        }
+        // Exact gradient of waveH. The normal used to come from four extra
+        // waveH samples (central differences at eps = 1), so every vertex on a
+        // 180x180 plane evaluated waveH five times: fifteen sines per vertex.
+        // Differentiating by hand costs three cosines and is more accurate than
+        // the finite difference it replaces, not less.
+        vec2 waveGrad(vec2 p){
+          float c3 = cos((p.x+p.y)*0.05 + uTime*0.5)*0.015; // 0.3 * 0.05
+          return vec2(
+            cos(p.x*0.06 + uTime*0.8)*0.036 + c3,           // 0.6 * 0.06
+            cos(p.y*0.09 - uTime*0.6)*0.036 + c3            // 0.4 * 0.09
+          );
         }`
       )
       .replace(
         "#include <beginnormal_vertex>",
         `#include <beginnormal_vertex>
-        float eps = 1.0;
-        float hx = waveH(position.xy + vec2(eps,0.0)) - waveH(position.xy - vec2(eps,0.0));
-        float hy = waveH(position.xy + vec2(0.0,eps)) - waveH(position.xy - vec2(0.0,eps));
-        objectNormal = normalize(vec3(-hx, -hy, 2.0*eps));`
+        vec2 g = waveGrad(position.xy);
+        objectNormal = normalize(vec3(-g.x, -g.y, 1.0));`
       )
       .replace(
         "#include <begin_vertex>",
