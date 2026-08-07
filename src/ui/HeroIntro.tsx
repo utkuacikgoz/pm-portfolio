@@ -5,10 +5,11 @@ import { EVENTS, track } from "../analytics/events";
 import { T } from "../theme";
 
 /**
- * Opening identity beat — shown first, over the camera's wide establishing shot.
- * The scrim is deliberately light so the low-poly world is alive behind the copy
- * from the first frame; "Begin" flies the camera down into the world. The resume
- * escape hatch is always one click away.
+ * Opening identity beat. Pure DOM: no Canvas is mounted behind it, by design
+ * (see CLAUDE.md, entrance flow), so three.js only downloads once someone
+ * commits to entering. "Begin" mounts the world at its wide establishing shot
+ * and flies the camera down into it. The resume escape hatch is always one
+ * click away.
  */
 export default function HeroIntro({ onBegin }: { onBegin: () => void }) {
   const reduced = usePrefersReducedMotion();

@@ -11,6 +11,15 @@ interface Props {
   accent: string;
   entered: boolean;
   surfing: boolean;
+  /**
+   * Whether this mount should play the dive from the establishing shot.
+   *
+   * It cannot be inferred from `entered`. World only mounts once `entered` is
+   * already true (the hero is pure DOM until then, by design), so seeding the
+   * enter easing from `entered` started it at 1 and the cinematic dive never
+   * played at all. A deep link should still skip it and open on its island.
+   */
+  dive: boolean;
 }
 
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
@@ -35,7 +44,7 @@ const DAMP = 12;
  * sampled along the gapped island path (islandX). While over water, a surfboard
  * (with a little rider) rides the surface for personality.
  */
-export default function CameraRig({ activeIndex, accent, entered, surfing }: Props) {
+export default function CameraRig({ activeIndex, accent, entered, surfing, dive }: Props) {
   const gl = useThree((s) => s.gl);
   const regress = useThree((s) => s.performance.regress);
   const reduced = usePrefersReducedMotion();
@@ -43,7 +52,9 @@ export default function CameraRig({ activeIndex, accent, entered, surfing }: Pro
   const boardRef = useRef<THREE.Group>(null);
   const progress = useRef(activeIndex);
   const vel = useRef(0); // spring velocity for the island-to-island bounce
-  const enterT = useRef(entered ? 1 : 0);
+  // Starts at 0 only when this mount is an entrance; the per-frame easing below
+  // then carries it to 1, which is the dive.
+  const enterT = useRef(dive ? 0 : 1);
   const wasSurfing = useRef(false); // true on the frame surf hands the camera back
   const look = useRef(new THREE.Vector3(CENTER_X, 1, 0));
   const tPos = useRef(new THREE.Vector3());
