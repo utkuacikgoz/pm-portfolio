@@ -5,7 +5,7 @@ import { INDIE_PROJECTS } from "../projects/projects";
 import { useProgress, markEgg } from "../state/progress";
 import { CONTACT } from "../content/contact";
 import { EVENTS, track } from "../analytics/events";
-import { T } from "../theme";
+import { T, textAccent } from "../theme";
 
 interface Props {
   projects: Project[];
@@ -42,7 +42,7 @@ export default function FlatMap({ projects, onOpen }: Props) {
         >
           Utku Acikgoz
         </h1>
-        <p style={{ color: T.blue, fontSize: 16, fontWeight: 700, marginTop: 6 }}>
+        <p style={{ color: textAccent(T.blue), fontSize: 16, fontWeight: 700, marginTop: 6 }}>
           Senior Technical Product Manager
         </p>
         <p style={{ color: T.textSoft, fontSize: 14, marginTop: 12, lineHeight: 1.7, maxWidth: 560, marginInline: "auto" }}>
@@ -90,7 +90,7 @@ export default function FlatMap({ projects, onOpen }: Props) {
                     fontSize: 11,
                     fontWeight: 800,
                     letterSpacing: 0.5,
-                    color: p.accent,
+                    color: textAccent(p.accent),
                   }}
                 >
                   READ ✓
@@ -137,7 +137,7 @@ export default function FlatMap({ projects, onOpen }: Props) {
                     fontSize: 10,
                     fontWeight: 800,
                     letterSpacing: 0.5,
-                    color: p.accent,
+                    color: textAccent(p.accent),
                     whiteSpace: "nowrap",
                   }}
                 >

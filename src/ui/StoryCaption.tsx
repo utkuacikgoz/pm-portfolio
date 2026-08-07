@@ -1,6 +1,6 @@
 import { usePrefersReducedMotion } from "./hooks/useReducedMotion";
 import type { Project } from "../projects/projects";
-import { T } from "../theme";
+import { T, textAccent } from "../theme";
 
 /**
  * Narrated fly-through caption. As the camera arrives at an island, a one-line
@@ -34,7 +34,7 @@ export default function StoryCaption({ project }: { project: Project }) {
           fontSize: 11,
           fontWeight: 800,
           letterSpacing: 2,
-          color: project.accent,
+          color: textAccent(project.accent),
           marginBottom: 8,
           textShadow: "0 2px 12px rgba(0,0,0,0.7)",
         }}

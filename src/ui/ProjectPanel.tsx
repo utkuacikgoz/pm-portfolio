@@ -6,7 +6,7 @@ import { CONTACT } from "../content/contact";
 import { markRead } from "../state/progress";
 import { sfx } from "../audio/sfx";
 import { EVENTS, track } from "../analytics/events";
-import { T } from "../theme";
+import { T, textAccent } from "../theme";
 
 // Nice labels for the canonical arc, keyed by beat id so inserting a new beat
 // (e.g. BiLira's "Stablecoin & DeFi") stays correctly labelled. A beat may also
@@ -185,7 +185,7 @@ export default function ProjectPanel({ project, onClose, onNext, nextTitle }: Pr
             className="beat-section"
             style={{ scrollSnapAlign: "start", padding: "30px clamp(20px, 5vw, 40px) 44px" }}
           >
-            <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.5, color: project.accent, marginBottom: 12 }}>
+            <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.5, color: textAccent(project.accent), marginBottom: 12 }}>
               {String(i + 1).padStart(2, "0")} / {String(beats.length).padStart(2, "0")} · {label.toUpperCase()}
             </div>
             <h3 style={{ color: T.text, fontSize: 27, fontWeight: 900, lineHeight: 1.15, marginBottom: 20 }}>{label}</h3>
@@ -224,7 +224,7 @@ export default function ProjectPanel({ project, onClose, onNext, nextTitle }: Pr
                   padding: "14px 18px",
                   background: "transparent",
                   border: `2px solid ${project.accent}`,
-                  color: project.accent,
+                  color: textAccent(project.accent),
                   fontSize: 14,
                   fontWeight: 800,
                   letterSpacing: 0.3,
@@ -257,7 +257,7 @@ function Lead({ text }: { text: string }) {
 function InsightCallout({ accent, text }: { accent: string; text: string }) {
   return (
     <div style={{ margin: "30px 0 6px", paddingLeft: 20, borderLeft: `3px solid ${accent}` }}>
-      <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: 2, color: accent, marginBottom: 8 }}>THE INSIGHT</div>
+      <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: 2, color: textAccent(accent), marginBottom: 8 }}>THE INSIGHT</div>
       <p style={{ fontSize: 19, lineHeight: 1.45, fontWeight: 800, color: T.text, letterSpacing: -0.2 }}>{text}</p>
     </div>
   );
@@ -283,7 +283,7 @@ function CTA({ accent, projectId }: { accent: string; projectId: string }) {
         <a
           href={`mailto:${CONTACT.email}`}
           onClick={() => track(EVENTS.ctaClicked, { cta: "email", location: "case_study", project_id: projectId })}
-          style={{ padding: "12px 22px", border: `2px solid ${accent}`, color: accent, fontSize: 14, fontWeight: 800 }}
+          style={{ padding: "12px 22px", border: `2px solid ${accent}`, color: textAccent(accent), fontSize: 14, fontWeight: 800 }}
         >
           Email me
         </a>
@@ -332,7 +332,7 @@ function StickyHeader({
             flexShrink: 0,
             background: "transparent",
             border: `2px solid ${accent}`,
-            color: accent,
+            color: textAccent(accent),
             width: 34,
             height: 34,
             cursor: "pointer",
