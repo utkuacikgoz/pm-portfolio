@@ -15,7 +15,7 @@ export default function SurfJourneyStatus({ coins, visited }: { coins: number; v
         zIndex: 45,
         width: 210,
         padding: "11px 13px",
-        background: "rgba(7,8,12,0.85)",
+        background: T.scrim,
         border: `1px solid ${T.sand}66`,
         backdropFilter: "blur(6px)",
         pointerEvents: "none",

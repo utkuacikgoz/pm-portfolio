@@ -34,6 +34,14 @@ export const T = {
   textSoft: "#D8D2D0",
   text: "#FBFAF9",
 
+  // In-world panel scrims. Taupe ink at opacity, NOT the blue-black these used
+  // to be: the world behind them is forest to taupe to coral dusk, and a cool
+  // grey-blue card floating over a warm scene was the loudest inconsistency in
+  // the interface. Same ladder as `ink`, so panels read as the same material.
+  scrimSoft: "rgba(29,24,22,0.8)",
+  scrim: "rgba(29,24,22,0.86)",
+  scrimStrong: "rgba(29,24,22,0.92)",
+
   // atmosphere
   sky: "linear-gradient(180deg, #1D1816 0%, #2C4832 34%, #473C39 64%, #D76F53 100%)",
   fog: "#5B4F4B", // taupe dusk haze the distant islands fade into
@@ -65,3 +73,27 @@ const LEGACY_ACCENTS: Record<string, string> = {
 };
 
 export const paletteColor = (color: string) => LEGACY_ACCENTS[color.toUpperCase()] ?? color;
+
+// Accents are chosen for the 3D scene, where they sit on lit geometry. Several
+// of them do not survive being used as small text on a dark taupe panel: blue,
+// the accent of the first and most-read case study, lands at 3.43 against
+// `inkRaised` where AA wants 4.5.
+//
+// Rather than lighten the palette (and with it every island), these are the
+// same hue lifted just past the threshold, applied only where an accent is
+// rendered as TEXT. Fills, borders, emblems and 3D keep the true accent.
+// Measured against `inkRaised` (#2B2422), the darkest surface any of them lands
+// on; each is >= 4.5 there and >= 5.2 on `ink`.
+const TEXT_SAFE_ACCENTS: Record<string, string> = {
+  "#6273BF": "#7789D6", // blue    3.43 -> 4.60
+  "#2E86AB": "#3996BD", // ocean   3.71 -> 4.55
+  "#7265A6": "#9083C5", // violet  2.99 -> 4.53
+  "#B05A7E": "#C87095", // berry   3.34 -> 4.50
+  "#B33B49": "#E36170", // red     2.64 -> 4.51
+  "#C35946": "#DA6C58", // brick   3.51 -> 4.55
+  "#2C4832": "#719479", // forest  1.51 -> 4.51
+};
+
+/** An accent safe to render as text on the taupe surfaces. Pass-through when it already clears AA. */
+export const textAccent = (color: string) =>
+  TEXT_SAFE_ACCENTS[paletteColor(color).toUpperCase()] ?? paletteColor(color);

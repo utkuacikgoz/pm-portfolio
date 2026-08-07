@@ -1,5 +1,6 @@
 import { Link } from "../router";
 import { EVENTS, track } from "../analytics/events";
+import { T } from "../theme";
 
 /**
  * Persistent "skip the world / see résumé" escape hatch. Always visible so a
@@ -18,12 +19,12 @@ export default function EscapeHatch() {
         right: 24,
         zIndex: 50,
         padding: "10px 18px",
-        background: "#fff",
-        color: "#000",
+        background: T.text,
+        color: T.ink,
         fontSize: 13,
         fontWeight: 800,
         letterSpacing: 0.5,
-        border: "2px solid #fff",
+        border: `2px solid ${T.text}`,
         textDecoration: "none",
       }}
     >
