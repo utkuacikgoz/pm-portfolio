@@ -86,7 +86,7 @@ export default function EggToast() {
         alignItems: "flex-start",
         gap: 12,
         padding: "14px 16px",
-        background: "rgba(7,8,12,0.96)",
+        background: T.scrimStrong,
         border: `2px solid ${T.seafoam}`,
         borderRadius: 12,
         backdropFilter: "blur(8px)",
