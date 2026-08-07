@@ -1,7 +1,10 @@
-import { useEffect } from "react";
+import { Suspense, lazy, useEffect } from "react";
 import { useLocation, useNavigate } from "./router";
 import WorldExperience from "./pages/WorldExperience";
-import Resume from "./pages/Resume";
+
+// The resume is a separate route nobody sees on first paint, so it ships as its
+// own chunk rather than riding in the entry bundle.
+const Resume = lazy(() => import("./pages/Resume"));
 import { projectIndexById } from "./projects/projects";
 import { useSeo } from "./seo/useSeo";
 
@@ -22,6 +25,12 @@ export default function App() {
   // World + deep-linkable panels share one element (URL = source of truth).
   if (isWorldRoute && isKnownProject) return <WorldExperience />;
   // Persistent escape hatch: fast, plain résumé.
-  if (pathname === "/resume") return <Resume />;
+  if (pathname === "/resume") {
+    return (
+      <Suspense fallback={null}>
+        <Resume />
+      </Suspense>
+    );
+  }
   return null;
 }
