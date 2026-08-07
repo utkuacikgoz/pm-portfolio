@@ -111,7 +111,12 @@ Because the chunk is genuinely lazy now, `WorldExperience` warms it with
   a *second* origin for the woff2, serialized behind it. Both subsets now sit in
   `public/fonts`, declared in `src/index.css` with Google's own unicode-ranges
   kept, so latin-ext only downloads if a character needs it. The latin file is
-  preloaded so its fetch starts with the HTML parse.
+  preloaded so its fetch starts with the HTML parse, and `/fonts/*` is cached
+  immutable for a year like `/assets/*`.
+
+  Unlike `/assets/*`, these filenames are **not** content-hashed (Vite copies
+  `public/` verbatim), so `immutable` only stays honest if a replacement font
+  gets a new filename. Rename rather than overwrite.
 
 - **Routes are split.** `Resume`, `ProjectPanel` and `AvatarSelect` are lazy;
   all three mount behind a user gesture or a separate route, so their Suspense
