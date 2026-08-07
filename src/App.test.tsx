@@ -30,6 +30,19 @@ function renderApp(path = "/") {
   });
 }
 
+// Resume, ProjectPanel and AvatarSelect are lazy (they are off the critical
+// path), so their Suspense boundaries resolve a microtask after the click that
+// triggers them. Awaiting an empty async act flushes the import.
+async function flushLazy() {
+  await act(async () => {
+    // Awaiting the same dynamic imports the components use is deterministic;
+    // an empty async act only flushes one microtask tick and can land early.
+    await import("./pages/Resume");
+    await import("./ui/ProjectPanel");
+    await import("./ui/AvatarSelect");
+  });
+}
+
 function elementByText<E extends Element>(selector: string, text: string): E {
   const element = [...container.querySelectorAll<E>(selector)].find((node) => node.textContent?.includes(text));
   if (!element) throw new Error(`No ${selector} contains ${JSON.stringify(text)}`);
@@ -77,10 +90,11 @@ describe("portfolio journey", () => {
     expect(elementByText<HTMLAnchorElement>("a", "Download CV").getAttribute("href")).toBe("/UtkuAcikgoz-CV.pdf");
   });
 
-  it("opens and closes a case study while keeping the URL as source of truth", () => {
+  it("opens and closes a case study while keeping the URL as source of truth", async () => {
     renderApp();
 
     act(() => elementByText<HTMLButtonElement>("button", "BiLira").click());
+    await flushLazy();
     expect(window.location.pathname).toBe("/p/bilira");
     expect(container.querySelector('[role="dialog"][aria-label="BiLira case study"]')).toBeInTheDocument();
     expect(document.title).toContain("BiLira");
@@ -90,8 +104,9 @@ describe("portfolio journey", () => {
     expect(container.querySelector('[aria-label="BiLira case study"]')).not.toBeInTheDocument();
   });
 
-  it("deep links directly to a case study and recovers invalid routes", () => {
+  it("deep links directly to a case study and recovers invalid routes", async () => {
     renderApp("/p/apollo");
+    await flushLazy();
     expect(container.querySelector('[role="dialog"][aria-label="Apollo case study"]')).toBeInTheDocument();
 
     act(() => root.unmount());
@@ -101,8 +116,9 @@ describe("portfolio journey", () => {
     expect(elementByText("h1", "Utku Acikgoz")).toBeInTheDocument();
   });
 
-  it("offers a fast resume route and supports client-side navigation", () => {
+  it("offers a fast resume route and supports client-side navigation", async () => {
     renderApp("/resume");
+    await flushLazy();
     expect(elementByText("h2", "SELECTED WORK")).toBeInTheDocument();
 
     act(() => elementByText<HTMLAnchorElement>("a", "EXPLORE THE WORLD").click());

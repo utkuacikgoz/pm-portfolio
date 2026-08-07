@@ -5,13 +5,11 @@ import { INDIE_INDEX } from "../world/geometry";
 import { useExperienceMode } from "../state/useExperienceMode";
 import WorldNav from "../ui/WorldNav";
 import EscapeHatch from "../ui/EscapeHatch";
-import ProjectPanel from "../ui/ProjectPanel";
 import HeroIntro from "../ui/HeroIntro";
 import ErrorBoundary from "../ui/ErrorBoundary";
 import EggToast from "../ui/EggToast";
 import SoundToggle from "../ui/SoundToggle";
 import StoryCaption from "../ui/StoryCaption";
-import AvatarSelect from "../ui/AvatarSelect";
 import SurfJourneyStatus from "../ui/SurfJourneyStatus";
 import { readAvatar } from "../ui/avatars";
 import type { Checkpoint } from "../world/surf-journey";
@@ -26,6 +24,11 @@ import FlatMap from "./FlatMap";
 
 // Lazy so three.js / r3f / drei only download on the interactive world path.
 const World = lazy(() => import("../world/World"));
+// Both mount behind a user gesture (opening a case study, answering the character
+// gate), so their Suspense gap is invisible in practice and they stay out of the
+// entry chunk. ProjectPanel drags the SVG viz layer with it.
+const ProjectPanel = lazy(() => import("../ui/ProjectPanel"));
+const AvatarSelect = lazy(() => import("../ui/AvatarSelect"));
 
 export default function WorldExperience() {
   const mode = useExperienceMode();
@@ -324,7 +327,11 @@ export default function WorldExperience() {
         <FlatMap projects={projects} onOpen={open} />
       ) : null}
 
-      {mode === "world" && choosingAvatar && !entered && <AvatarSelect onPick={onPickAvatar} />}
+      {mode === "world" && choosingAvatar && !entered && (
+        <Suspense fallback={null}>
+          <AvatarSelect onPick={onPickAvatar} />
+        </Suspense>
+      )}
 
       {mode === "world" && !entered && !panelOpen && !choosingAvatar && (
         <HeroIntro onBegin={onEnter} />
@@ -510,6 +517,7 @@ export default function WorldExperience() {
       )}
 
       {panelOpen && (
+        <Suspense fallback={null}>
         <ProjectPanel
           project={projects[openIndex]}
           onClose={close}
@@ -522,6 +530,7 @@ export default function WorldExperience() {
             }
           }}
         />
+        </Suspense>
       )}
     </div>
   );
