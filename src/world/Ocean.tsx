@@ -26,10 +26,21 @@ const MOUNTAIN_MATRICES = DISTANT_PEAKS.map((peak) => new THREE.Matrix4().compos
 // sun instead of sitting dead flat. Normals are recomputed from the height
 // gradient so the warm sun still glints off the moving faces. Frozen (static
 // ripple, no motion) under reduced-motion.
-export function Water() {
+// Segment density, not extent. The plane stays 1400 wide so the sea edge stays
+// outside the surf fog and behind the horizon ring; only how finely it is
+// tessellated changes. On the rail, fog far is 130 and the water is read at a
+// distance, so 96x96 (9.4K vertices) carries the swell fine. Surf mode opens fog
+// to 620 and puts the camera on the surface, where the extra detail shows, so it
+// keeps 180x180 (32.7K). Every vertex runs the wave shader, so this is a direct
+// cut in vertex work on the default path.
+const SEA_SEGMENTS_RAIL = 96;
+const SEA_SEGMENTS_SURF = 180;
+
+export function Water({ surfing }: { surfing: boolean }) {
   const uTime = useRef({ value: 0 });
   const matRef = useRef<THREE.MeshStandardMaterial>(null);
   const reduced = usePrefersReducedMotion();
+  const segments = surfing ? SEA_SEGMENTS_SURF : SEA_SEGMENTS_RAIL;
   useFrame((s) => {
     if (!reduced) uTime.current.value = s.clock.elapsedTime;
     // Brighten toward turquoise as free-surf fades to daytime.
@@ -80,7 +91,12 @@ export function Water() {
     // with it so the swell keeps roughly its old wavelength rather than turning
     // into slow rolling hills.
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[60, WATER_Y, 0]} raycast={() => null}>
-      <planeGeometry args={[1400, 1400, 180, 180]} />
+      {/* Keyed so switching density rebuilds the geometry rather than mutating
+          args on the existing one, which r3f would not pick up. */}
+      <planeGeometry
+        key={surfing ? "surf" : "rail"}
+        args={[1400, 1400, segments, segments]}
+      />
       {/* Ocean-blue dusk sea, reflective enough to catch the sun. */}
       <meshStandardMaterial
         ref={matRef}

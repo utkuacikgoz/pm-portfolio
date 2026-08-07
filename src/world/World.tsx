@@ -93,6 +93,8 @@ function StarField() {
 interface Props {
   activeIndex: number;
   entered: boolean;
+  /** Play the entrance dive on mount (false for deep links). */
+  dive: boolean;
   surfing: boolean;
   onOpen: (i: number) => void;
   onCoin?: (count: number) => void;
@@ -108,7 +110,7 @@ interface Props {
  * across every island lives in a single <Instances> (one draw call, per-instance
  * color) — no per-cube draw calls. Lazy-loaded so three.js only ships here.
  */
-function World({ activeIndex, entered, surfing, onOpen, onCoin, onCheckpoint, onComplete, frameloop = "always" }: Props) {
+function World({ activeIndex, entered, dive, surfing, onOpen, onCoin, onCheckpoint, onComplete, frameloop = "always" }: Props) {
   const cubes = useMemo(() => buildWorld(PUBLISHED_PROJECTS), []);
   const accent = PUBLISHED_PROJECTS[activeIndex]?.accent ?? T.blue;
   const [dpr, setDpr] = useState(1.5);
@@ -167,7 +169,7 @@ function World({ activeIndex, entered, surfing, onOpen, onCoin, onCheckpoint, on
         ))}
       </Instances>
 
-      <Water />
+      <Water surfing={surfing} />
         <IslandShadows />
         {!surfing && <Ripples active={activeIndex} />}
         {!surfing && <LightShaft active={activeIndex} />}
@@ -176,7 +178,7 @@ function World({ activeIndex, entered, surfing, onOpen, onCoin, onCheckpoint, on
       {/* The breaks only exist while surfing → the rail diorama stays clean. */}
       {surfing && <SurfSpots />}
       <SurfController active={surfing} onCoin={onCoin} onCheckpoint={onCheckpoint} onComplete={onComplete} />
-      <CameraRig activeIndex={activeIndex} accent={accent} entered={entered} surfing={surfing} />
+      <CameraRig activeIndex={activeIndex} accent={accent} entered={entered} dive={dive} surfing={surfing} />
     </Canvas>
   );
 }
