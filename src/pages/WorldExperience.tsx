@@ -52,6 +52,10 @@ export default function WorldExperience() {
   // Finishing the run (all 42) earns the one real ask of the whole experience.
   // Once per visit: re-entering surf must not re-fire it.
   const [runComplete, setRunComplete] = useState(false);
+  // Separate from `runComplete`, which the completion card clears when dismissed.
+  // Finishing is permanent for the visit: a progress meter reading "42 / 42, 100%"
+  // is just clutter reporting there is nothing left to do.
+  const [runFinished, setRunFinished] = useState(false);
   const completedOnce = useRef(false);
   const onRunComplete = useCallback(() => {
     if (completedOnce.current) return;
@@ -60,6 +64,7 @@ export default function WorldExperience() {
     // that this visitor went all the way, and what they clicked next.
     track(EVENTS.surfRunCompleted);
     setRunComplete(true);
+    setRunFinished(true);
     sfx.play("egg"); // the existing reward sound
   }, []);
   // The surf controls hint auto-hides (it eats real estate) after a few seconds
@@ -478,9 +483,11 @@ export default function WorldExperience() {
               🏄 WASD to surf · Space to jump · Double Space for a 360 · Esc to come back
             </div>
           )}
-          {/* Once the run is done the completion card reports the same totals,
-              so the running tally would just be clutter behind it. */}
-          {!runComplete && <SurfJourneyStatus coins={coins} visited={visitedCheckpoints.size} />}
+          {/* Gone for good once the run is finished, not just while the completion
+              card is up: dismissing that card used to bring the meter back reading
+              "42 / 42 · 100%", which is a progress bar announcing there is no
+              progress left to make. */}
+          {!runFinished && <SurfJourneyStatus coins={coins} visited={visitedCheckpoints.size} />}
           {checkpoint && <CheckpointCard key={checkpoint.id} cp={checkpoint} />}
           {runComplete && (
             <RunCompleteCard

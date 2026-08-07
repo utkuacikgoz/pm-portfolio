@@ -124,17 +124,25 @@ Because the chunk is genuinely lazy now, `WorldExperience` warms it with
   awaits the same dynamic imports rather than hoping one microtask tick is
   enough.
 
+## Fixed: surf coins and the ocean normal
+
+- **Coins are instanced.** 42 coins x 3 meshes was 126 draw calls, 84 of them
+  transparent and depth-sorted every frame, against roughly 50 to 60 for the
+  entire rail path. Three `<instancedMesh>` makes it 3. Collected coins take a
+  zero scale, since instances have no per-instance visibility flag.
+- **The ocean normal is analytic.** It came from four extra `waveH` samples
+  (central differences), so every vertex on a 180x180 plane evaluated `waveH`
+  five times: fifteen sines each. The hand-derived gradient costs three cosines
+  and is more accurate than the finite difference it replaces.
+
 ## Still open
 
-1. **Instance the surf coins.** 42 coins x 3 meshes = 126 draw calls, 84 of them
-   transparent and depth-sorted, against roughly 50 to 60 for the entire rail
-   path. Three `<Instances>` collapses it to 3. Surf mode only, which is a bonus
-   path, so weight it accordingly.
-2. **Ocean plane density.** `[1400, 1400, 180, 180]` is 65K triangles with five
-   `waveH` evaluations per vertex, sized for surf mode but paid for on the rail,
-   where fog far is 130 and most of it is invisible. Swap density on `surfing`,
-   or compute the wave normal analytically instead of by four extra samples.
-3. **Font metric overrides.** `size-adjust` / `ascent-override` tuned against the
+1. **Ocean plane density.** `[1400, 1400, 180, 180]` is 65K triangles, sized for
+   surf mode but paid for on the rail, where fog far is 130 and most of it is
+   invisible. Swapping density on `surfing` is the remaining win, but it needs a
+   browser: dropping the plane's extent risks exposing the sea edge on the rail,
+   and dropping segment count changes how the swell reads.
+2. **Font metric overrides.** `size-adjust` / `ascent-override` tuned against the
    fallback stack would remove the swap reflow. Needs a browser to tune, so it
    was left out rather than guessed at.
 4. **The hidden `mona` case study** still ships (~8.6 KB) because the registry
