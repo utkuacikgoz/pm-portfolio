@@ -1,4 +1,3 @@
-import posthog from "posthog-js";
 import { ANALYTICS_ENABLED } from "./config";
 
 /**
@@ -32,25 +31,59 @@ type EventName = (typeof EVENTS)[keyof typeof EVENTS];
 
 type EventProps = Record<string, string | number | boolean | null | undefined>;
 
+// posthog-js is 243 KB, roughly two thirds of the entry chunk, and nothing it
+// does is needed before first paint: the earliest event (world_entered) cannot
+// fire until someone clicks. So it is imported lazily (type-only above, so no
+// runtime edge) and everything called before it lands is queued here.
+//
+// The queue is bounded. If analytics never loads, a long session must not grow
+// an unbounded array of events nobody will ever send.
+type QueuedCall = { event: EventName; props?: EventProps };
+
 /**
- * Fire an event. Safe to call from anywhere: with no token, or before PostHog
- * has finished loading, this is a no-op rather than a crash in a click handler.
+ * Only the two methods this module actually calls. Structural rather than
+ * posthog's own `PostHog` type, because the instance handed to the `loaded`
+ * callback is typed `PostHogInterface`, a different (narrower) type in the same
+ * package. Depending on the shape we use keeps this immune to that churn.
  */
-export function track(event: EventName, props?: EventProps): void {
-  if (!ANALYTICS_ENABLED) return;
-  try {
-    posthog.capture(event, props);
-  } catch {
-    // Analytics must never take the page down with it.
+export type AnalyticsClient = {
+  capture: (event: string, props?: EventProps) => unknown;
+  register: (props: Record<string, string>) => void;
+};
+
+const QUEUE_LIMIT = 50;
+const queue: QueuedCall[] = [];
+let client: AnalyticsClient | null = null;
+
+/**
+ * Called once posthog-js has initialized. Drains the queue in order.
+ * Super properties are registered on the instance by the caller *before* this
+ * runs, so queued events go out already carrying their acquisition properties.
+ */
+export function attachPostHog(instance: AnalyticsClient): void {
+  client = instance;
+  for (const call of queue.splice(0)) {
+    try {
+      instance.capture(call.event, call.props);
+    } catch {
+      // See track().
+    }
   }
 }
 
-/** Attach properties to every subsequent event in this browser. */
-export function registerSuperProperties(props: Record<string, string>): void {
+/**
+ * Fire an event. Safe to call from anywhere: with no token, or before PostHog
+ * has finished loading, this queues or no-ops rather than crashing a click handler.
+ */
+export function track(event: EventName, props?: EventProps): void {
   if (!ANALYTICS_ENABLED) return;
+  if (!client) {
+    if (queue.length < QUEUE_LIMIT) queue.push({ event, props });
+    return;
+  }
   try {
-    posthog.register(props);
+    client.capture(event, props);
   } catch {
-    // See track().
+    // Analytics must never take the page down with it.
   }
 }
