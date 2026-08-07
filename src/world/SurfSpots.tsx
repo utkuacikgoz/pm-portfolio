@@ -466,32 +466,100 @@ function Landmark({ id }: { id: string }) {
   }
 }
 
+// Fixed rotations the coin parts carried as JSX props before instancing: the
+// disc lies flat against its spin axis, the back glyph faces the other way.
+const COIN_FACE = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI / 2);
+const GLYPH_FLIP = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
+
 // Collectible coins strewn along the journey; spin, and hide once collected
 // (SurfController owns collection via the shared collectedCoins set).
+//
+// Instanced: 42 coins x 3 meshes was 126 draw calls, 84 of them transparent and
+// therefore depth-sorted every frame, against roughly 50 to 60 for the entire
+// rail path. Three <instancedMesh> makes it 3. Same geometry and materials as
+// before, so it looks identical; a collected coin gets a zero scale rather than
+// visible = false, since instances have no per-instance visibility flag.
 function Coins() {
-  const ref = useRef<THREE.Group>(null);
+  const discRef = useRef<THREE.InstancedMesh>(null);
+  const frontRef = useRef<THREE.InstancedMesh>(null);
+  const backRef = useRef<THREE.InstancedMesh>(null);
   const reduced = usePrefersReducedMotion();
+
+  // Reused scratch objects: nothing is allocated per frame (house rule).
+  const scratch = useMemo(
+    () => ({
+      obj: new THREE.Object3D(),
+      spin: new THREE.Quaternion(),
+      up: new THREE.Vector3(0, 1, 0),
+      offset: new THREE.Vector3(),
+    }),
+    []
+  );
+
   useFrame((s) => {
-    if (!ref.current) return;
+    const disc = discRef.current;
+    const front = frontRef.current;
+    const back = backRef.current;
+    if (!disc || !front || !back) return;
+
     const t = s.clock.elapsedTime;
-    const kids = ref.current.children;
-    for (let i = 0; i < kids.length; i++) {
-      const g = kids[i];
-      const coin = COINS[i];
-      g.visible = !collectedCoins.has(coin.id) && t - surfSignal.rideStart > 6;
-      if (!reduced) g.rotation.y = t * 2.5 + i * 0.7;
+    const armed = t - surfSignal.rideStart > 6;
+    const { obj, spin, up, offset } = scratch;
+
+    for (let i = 0; i < COINS.length; i++) {
+      const c = COINS[i];
+      const scale = armed && !collectedCoins.has(c.id) ? 1 : 0;
+      spin.setFromAxisAngle(up, reduced ? 0 : t * 2.5 + i * 0.7);
+      obj.scale.setScalar(scale);
+
+      obj.position.set(c.x, COIN_Y, c.z);
+      obj.quaternion.copy(spin).multiply(COIN_FACE);
+      obj.updateMatrix();
+      disc.setMatrixAt(i, obj.matrix);
+
+      // The glyph planes sit just proud of each face, so their offset has to
+      // ride the spin rather than stay on the world Z axis.
+      offset.set(0, 0, 0.11).applyQuaternion(spin);
+      obj.position.set(c.x + offset.x, COIN_Y + offset.y, c.z + offset.z);
+      obj.quaternion.copy(spin);
+      obj.updateMatrix();
+      front.setMatrixAt(i, obj.matrix);
+
+      obj.position.set(c.x - offset.x, COIN_Y - offset.y, c.z - offset.z);
+      obj.quaternion.copy(spin).multiply(GLYPH_FLIP);
+      obj.updateMatrix();
+      back.setMatrixAt(i, obj.matrix);
     }
+
+    disc.instanceMatrix.needsUpdate = true;
+    front.instanceMatrix.needsUpdate = true;
+    back.instanceMatrix.needsUpdate = true;
   });
+
   return (
-    <group ref={ref}>
-      {COINS.map((c) => (
-        <group key={c.id} position={[c.x, COIN_Y, c.z]}>
-          <mesh rotation={[Math.PI / 2, 0, 0]} geometry={COIN_GEO} material={COIN_MAT} raycast={() => null} />
-          <mesh position={[0, 0, 0.11]} geometry={BTC_GEO} material={BTC_MAT} raycast={() => null} />
-          <mesh position={[0, 0, -0.11]} rotation={[0, Math.PI, 0]} geometry={BTC_GEO} material={BTC_MAT} raycast={() => null} />
-        </group>
-      ))}
-    </group>
+    <>
+      {/* frustumCulled off: the bounding sphere comes from the single coin
+          geometry, not the spread of instances, so culling would drop coins the
+          camera can actually see. */}
+      <instancedMesh
+        ref={discRef}
+        args={[COIN_GEO, COIN_MAT, COINS.length]}
+        frustumCulled={false}
+        raycast={() => null}
+      />
+      <instancedMesh
+        ref={frontRef}
+        args={[BTC_GEO, BTC_MAT, COINS.length]}
+        frustumCulled={false}
+        raycast={() => null}
+      />
+      <instancedMesh
+        ref={backRef}
+        args={[BTC_GEO, BTC_MAT, COINS.length]}
+        frustumCulled={false}
+        raycast={() => null}
+      />
+    </>
   );
 }
 
