@@ -80,6 +80,10 @@ export default function WorldExperience() {
   // the world immediately, since `entered` starts true) used to run a full
   // WebGLRenderer at 60fps in a tab nobody was looking at.
   const [visible, setVisible] = useState(() => !document.hidden);
+  // Captured at first render and never updated: if the visit began on the hero,
+  // the eventual World mount is an entrance and should dive. A deep link mounts
+  // straight onto its island, so it must not.
+  const diveOnMount = useRef(openIndex < 0).current;
   const opener = useRef<HTMLElement | null>(null);
   const prevActive = useRef(active);
   const suppressTravel = useRef(false);
@@ -319,6 +323,7 @@ export default function WorldExperience() {
             <World
               activeIndex={active}
               entered={entered}
+              dive={diveOnMount}
               surfing={surfing}
               onOpen={open}
               onCoin={setCoins}
