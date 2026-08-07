@@ -15,7 +15,7 @@ import { readAvatar } from "../ui/avatars";
 import type { Checkpoint } from "../world/surf-journey";
 import { COIN_TOTAL, CHECKPOINT_TOTAL } from "../world/surf-journey";
 import { CONTACT } from "../content/contact";
-import { T } from "../theme";
+import { T, textAccent } from "../theme";
 import { sfx, startSurfMusic, stopSurfMusic } from "../audio/sfx";
 import { useKeySequence, KONAMI, HIRE } from "../ui/hooks/useKeySequence";
 import { markEggId } from "../state/progress";
@@ -386,7 +386,7 @@ export default function WorldExperience() {
             transform: "translateX(-50%)",
             zIndex: 45,
             padding: "8px 16px",
-            background: "rgba(7,8,12,0.8)",
+            background: T.scrimSoft,
             border: `1px solid ${T.border}`,
             borderRadius: 999,
             fontSize: 12.5,
@@ -423,7 +423,7 @@ export default function WorldExperience() {
               right: 24,
               zIndex: 44,
               padding: "11px 18px",
-              background: "rgba(7,8,12,0.85)",
+              background: T.scrim,
               border: `2px solid ${T.seafoam}`,
               color: T.seafoam,
               fontSize: 13,
@@ -447,9 +447,9 @@ export default function WorldExperience() {
             left: 24,
             zIndex: 44,
             padding: "10px 16px",
-            background: "rgba(7,8,12,0.85)",
+            background: T.scrim,
             border: `2px solid ${T.blue}`,
-            color: T.blue,
+            color: textAccent(T.blue),
             fontSize: 13,
             fontWeight: 800,
             cursor: "pointer",
@@ -475,7 +475,7 @@ export default function WorldExperience() {
                 transform: "translateX(-50%)",
                 zIndex: 45,
                 padding: "8px 16px",
-                background: "rgba(7,8,12,0.8)",
+                background: T.scrimSoft,
                 border: `1px solid ${T.border}`,
                 borderRadius: 999,
                 fontSize: 12.5,
@@ -514,9 +514,9 @@ export default function WorldExperience() {
               right: 24,
               zIndex: 44,
               padding: "11px 20px",
-              background: "rgba(7,8,12,0.85)",
+              background: T.scrim,
               border: `2px solid ${T.blue}`,
-              color: T.blue,
+              color: textAccent(T.blue),
               fontSize: 13,
               fontWeight: 800,
               cursor: "pointer",
@@ -580,7 +580,7 @@ function CheckpointCard({ cp }: { cp: Checkpoint }) {
         zIndex: 45,
         width: "min(520px, calc(100vw - 32px))",
         padding: "16px 22px",
-        background: "rgba(7,8,12,0.9)",
+        background: T.scrimStrong,
         border: `2px solid ${cp.accent}`,
         borderRadius: 12,
         textAlign: "center",
@@ -589,10 +589,10 @@ function CheckpointCard({ cp }: { cp: Checkpoint }) {
         animation: "captionIn .45s ease",
       }}
     >
-      <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: 2, color: cp.accent, marginBottom: 7 }}>
+      <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: 2, color: textAccent(cp.accent), marginBottom: 7 }}>
         🧭 HOW I WORK · {cp.id + 1} / {CHECKPOINT_TOTAL}
       </div>
-      <div style={{ fontSize: 19, fontWeight: 900, letterSpacing: 0.3, color: "#fff", marginBottom: 6 }}>{cp.title}</div>
+      <div style={{ fontSize: 19, fontWeight: 900, letterSpacing: 0.3, color: T.text, marginBottom: 6 }}>{cp.title}</div>
       <div style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.5, color: T.textSoft }}>{cp.text}</div>
     </div>
   );
@@ -614,7 +614,7 @@ function RunCompleteCard({ onCases, onDismiss }: { onCases: () => void; onDismis
         transform: "translateX(-50%)",
         zIndex: 46,
         width: "min(560px, calc(100vw - 32px))",
-        background: "rgba(7,8,12,0.92)",
+        background: T.scrimStrong,
         border: `2px solid ${T.seafoam}`,
         borderRadius: 12,
         backdropFilter: "blur(8px)",
@@ -671,7 +671,7 @@ function RunCompleteCard({ onCases, onDismiss }: { onCases: () => void; onDismis
           marginTop: 12,
           background: "none",
           border: "none",
-          color: "#8b90a0",
+          color: T.textMuted,
           fontSize: 12,
           fontWeight: 700,
           cursor: "pointer",
@@ -693,7 +693,7 @@ function IndieOverlay({ onBack }: { onBack: () => void }) {
         transform: "translateX(-50%)",
         zIndex: 44,
         width: "min(560px, calc(100vw - 32px))",
-        background: "rgba(7,8,12,0.92)",
+        background: T.scrimStrong,
         border: `2px solid ${T.seafoam}`,
         backdropFilter: "blur(8px)",
         padding: "20px 22px",
@@ -723,7 +723,7 @@ function IndieOverlay({ onBack }: { onBack: () => void }) {
             <span style={{ width: 9, height: 9, borderRadius: "50%", background: p.accent, flexShrink: 0 }} />
             <span style={{ fontWeight: 800, fontSize: 14 }}>{p.title}</span>
             <span style={{ fontSize: 12.5, color: T.textMuted }}>{p.tagline}</span>
-            <span style={{ marginLeft: "auto", fontSize: 10, fontWeight: 800, letterSpacing: 0.5, color: p.accent }}>
+            <span style={{ marginLeft: "auto", fontSize: 10, fontWeight: 800, letterSpacing: 0.5, color: textAccent(p.accent) }}>
               COMING SOON
             </span>
           </div>
@@ -771,7 +771,7 @@ function TitleCard({
         transform: "translateX(-50%)",
         zIndex: 40,
         width: "min(520px, calc(100vw - 32px))",
-        background: "rgba(7,8,12,0.9)",
+        background: T.scrimStrong,
         border: `2px solid ${project.accent}`,
         backdropFilter: "blur(6px)",
         padding: "16px 18px",
@@ -785,7 +785,7 @@ function TitleCard({
             style={{
               width: i === index ? 18 : 8,
               height: 8,
-              background: i === index ? project.accent : "#2a2e3a",
+              background: i === index ? project.accent : T.surface,
               transition: "all .3s",
             }}
           />
@@ -805,7 +805,7 @@ function TitleCard({
             flex: 1,
             padding: "10px 16px",
             background: project.accent,
-            color: "#000",
+            color: T.ink,
             border: "none",
             fontSize: 13,
             fontWeight: 800,
@@ -845,8 +845,8 @@ function ChevBtn({
         width: 44,
         padding: "10px 0",
         background: "transparent",
-        border: `2px solid ${disabled ? "#2a2e3a" : accent}`,
-        color: disabled ? "#2a2e3a" : accent,
+        border: `2px solid ${disabled ? T.surface : accent}`,
+        color: disabled ? T.surface : accent,
         fontSize: 16,
         fontWeight: 700,
         cursor: disabled ? "not-allowed" : "pointer",
