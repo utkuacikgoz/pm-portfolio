@@ -6,8 +6,8 @@
 covers what is measurable, not what it feels like. Anything about taste, motion
 or lighting still needs eyes.
 
-> **Status:** sections 1 and 2 are fixed (see the entries below). Sections 3
-> (silhouettes) and 4 (type scale) are still open and want eyes on a browser.
+> **Status:** sections 1, 2 and 4 are fixed (see the entries below). Section 3
+> (silhouettes) is still open and wants eyes on a browser.
 
 ## 1. The design system is documented, then contradicted [FIXED]
 
@@ -115,7 +115,7 @@ place rather than the same plate five times.
 Neither is a bug. Both are decisions worth making deliberately rather than
 inheriting.
 
-## 4. Typography has no scale
+## 4. Typography has no scale [FIXED]
 
 Twenty distinct font sizes across the DOM UI:
 
@@ -132,6 +132,28 @@ everything, weight has stopped being a hierarchy signal: size and color are
 doing that work alone, and boldness is just texture.
 
 Radii are 2, 3, 4, 8, 12, 999. The 2/3/4 group is interchangeable noise.
+
+**Fixed for size.** `TYPE` in `theme.ts` is now the scale, seven steps at roughly
+a 1.2 ratio, and all 101 numeric `fontSize` values moved onto it:
+
+| step | px | absorbed |
+| --- | --- | --- |
+| `micro` | 11 | 10, 10.5, 11, 11.5 |
+| `small` | 13 | 12, 12.5, 13, 13.5 |
+| `body` | 15 | 14, 14.5, 15, 16 |
+| `lead` | 18 | 17, 18, 19 |
+| `title` | 22 | 20, 22 |
+| `display` | 27 | 26, 27 |
+| `metric` | 32 | 30 |
+
+The hero keeps its `clamp()` sizes: those are fluid by design, not steps. A test
+reads every source file through `import.meta.glob` and fails on any raw numeric
+`fontSize`, so the scale cannot quietly reacquire a 14.5. It was verified to
+fail by planting one.
+
+**Weights and radii are deliberately untouched.** Collapsing 46 uses of weight
+800 changes how dense the whole interface reads, which is a taste call rather
+than a cleanup, and it wants a browser.
 
 ## 5. Verified fine
 

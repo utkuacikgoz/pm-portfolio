@@ -15,7 +15,7 @@ import { readAvatar } from "../ui/avatars";
 import type { Checkpoint } from "../world/surf-journey";
 import { COIN_TOTAL, CHECKPOINT_TOTAL } from "../world/surf-journey";
 import { CONTACT } from "../content/contact";
-import { T, textAccent } from "../theme";
+import { T, TYPE, textAccent } from "../theme";
 import { sfx, startSurfMusic, stopSurfMusic } from "../audio/sfx";
 import { useKeySequence, KONAMI, HIRE } from "../ui/hooks/useKeySequence";
 import { markEggId } from "../state/progress";
@@ -389,7 +389,7 @@ export default function WorldExperience() {
             background: T.scrimSoft,
             border: `1px solid ${T.border}`,
             borderRadius: 999,
-            fontSize: 12.5,
+            fontSize: TYPE.small,
             fontWeight: 600,
             color: T.textSoft,
             whiteSpace: "nowrap",
@@ -426,7 +426,7 @@ export default function WorldExperience() {
               background: T.scrim,
               border: `2px solid ${T.seafoam}`,
               color: T.seafoam,
-              fontSize: 13,
+              fontSize: TYPE.small,
               fontWeight: 800,
               cursor: "pointer",
               backdropFilter: "blur(6px)",
@@ -450,7 +450,7 @@ export default function WorldExperience() {
             background: T.scrim,
             border: `2px solid ${T.blue}`,
             color: textAccent(T.blue),
-            fontSize: 13,
+            fontSize: TYPE.small,
             fontWeight: 800,
             cursor: "pointer",
             backdropFilter: "blur(6px)",
@@ -478,7 +478,7 @@ export default function WorldExperience() {
                 background: T.scrimSoft,
                 border: `1px solid ${T.border}`,
                 borderRadius: 999,
-                fontSize: 12.5,
+                fontSize: TYPE.small,
                 fontWeight: 600,
                 color: T.textSoft,
                 whiteSpace: "nowrap",
@@ -517,7 +517,7 @@ export default function WorldExperience() {
               background: T.scrim,
               border: `2px solid ${T.blue}`,
               color: textAccent(T.blue),
-              fontSize: 13,
+              fontSize: TYPE.small,
               fontWeight: 800,
               cursor: "pointer",
               backdropFilter: "blur(6px)",
@@ -558,7 +558,7 @@ function WorldLoading() {
         alignItems: "center",
         justifyContent: "center",
         color: T.textMuted,
-        fontSize: 14,
+        fontSize: TYPE.body,
         fontWeight: 700,
         letterSpacing: 2,
       }}
@@ -589,11 +589,11 @@ function CheckpointCard({ cp }: { cp: Checkpoint }) {
         animation: "captionIn .45s ease",
       }}
     >
-      <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: 2, color: textAccent(cp.accent), marginBottom: 7 }}>
+      <div style={{ fontSize: TYPE.micro, fontWeight: 800, letterSpacing: 2, color: textAccent(cp.accent), marginBottom: 7 }}>
         🧭 HOW I WORK · {cp.id + 1} / {CHECKPOINT_TOTAL}
       </div>
-      <div style={{ fontSize: 19, fontWeight: 900, letterSpacing: 0.3, color: T.text, marginBottom: 6 }}>{cp.title}</div>
-      <div style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.5, color: T.textSoft }}>{cp.text}</div>
+      <div style={{ fontSize: TYPE.lead, fontWeight: 900, letterSpacing: 0.3, color: T.text, marginBottom: 6 }}>{cp.title}</div>
+      <div style={{ fontSize: TYPE.body, fontWeight: 600, lineHeight: 1.5, color: T.textSoft }}>{cp.text}</div>
     </div>
   );
 }
@@ -623,10 +623,10 @@ function RunCompleteCard({ onCases, onDismiss }: { onCases: () => void; onDismis
         animation: "captionIn .45s ease",
       }}
     >
-      <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.5, color: T.seafoam, marginBottom: 8 }}>
+      <div style={{ fontSize: TYPE.small, fontWeight: 800, letterSpacing: 1.5, color: T.seafoam, marginBottom: 8 }}>
         🏄 RUN COMPLETE · {COIN_TOTAL} / {COIN_TOTAL}
       </div>
-      <div style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.55, color: T.text, marginBottom: 16 }}>
+      <div style={{ fontSize: TYPE.body, fontWeight: 700, lineHeight: 1.55, color: T.text, marginBottom: 16 }}>
         You surfed the whole loop and picked up every last coin. That is the same stubbornness I
         bring to shipping product. Want the real version?
       </div>
@@ -640,7 +640,7 @@ function RunCompleteCard({ onCases, onDismiss }: { onCases: () => void; onDismis
             padding: "12px 22px",
             background: T.seafoam,
             color: T.ink,
-            fontSize: 14,
+            fontSize: TYPE.body,
             fontWeight: 800,
             borderRadius: 8,
             textDecoration: "none",
@@ -655,7 +655,7 @@ function RunCompleteCard({ onCases, onDismiss }: { onCases: () => void; onDismis
             background: "transparent",
             border: `2px solid ${T.seafoam}`,
             color: T.seafoam,
-            fontSize: 14,
+            fontSize: TYPE.body,
             fontWeight: 800,
             borderRadius: 8,
             cursor: "pointer",
@@ -672,7 +672,7 @@ function RunCompleteCard({ onCases, onDismiss }: { onCases: () => void; onDismis
           background: "none",
           border: "none",
           color: T.textMuted,
-          fontSize: 12,
+          fontSize: TYPE.small,
           fontWeight: 700,
           cursor: "pointer",
         }}
@@ -700,10 +700,10 @@ function IndieOverlay({ onBack }: { onBack: () => void }) {
         textAlign: "center",
       }}
     >
-      <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.5, color: T.seafoam, marginBottom: 8 }}>
+      <div style={{ fontSize: TYPE.small, fontWeight: 800, letterSpacing: 1.5, color: T.seafoam, marginBottom: 8 }}>
         🏄 WHAT I'M BUILDING
       </div>
-      <p style={{ fontSize: 13.5, color: T.textSoft, lineHeight: 1.55, marginBottom: 16 }}>
+      <p style={{ fontSize: TYPE.small, color: T.textSoft, lineHeight: 1.55, marginBottom: 16 }}>
         53 countries travelled so far. Here's what I'm building next. No case studies yet, just bets.
       </p>
       <div style={{ display: "grid", gap: 8, marginBottom: 16 }}>
@@ -721,9 +721,9 @@ function IndieOverlay({ onBack }: { onBack: () => void }) {
             }}
           >
             <span style={{ width: 9, height: 9, borderRadius: "50%", background: p.accent, flexShrink: 0 }} />
-            <span style={{ fontWeight: 800, fontSize: 14 }}>{p.title}</span>
-            <span style={{ fontSize: 12.5, color: T.textMuted }}>{p.tagline}</span>
-            <span style={{ marginLeft: "auto", fontSize: 10, fontWeight: 800, letterSpacing: 0.5, color: textAccent(p.accent) }}>
+            <span style={{ fontWeight: 800, fontSize: TYPE.body }}>{p.title}</span>
+            <span style={{ fontSize: TYPE.small, color: T.textMuted }}>{p.tagline}</span>
+            <span style={{ marginLeft: "auto", fontSize: TYPE.micro, fontWeight: 800, letterSpacing: 0.5, color: textAccent(p.accent) }}>
               COMING SOON
             </span>
           </div>
@@ -736,7 +736,7 @@ function IndieOverlay({ onBack }: { onBack: () => void }) {
           background: "transparent",
           border: `2px solid ${T.seafoam}`,
           color: T.seafoam,
-          fontSize: 13,
+          fontSize: TYPE.small,
           fontWeight: 800,
           cursor: "pointer",
         }}
@@ -791,8 +791,8 @@ function TitleCard({
           />
         ))}
       </div>
-      <div style={{ fontSize: 22, fontWeight: 900, letterSpacing: 0.5 }}>{project.title}</div>
-      <div style={{ fontSize: 12.5, color: T.textMuted, margin: "6px 0 14px", lineHeight: 1.5 }}>
+      <div style={{ fontSize: TYPE.title, fontWeight: 900, letterSpacing: 0.5 }}>{project.title}</div>
+      <div style={{ fontSize: TYPE.small, color: T.textMuted, margin: "6px 0 14px", lineHeight: 1.5 }}>
         {project.tagline}
       </div>
       <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
@@ -807,7 +807,7 @@ function TitleCard({
             background: project.accent,
             color: T.ink,
             border: "none",
-            fontSize: 13,
+            fontSize: TYPE.small,
             fontWeight: 800,
             cursor: "pointer",
             letterSpacing: 0.5,
@@ -847,7 +847,7 @@ function ChevBtn({
         background: "transparent",
         border: `2px solid ${disabled ? T.surface : accent}`,
         color: disabled ? T.surface : accent,
-        fontSize: 16,
+        fontSize: TYPE.body,
         fontWeight: 700,
         cursor: disabled ? "not-allowed" : "pointer",
       }}

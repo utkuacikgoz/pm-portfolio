@@ -4,7 +4,7 @@ import type {
   Initiative,
   Stakeholder,
 } from "../../content/types";
-import { T, paletteColor } from "../../theme";
+import { T, TYPE, paletteColor } from "../../theme";
 
 // Readable DOM/SVG presentation of the PM data. Replaces the old scatter charts
 // (which read as random dots) with labeled, scannable comparison cards.
@@ -14,7 +14,7 @@ function Section({ label, children }: { label: string; children: React.ReactNode
     <div style={{ marginTop: 28 }}>
       <div
         style={{
-          fontSize: 12,
+          fontSize: TYPE.small,
           fontWeight: 800,
           letterSpacing: 1.6,
           textTransform: "uppercase",
@@ -32,7 +32,7 @@ function Section({ label, children }: { label: string; children: React.ReactNode
 function MiniBar({ value, color, label }: { value: number; color: string; label: string }) {
   return (
     <div style={{ flex: 1, minWidth: 96 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: T.textMuted, marginBottom: 4 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", fontSize: TYPE.micro, color: T.textMuted, marginBottom: 4 }}>
         <span>{label}</span>
         <span style={{ color: T.textSoft, fontWeight: 700 }}>{value}</span>
       </div>
@@ -55,12 +55,12 @@ export function Metrics({ metrics }: { metrics: Metric[] }) {
           const down = m.after < m.before;
           return (
             <div key={i} style={{ background: T.inkRaised, border: `1px solid ${T.border}`, borderRadius: 8, padding: "16px 18px" }}>
-              <div style={{ fontSize: 12, color: T.textMuted, marginBottom: 8 }}>{m.label}</div>
-              <div style={{ fontSize: 30, fontWeight: 900, color: paletteColor(m.color), lineHeight: 1 }}>
+              <div style={{ fontSize: TYPE.small, color: T.textMuted, marginBottom: 8 }}>{m.label}</div>
+              <div style={{ fontSize: TYPE.metric, fontWeight: 900, color: paletteColor(m.color), lineHeight: 1 }}>
                 {m.after}
-                <span style={{ fontSize: 15, fontWeight: 700 }}>{m.unit}</span>
+                <span style={{ fontSize: TYPE.body, fontWeight: 700 }}>{m.unit}</span>
               </div>
-              <div style={{ fontSize: 12, color: T.textMuted, marginTop: 8 }}>
+              <div style={{ fontSize: TYPE.small, color: T.textMuted, marginTop: 8 }}>
                 {hasBaseline ? (
                   <>
                     from {m.before}
@@ -98,12 +98,12 @@ export function Decisions({ decisions, accent }: { decisions: Decision[]; accent
           >
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
               <span style={{ width: 9, height: 9, background: paletteColor(d.color), borderRadius: "50%", flexShrink: 0 }} />
-              <span style={{ fontWeight: 700, fontSize: 14, color: T.text }}>{d.label}</span>
+              <span style={{ fontWeight: 700, fontSize: TYPE.body, color: T.text }}>{d.label}</span>
               {d.isChosen && (
                 <span
                   style={{
                     marginLeft: "auto",
-                    fontSize: 10,
+                    fontSize: TYPE.micro,
                     fontWeight: 800,
                     letterSpacing: 0.5,
                     color: T.ink,
@@ -136,7 +136,7 @@ export function Initiatives({ initiatives }: { initiatives: Initiative[]; accent
           <div key={i} style={{ background: T.inkRaised, border: `1px solid ${T.border}`, borderRadius: 8, padding: "14px 16px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
               <span style={{ width: 9, height: 9, background: paletteColor(it.color), borderRadius: "50%", flexShrink: 0 }} />
-              <span style={{ fontWeight: 700, fontSize: 14, color: T.text }}>{it.label}</span>
+              <span style={{ fontWeight: 700, fontSize: TYPE.body, color: T.text }}>{it.label}</span>
             </div>
             <div style={{ display: "flex", gap: 18 }}>
               <MiniBar value={it.impact} color={paletteColor(it.color)} label="Impact" />
@@ -155,7 +155,7 @@ export function Stakeholders({ stakeholders }: { stakeholders: Stakeholder[]; ac
     <Section label="Stakeholders aligned">
       <div style={{ display: "grid", gap: 8 }}>
         {stakeholders.map((s, i) => (
-          <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14 }}>
+          <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: TYPE.body }}>
             <span style={{ width: 10, height: 10, background: paletteColor(s.color), display: "inline-block", borderRadius: 2 }} />
             <span style={{ fontWeight: 700, color: T.text }}>{s.name}</span>
             <span style={{ color: T.textMuted }}>· {s.role}</span>

@@ -5,7 +5,7 @@ import { INDIE_PROJECTS } from "../projects/projects";
 import { useProgress, markEgg } from "../state/progress";
 import { CONTACT } from "../content/contact";
 import { EVENTS, track } from "../analytics/events";
-import { T, textAccent } from "../theme";
+import { T, TYPE, textAccent } from "../theme";
 
 interface Props {
   projects: Project[];
@@ -42,14 +42,14 @@ export default function FlatMap({ projects, onOpen }: Props) {
         >
           Utku Acikgoz
         </h1>
-        <p style={{ color: textAccent(T.blue), fontSize: 16, fontWeight: 700, marginTop: 6 }}>
+        <p style={{ color: textAccent(T.blue), fontSize: TYPE.body, fontWeight: 700, marginTop: 6 }}>
           Senior Technical Product Manager
         </p>
-        <p style={{ color: T.textSoft, fontSize: 14, marginTop: 12, lineHeight: 1.7, maxWidth: 560, marginInline: "auto" }}>
+        <p style={{ color: T.textSoft, fontSize: TYPE.body, marginTop: 12, lineHeight: 1.7, maxWidth: 560, marginInline: "auto" }}>
           8+ years and 11 products shipped across fintech, blockchain, HRtech & SaaS. I lead distributed
           teams and lean hard on analytics and AI to ship.
         </p>
-        <p style={{ color: T.textMuted, fontSize: 13, marginTop: 14 }}>
+        <p style={{ color: T.textMuted, fontSize: TYPE.small, marginTop: 14 }}>
           Tap a project to read the case study.
         </p>
       </header>
@@ -87,7 +87,7 @@ export default function FlatMap({ projects, onOpen }: Props) {
                     position: "absolute",
                     top: 10,
                     right: 12,
-                    fontSize: 11,
+                    fontSize: TYPE.micro,
                     fontWeight: 800,
                     letterSpacing: 0.5,
                     color: textAccent(p.accent),
@@ -98,10 +98,10 @@ export default function FlatMap({ projects, onOpen }: Props) {
               )}
               <IsoCube color={p.accent} />
               <span>
-                <span style={{ display: "block", fontSize: 20, fontWeight: 900, letterSpacing: 0.5 }}>
+                <span style={{ display: "block", fontSize: TYPE.title, fontWeight: 900, letterSpacing: 0.5 }}>
                   {p.title}
                 </span>
-                <span style={{ display: "block", fontSize: 12.5, color: T.textMuted, marginTop: 4, lineHeight: 1.5 }}>
+                <span style={{ display: "block", fontSize: TYPE.small, color: T.textMuted, marginTop: 4, lineHeight: 1.5 }}>
                   {p.tagline}
                 </span>
               </span>
@@ -112,7 +112,7 @@ export default function FlatMap({ projects, onOpen }: Props) {
 
       {INDIE_PROJECTS.length > 0 && (
         <>
-          <h2 style={{ fontSize: 14, fontWeight: 900, letterSpacing: 1.5, color: T.textMuted, margin: "40px 0 14px" }}>
+          <h2 style={{ fontSize: TYPE.body, fontWeight: 900, letterSpacing: 1.5, color: T.textMuted, margin: "40px 0 14px" }}>
             CURRENTLY BUILDING
           </h2>
           <div style={{ display: "grid", gap: 10 }}>
@@ -129,12 +129,12 @@ export default function FlatMap({ projects, onOpen }: Props) {
                 }}
               >
                 <span style={{ width: 9, height: 9, borderRadius: "50%", background: p.accent, flexShrink: 0 }} />
-                <span style={{ fontWeight: 800, fontSize: 15 }}>{p.title}</span>
-                <span style={{ fontSize: 12.5, color: T.textMuted }}>{p.glimpse ?? p.tagline}</span>
+                <span style={{ fontWeight: 800, fontSize: TYPE.body }}>{p.title}</span>
+                <span style={{ fontSize: TYPE.small, color: T.textMuted }}>{p.glimpse ?? p.tagline}</span>
                 <span
                   style={{
                     marginLeft: "auto",
-                    fontSize: 10,
+                    fontSize: TYPE.micro,
                     fontWeight: 800,
                     letterSpacing: 0.5,
                     color: textAccent(p.accent),
@@ -160,8 +160,8 @@ export default function FlatMap({ projects, onOpen }: Props) {
           textAlign: "center",
         }}
       >
-        <h2 style={{ fontSize: 22, fontWeight: 900, marginBottom: 8 }}>Like how I work?</h2>
-        <p style={{ fontSize: 14, color: T.textSoft, lineHeight: 1.6, marginBottom: 20 }}>
+        <h2 style={{ fontSize: TYPE.title, fontWeight: 900, marginBottom: 8 }}>Like how I work?</h2>
+        <p style={{ fontSize: TYPE.body, color: T.textSoft, lineHeight: 1.6, marginBottom: 20 }}>
           Open to senior product roles, and building my own products on the side. Grab a slot or take the CV.
         </p>
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap", justifyContent: "center" }}>
@@ -170,7 +170,7 @@ export default function FlatMap({ projects, onOpen }: Props) {
             target="_blank"
             rel="noopener"
             onClick={() => track(EVENTS.ctaClicked, { cta: "book_call", location: "flat_map" })}
-            style={{ padding: "12px 22px", background: T.blue, color: T.text, fontSize: 14, fontWeight: 800 }}
+            style={{ padding: "12px 22px", background: T.blue, color: T.text, fontSize: TYPE.body, fontWeight: 800 }}
           >
             Book a 20 min call →
           </a>
@@ -178,13 +178,13 @@ export default function FlatMap({ projects, onOpen }: Props) {
             href="/UtkuAcikgoz-CV.pdf"
             download
             onClick={() => track(EVENTS.cvDownloaded, { location: "flat_map" })}
-            style={{ padding: "12px 22px", border: `2px solid ${T.text}`, color: T.text, fontSize: 14, fontWeight: 800 }}
+            style={{ padding: "12px 22px", border: `2px solid ${T.text}`, color: T.text, fontSize: TYPE.body, fontWeight: 800 }}
           >
             ↓ Download CV
           </a>
           <Link
             to="/resume"
-            style={{ padding: "12px 22px", border: `2px solid ${T.mauve}`, color: T.mauve, fontSize: 14, fontWeight: 800 }}
+            style={{ padding: "12px 22px", border: `2px solid ${T.mauve}`, color: T.mauve, fontSize: TYPE.body, fontWeight: 800 }}
           >
             Full resume
           </Link>

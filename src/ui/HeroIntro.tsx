@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { Link } from "../router";
 import { usePrefersReducedMotion } from "./hooks/useReducedMotion";
 import { EVENTS, track } from "../analytics/events";
-import { T } from "../theme";
+import { T, TYPE } from "../theme";
 
 /**
  * Opening identity beat. Pure DOM: no Canvas is mounted behind it, by design
@@ -39,7 +39,7 @@ export default function HeroIntro({ onBegin }: { onBegin: () => void }) {
       }}
     >
       <img src="/utku-logo.svg" alt="" width={56} height={56} style={{ marginBottom: 20, ...rise(0) }} />
-      <p style={{ letterSpacing: 5, fontSize: 12, fontWeight: 700, color: T.textMuted, marginBottom: 16, ...rise(0.04) }}>
+      <p style={{ letterSpacing: 5, fontSize: TYPE.small, fontWeight: 700, color: T.textMuted, marginBottom: 16, ...rise(0.04) }}>
         UTKU ACIKGOZ
       </p>
       <h1 style={{ fontSize: "clamp(40px, 8vw, 82px)", fontWeight: 900, lineHeight: 1.05, maxWidth: 900 }}>
@@ -59,7 +59,7 @@ export default function HeroIntro({ onBegin }: { onBegin: () => void }) {
         8+ years across fintech, blockchain, HRtech &amp; SaaS. Explore the work as a
         world. Each island is a product I built.
       </p>
-      <p style={{ marginTop: 10, fontSize: 12.5, fontWeight: 700, color: T.textMuted, ...rise(0.31) }}>
+      <p style={{ marginTop: 10, fontSize: TYPE.small, fontWeight: 700, color: T.textMuted, ...rise(0.31) }}>
         Five career stops. One optional surf run. Resume always one click away.
       </p>
 
@@ -72,7 +72,7 @@ export default function HeroIntro({ onBegin }: { onBegin: () => void }) {
         onClick={() => track(EVENTS.ctaClicked, { cta: "resume", location: "hero" })}
         style={{
           marginTop: 18,
-          fontSize: 13,
+          fontSize: TYPE.small,
           fontWeight: 700,
           color: T.textMuted,
           textDecoration: "underline",
@@ -107,12 +107,12 @@ function ProofRow({ reduced, style }: { reduced: boolean; style: React.CSSProper
     >
       {STATS.map((s, i) => (
         <div key={s.label} style={{ display: "flex", alignItems: "center", gap: "8px 22px" }}>
-          {i > 0 && <span aria-hidden style={{ color: T.border, fontSize: 18 }}>·</span>}
+          {i > 0 && <span aria-hidden style={{ color: T.border, fontSize: TYPE.lead }}>·</span>}
           <span style={{ display: "inline-flex", alignItems: "baseline", gap: 8 }}>
-            <span style={{ fontSize: 26, fontWeight: 900, color: T.mauve, letterSpacing: 0.5 }}>
+            <span style={{ fontSize: TYPE.display, fontWeight: 900, color: T.mauve, letterSpacing: 0.5 }}>
               <CountUp target={s.n} suffix={s.suffix} reduced={reduced} />
             </span>
-            <span style={{ fontSize: 12.5, fontWeight: 600, color: T.textMuted }}>{s.label}</span>
+            <span style={{ fontSize: TYPE.small, fontWeight: 600, color: T.textMuted }}>{s.label}</span>
           </span>
         </div>
       ))}
@@ -190,7 +190,7 @@ function MagneticCTA({
       style={{
         marginTop: 34,
         padding: "16px 34px",
-        fontSize: 15,
+        fontSize: TYPE.body,
         fontWeight: 800,
         letterSpacing: 1,
         background: T.blue,
