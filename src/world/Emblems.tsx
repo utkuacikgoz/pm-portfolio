@@ -1,8 +1,8 @@
 import { useRef } from "react";
 import { useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
 import * as THREE from "three";
-import { PUBLISHED_PROJECTS, type Project, type StructureType } from "../projects/projects";
-import { islandPosition } from "./geometry";
+import { PUBLISHED_PROJECTS, type Project } from "../projects/projects";
+import { EMBLEM_HOVER, islandPosition } from "./geometry";
 import { usePrefersReducedMotion } from "../ui/hooks/useReducedMotion";
 
 // Floating low-poly domain marks make each island legible without depending on
@@ -10,15 +10,6 @@ import { usePrefersReducedMotion } from "../ui/hooks/useReducedMotion";
 
 // Hover height per structure: just above each silhouette, kept modest so a tall
 // tower's icon doesn't clip at the top of the frame.
-const HOVER_BY_STRUCTURE: Record<StructureType, number> = {
-  tower: 8.5,
-  market: 6.1,
-  campus: 6.1,
-  arcade: 6.6,
-  bridge: 6.6,
-  beacon: 6.6,
-};
-
 function DomainMark({ project }: { project: Project }) {
   const material = {
     color: project.accent,
@@ -133,7 +124,7 @@ function DomainMark({ project }: { project: Project }) {
 function Emblem({ project, index, active, reduced }: { project: Project; index: number; active: boolean; reduced: boolean }) {
   const ref = useRef<THREE.Group>(null);
   const [px, , pz] = islandPosition(index);
-  const hoverY = HOVER_BY_STRUCTURE[project.structure] ?? 8;
+  const hoverY = EMBLEM_HOVER[project.structure];
   const scale = 0.72;
 
   useFrame((state) => {
@@ -159,7 +150,7 @@ function Emblem({ project, index, active, reduced }: { project: Project; index: 
 // case study. A drag guard suppresses opens that were really camera-orbit drags.
 function Hitbox({ index, onOpen }: { index: number; onOpen: (i: number) => void }) {
   const [px, , pz] = islandPosition(index);
-  const hoverY = HOVER_BY_STRUCTURE[PUBLISHED_PROJECTS[index].structure] ?? 8;
+  const hoverY = EMBLEM_HOVER[PUBLISHED_PROJECTS[index].structure];
   const gl = useThree((s) => s.gl);
   const down = useRef<{ x: number; y: number } | null>(null);
 
