@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useProgress } from "../state/progress";
 import { CONTACT } from "../content/contact";
 import { sfx } from "../audio/sfx";
-import { T } from "../theme";
+import { T, TYPE } from "../theme";
 
 function EggLink({ children }: { children: ReactNode }) {
   return (
@@ -94,14 +94,14 @@ export default function EggToast() {
         animation: "panelIn .35s ease",
       }}
     >
-      <span aria-hidden="true" style={{ fontSize: 22, lineHeight: 1.2 }}>
+      <span aria-hidden="true" style={{ fontSize: TYPE.title, lineHeight: 1.2 }}>
         🥚
       </span>
       <div style={{ flex: 1 }}>
-        <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1, color: T.seafoam, marginBottom: 4 }}>
+        <div style={{ fontSize: TYPE.micro, fontWeight: 800, letterSpacing: 1, color: T.seafoam, marginBottom: 4 }}>
           {msg.tag}
         </div>
-        <p style={{ fontSize: 13.5, lineHeight: 1.55, color: T.text, margin: 0 }}>{msg.body}</p>
+        <p style={{ fontSize: TYPE.small, lineHeight: 1.55, color: T.text, margin: 0 }}>{msg.body}</p>
       </div>
       <button
         onClick={() => setCurrent(null)}
@@ -111,7 +111,7 @@ export default function EggToast() {
           background: "transparent",
           border: "none",
           color: T.textMuted,
-          fontSize: 16,
+          fontSize: TYPE.body,
           fontWeight: 700,
           cursor: "pointer",
           lineHeight: 1,

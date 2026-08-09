@@ -4,7 +4,7 @@ import { PUBLISHED_PROJECTS, INDIE_PROJECTS } from "../projects/projects";
 import { useProgress } from "../state/progress";
 import { CONTACT } from "../content/contact";
 import { EVENTS, track } from "../analytics/events";
-import { T, textAccent } from "../theme";
+import { T, TYPE, textAccent } from "../theme";
 
 // "WEBSITE" used to point at utkuacikgoz.com, which is now this same site; the
 // slot is worth more as the booking link.
@@ -41,7 +41,7 @@ export default function Resume() {
           padding: "10px 18px",
           border: `2px solid ${T.text}`,
           color: T.text,
-          fontSize: 13,
+          fontSize: TYPE.small,
           fontWeight: 800,
         }}
       >
@@ -51,10 +51,10 @@ export default function Resume() {
       <header style={{ marginTop: 24, marginBottom: 12 }}>
         <img src="/utku-logo.svg" alt="" width={48} height={48} style={{ marginBottom: 14 }} />
         <h1 style={{ fontSize: "clamp(34px, 8vw, 48px)", fontWeight: 900 }}>Utku Acikgoz</h1>
-        <p style={{ color: textAccent(T.blue), fontSize: 18, fontWeight: 700, marginTop: 6 }}>
+        <p style={{ color: textAccent(T.blue), fontSize: TYPE.lead, fontWeight: 700, marginTop: 6 }}>
           Senior Product Manager
         </p>
-        <p style={{ color: T.textSoft, fontSize: 15, marginTop: 12, lineHeight: 1.75 }}>
+        <p style={{ color: T.textSoft, fontSize: TYPE.body, marginTop: 12, lineHeight: 1.75 }}>
           8+ years and 11+ products shipped across fintech, blockchain, ecommerce, food delivery and
           marketplaces. I lead distributed teams, up to 25 people across Turkey, the UAE, KSA and the
           US, and lean hard on analytics and AI to ship. Certified Scrum Master (PSM I) and Product
@@ -65,7 +65,7 @@ export default function Resume() {
             href="/UtkuAcikgoz-CV.pdf"
             download
             onClick={() => track(EVENTS.cvDownloaded, { location: "resume" })}
-            style={{ padding: "9px 18px", background: T.text, color: T.ink, fontSize: 13, fontWeight: 800 }}
+            style={{ padding: "9px 18px", background: T.text, color: T.ink, fontSize: TYPE.small, fontWeight: 800 }}
           >
             ↓ DOWNLOAD CV
           </a>
@@ -76,7 +76,7 @@ export default function Resume() {
               target={c.href.startsWith("http") ? "_blank" : undefined}
               rel={c.href.startsWith("http") ? "noopener" : undefined}
               onClick={() => track(EVENTS.ctaClicked, { cta: c.id, location: "resume" })}
-              style={{ padding: "8px 16px", border: `2px solid ${c.color}`, color: textAccent(c.color), fontSize: 13, fontWeight: 700 }}
+              style={{ padding: "8px 16px", border: `2px solid ${c.color}`, color: textAccent(c.color), fontSize: TYPE.small, fontWeight: 700 }}
             >
               {c.label}
             </a>
@@ -114,12 +114,12 @@ export default function Resume() {
                 }}
               >
                 <span>
-                  <span style={{ display: "block", fontSize: 18, fontWeight: 800 }}>{p.title}</span>
-                  <span style={{ display: "block", fontSize: 13, color: T.textMuted, marginTop: 3, lineHeight: 1.5 }}>
+                  <span style={{ display: "block", fontSize: TYPE.lead, fontWeight: 800 }}>{p.title}</span>
+                  <span style={{ display: "block", fontSize: TYPE.small, color: T.textMuted, marginTop: 3, lineHeight: 1.5 }}>
                     {p.glimpse ?? p.tagline}
                   </span>
                 </span>
-                <span style={{ color: textAccent(p.accent), fontSize: 11, fontWeight: 800, letterSpacing: 0.5, whiteSpace: "nowrap" }}>
+                <span style={{ color: textAccent(p.accent), fontSize: TYPE.micro, fontWeight: 800, letterSpacing: 0.5, whiteSpace: "nowrap" }}>
                   COMING SOON
                 </span>
               </div>
@@ -134,7 +134,7 @@ export default function Resume() {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <>
-      <h2 style={{ fontSize: 20, fontWeight: 900, margin: "40px 0 18px", letterSpacing: 1 }}>{title}</h2>
+      <h2 style={{ fontSize: TYPE.title, fontWeight: 900, margin: "40px 0 18px", letterSpacing: 1 }}>{title}</h2>
       <ul style={{ listStyle: "none", display: "grid", gap: 12 }}>{children}</ul>
     </>
   );
@@ -171,13 +171,13 @@ function Row({
         }}
       >
         <span>
-          <span style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 18, fontWeight: 800 }}>
+          <span style={{ display: "flex", alignItems: "center", gap: 8, fontSize: TYPE.lead, fontWeight: 800 }}>
             {title}
-            {read && <span aria-label="read" style={{ color: textAccent(accent), fontSize: 13 }}>✓</span>}
+            {read && <span aria-label="read" style={{ color: textAccent(accent), fontSize: TYPE.small }}>✓</span>}
           </span>
-          <span style={{ display: "block", fontSize: 13, color: T.textMuted, marginTop: 3, lineHeight: 1.5 }}>{sub}</span>
+          <span style={{ display: "block", fontSize: TYPE.small, color: T.textMuted, marginTop: 3, lineHeight: 1.5 }}>{sub}</span>
         </span>
-        <span style={{ color: textAccent(accent), fontSize: 13, fontWeight: 700, whiteSpace: "nowrap" }}>{cta}</span>
+        <span style={{ color: textAccent(accent), fontSize: TYPE.small, fontWeight: 700, whiteSpace: "nowrap" }}>{cta}</span>
       </Link>
     </li>
   );

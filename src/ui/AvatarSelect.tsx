@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { usePrefersReducedMotion } from "./hooks/useReducedMotion";
 import { AVATARS, writeAvatar } from "./avatars";
-import { T } from "../theme";
+import { T, TYPE } from "../theme";
 
 // "Choose your character" gate, styled as an arcade cabinet select: pixel-stepped
 // frames, CRT scanlines, segmented stat blocks, a blinking PRESS ENTER. Fun label
@@ -75,7 +75,7 @@ export default function AvatarSelect({ onPick }: { onPick: (id: string) => void 
       />
 
       <div>
-        <p style={{ letterSpacing: 6, fontSize: 12, fontWeight: 800, color: T.textMuted, marginBottom: 6 }}>
+        <p style={{ letterSpacing: 6, fontSize: TYPE.small, fontWeight: 800, color: T.textMuted, marginBottom: 6 }}>
           SELECT YOUR CHARACTER
         </p>
         <h2
@@ -152,7 +152,7 @@ export default function AvatarSelect({ onPick }: { onPick: (id: string) => void 
 
                 <div
                   style={{
-                    fontSize: 18,
+                    fontSize: TYPE.lead,
                     fontWeight: 900,
                     letterSpacing: 0.5,
                     color: active ? a.accent : T.textSoft,
@@ -161,10 +161,10 @@ export default function AvatarSelect({ onPick }: { onPick: (id: string) => void 
                 >
                   {a.label}
                 </div>
-                <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: 1.5, color: T.textMuted, margin: "3px 0 9px" }}>
+                <div style={{ fontSize: TYPE.micro, fontWeight: 800, letterSpacing: 1.5, color: T.textMuted, margin: "3px 0 9px" }}>
                   {a.title.toUpperCase()}
                 </div>
-                <div style={{ fontSize: 12.5, color: T.textSoft, lineHeight: 1.45, minHeight: 34, marginBottom: 12 }}>
+                <div style={{ fontSize: TYPE.small, color: T.textSoft, lineHeight: 1.45, minHeight: 34, marginBottom: 12 }}>
                   {a.pun}
                 </div>
 
@@ -172,7 +172,7 @@ export default function AvatarSelect({ onPick }: { onPick: (id: string) => void 
                 <div style={{ display: "grid", gap: 6, textAlign: "left" }}>
                   {a.stats.map((s, si) => (
                     <div key={s.label} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <span style={{ width: 74, fontSize: 10, fontWeight: 700, color: T.textMuted, letterSpacing: 0.2 }}>
+                      <span style={{ width: 74, fontSize: TYPE.micro, fontWeight: 700, color: T.textMuted, letterSpacing: 0.2 }}>
                         {s.label}
                       </span>
                       <span
@@ -199,7 +199,7 @@ export default function AvatarSelect({ onPick }: { onPick: (id: string) => void 
                 <div
                   style={{
                     marginTop: 12,
-                    fontSize: 10.5,
+                    fontSize: TYPE.micro,
                     fontWeight: 900,
                     letterSpacing: 1.5,
                     color: a.accent,
@@ -215,7 +215,7 @@ export default function AvatarSelect({ onPick }: { onPick: (id: string) => void 
         })}
       </div>
 
-      <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1, color: T.textMuted }}>◄ ► SELECT&nbsp;&nbsp;&nbsp;ENTER START</p>
+      <p style={{ fontSize: TYPE.small, fontWeight: 700, letterSpacing: 1, color: T.textMuted }}>◄ ► SELECT&nbsp;&nbsp;&nbsp;ENTER START</p>
     </div>
   );
 }
