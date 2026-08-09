@@ -61,6 +61,26 @@ export const T = {
   dayWater: "#2E86AB", // bright ocean blue
 };
 
+/**
+ * Type scale. The UI had grown twenty distinct sizes, including half-steps
+ * (10.5, 12.5, 13.5, 14.5) that nobody can perceive but everybody has to keep
+ * consistent. These seven, roughly a 1.2 ratio, cover every previous use.
+ *
+ * The hero keeps its `clamp()` sizes: those are fluid by design, not steps.
+ *
+ * A test asserts no raw numeric `fontSize` survives in src, so the scale cannot
+ * quietly reacquire a 14.5.
+ */
+export const TYPE = {
+  micro: 11, // eyebrows, tags, chart legends
+  small: 13, // meta lines, chips, secondary buttons
+  body: 15, // body copy, primary controls
+  lead: 18, // subheads and lead paragraphs
+  title: 22, // section titles
+  display: 27, // panel headings
+  metric: 32, // chart figures
+} as const;
+
 // Case-study content is data, and its older accent values occur in historical
 // records. Normalize them at render time so every visible chart follows the
 // current palette without coupling content files to a presentation module.

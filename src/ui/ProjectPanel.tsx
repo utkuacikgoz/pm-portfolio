@@ -6,7 +6,7 @@ import { CONTACT } from "../content/contact";
 import { markRead } from "../state/progress";
 import { sfx } from "../audio/sfx";
 import { EVENTS, track } from "../analytics/events";
-import { T, textAccent } from "../theme";
+import { T, TYPE, textAccent } from "../theme";
 
 // Nice labels for the canonical arc, keyed by beat id so inserting a new beat
 // (e.g. BiLira's "Stablecoin & DeFi") stays correctly labelled. A beat may also
@@ -149,7 +149,7 @@ export default function ProjectPanel({ project, onClose, onNext, nextTitle }: Pr
           <span
             style={{
               display: "inline-block",
-              fontSize: 10,
+              fontSize: TYPE.micro,
               fontWeight: 800,
               letterSpacing: 1,
               color: T.ink,
@@ -161,8 +161,8 @@ export default function ProjectPanel({ project, onClose, onNext, nextTitle }: Pr
           >
             BUILDING NOW
           </span>
-          <p style={{ color: T.text, fontSize: 18, lineHeight: 1.6, marginBottom: 14 }}>{project.tagline}</p>
-          {project.glimpse && <p style={{ color: T.textMuted, fontSize: 15, lineHeight: 1.7 }}>{project.glimpse}</p>}
+          <p style={{ color: T.text, fontSize: TYPE.lead, lineHeight: 1.6, marginBottom: 14 }}>{project.tagline}</p>
+          {project.glimpse && <p style={{ color: T.textMuted, fontSize: TYPE.body, lineHeight: 1.7 }}>{project.glimpse}</p>}
           <CTA accent={project.accent} projectId={project.id} />
         </div>
       </Shell>
@@ -185,16 +185,16 @@ export default function ProjectPanel({ project, onClose, onNext, nextTitle }: Pr
             className="beat-section"
             style={{ scrollSnapAlign: "start", padding: "30px clamp(20px, 5vw, 40px) 44px" }}
           >
-            <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.5, color: textAccent(project.accent), marginBottom: 12 }}>
+            <div style={{ fontSize: TYPE.micro, fontWeight: 800, letterSpacing: 1.5, color: textAccent(project.accent), marginBottom: 12 }}>
               {String(i + 1).padStart(2, "0")} / {String(beats.length).padStart(2, "0")} · {label.toUpperCase()}
             </div>
-            <h3 style={{ color: T.text, fontSize: 27, fontWeight: 900, lineHeight: 1.15, marginBottom: 20 }}>{label}</h3>
+            <h3 style={{ color: T.text, fontSize: TYPE.display, fontWeight: 900, lineHeight: 1.15, marginBottom: 20 }}>{label}</h3>
 
             {b.body.map((p, j) => (
               <p
                 key={j}
                 style={{
-                  fontSize: 17,
+                  fontSize: TYPE.lead,
                   lineHeight: 1.7,
                   color: j === 0 ? T.text : T.textSoft,
                   marginBottom: 20,
@@ -225,7 +225,7 @@ export default function ProjectPanel({ project, onClose, onNext, nextTitle }: Pr
                   background: "transparent",
                   border: `2px solid ${project.accent}`,
                   color: textAccent(project.accent),
-                  fontSize: 14,
+                  fontSize: TYPE.body,
                   fontWeight: 800,
                   letterSpacing: 0.3,
                   cursor: "pointer",
@@ -257,8 +257,8 @@ function Lead({ text }: { text: string }) {
 function InsightCallout({ accent, text }: { accent: string; text: string }) {
   return (
     <div style={{ margin: "30px 0 6px", paddingLeft: 20, borderLeft: `3px solid ${accent}` }}>
-      <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: 2, color: textAccent(accent), marginBottom: 8 }}>THE INSIGHT</div>
-      <p style={{ fontSize: 19, lineHeight: 1.45, fontWeight: 800, color: T.text, letterSpacing: -0.2 }}>{text}</p>
+      <div style={{ fontSize: TYPE.micro, fontWeight: 800, letterSpacing: 2, color: textAccent(accent), marginBottom: 8 }}>THE INSIGHT</div>
+      <p style={{ fontSize: TYPE.lead, lineHeight: 1.45, fontWeight: 800, color: T.text, letterSpacing: -0.2 }}>{text}</p>
     </div>
   );
 }
@@ -266,8 +266,8 @@ function InsightCallout({ accent, text }: { accent: string; text: string }) {
 function CTA({ accent, projectId }: { accent: string; projectId: string }) {
   return (
     <div style={{ marginTop: 36, padding: "26px 24px", background: `${accent}12`, border: `1.5px solid ${accent}`, borderRadius: 12 }}>
-      <h3 style={{ fontSize: 22, fontWeight: 900, marginBottom: 8 }}>Like how I work?</h3>
-      <p style={{ fontSize: 14.5, color: T.textSoft, lineHeight: 1.6, marginBottom: 20 }}>
+      <h3 style={{ fontSize: TYPE.title, fontWeight: 900, marginBottom: 8 }}>Like how I work?</h3>
+      <p style={{ fontSize: TYPE.body, color: T.textSoft, lineHeight: 1.6, marginBottom: 20 }}>
         I'm open to senior product roles, and I build my own products on the side. If you want to talk, grab a slot or drop me a line.
       </p>
       <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
@@ -276,14 +276,14 @@ function CTA({ accent, projectId }: { accent: string; projectId: string }) {
           target="_blank"
           rel="noopener"
           onClick={() => track(EVENTS.ctaClicked, { cta: "book_call", location: "case_study", project_id: projectId })}
-          style={{ padding: "12px 22px", background: accent, color: T.ink, fontSize: 14, fontWeight: 800, letterSpacing: 0.3 }}
+          style={{ padding: "12px 22px", background: accent, color: T.ink, fontSize: TYPE.body, fontWeight: 800, letterSpacing: 0.3 }}
         >
           Book a 20 min call →
         </a>
         <a
           href={`mailto:${CONTACT.email}`}
           onClick={() => track(EVENTS.ctaClicked, { cta: "email", location: "case_study", project_id: projectId })}
-          style={{ padding: "12px 22px", border: `2px solid ${accent}`, color: textAccent(accent), fontSize: 14, fontWeight: 800 }}
+          style={{ padding: "12px 22px", border: `2px solid ${accent}`, color: textAccent(accent), fontSize: TYPE.body, fontWeight: 800 }}
         >
           Email me
         </a>
@@ -322,7 +322,7 @@ function StickyHeader({
       }}
     >
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
-        <h2 style={{ fontSize: 20, fontWeight: 900, letterSpacing: -0.3, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+        <h2 style={{ fontSize: TYPE.title, fontWeight: 900, letterSpacing: -0.3, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
           {title}
         </h2>
         <button
@@ -336,7 +336,7 @@ function StickyHeader({
             width: 34,
             height: 34,
             cursor: "pointer",
-            fontSize: 15,
+            fontSize: TYPE.body,
             fontWeight: 700,
             lineHeight: 1,
           }}
