@@ -8,6 +8,8 @@ import {
   islandBaseZ,
   islandPosition,
   buildWorld,
+  structureTop,
+  EMBLEM_HOVER,
 } from "./geometry";
 import { PUBLISHED_PROJECTS } from "../projects/projects";
 
@@ -60,5 +62,35 @@ describe("buildWorld", () => {
 
   it("returns no cubes for an empty registry", () => {
     expect(buildWorld([])).toEqual([]);
+  });
+});
+
+describe("island silhouettes", () => {
+  // Every published island has to hold its own from the rail camera. Mestores
+  // and Apollo used to top out at 2.5 against an 8.4-wide island, so two of the
+  // five read as a disc with cubes on it while their emblems floated unmoored.
+  const MIN_PRESENCE = 4.5;
+
+  it("gives every published structure real vertical presence", () => {
+    for (const project of PUBLISHED_PROJECTS) {
+      expect(structureTop(project.structure)).toBeGreaterThanOrEqual(MIN_PRESENCE);
+    }
+  });
+
+  it("floats each emblem clear of its own structure", () => {
+    // The tower used to punch through its emblem: 9.1 of spire under a 8.5 hover.
+    for (const project of PUBLISHED_PROJECTS) {
+      expect(EMBLEM_HOVER[project.structure]).toBeGreaterThan(
+        structureTop(project.structure) + 1
+      );
+    }
+  });
+
+  it("does not let the skyline decay along the travel order", () => {
+    // Heights descending monotonically made the world read as running out of
+    // steam rather than as five distinct places.
+    const heights = PUBLISHED_PROJECTS.map((p) => structureTop(p.structure));
+    const strictlyDescending = heights.every((h, i) => i === 0 || h < heights[i - 1]);
+    expect(strictlyDescending).toBe(false);
   });
 });

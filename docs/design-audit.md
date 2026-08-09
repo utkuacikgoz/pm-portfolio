@@ -87,7 +87,7 @@ Two lesser ones: `T.border` (`#5B4F4B`) is 1.93 against `inkRaised`, under the
 3.0 bar for a boundary that is the only thing defining a control; and
 `textMuted` on `surface` is 4.18, just under AA.
 
-## 3. Shapes: the silhouette hierarchy is accidental
+## 3. Shapes: the silhouette hierarchy is accidental [FIXED]
 
 Structure heights, computed from `buildStructure`, against an island that is
 about 8.4 units wide:
@@ -112,8 +112,30 @@ layer's accent tint and the structure differ. Varying the radii or the plan
 shape per island (a seed is already threaded in) would make each one read as a
 place rather than the same plate five times.
 
-Neither is a bug. Both are decisions worth making deliberately rather than
-inheriting.
+**Fixed for silhouettes.** Mestores gained a sign mast and hanging board, Apollo
+a central block with a beacon and cross arm, and Upshift's span was lifted onto
+taller pylons:
+
+| Project | Structure | Was | Now | Emblem |
+| --- | --- | --- | --- | --- |
+| BiLira | tower | 9.1 | 9.1 | 10.6 |
+| Mestores | market | 2.5 | 6.2 | 8.0 |
+| Apollo | campus | 2.5 | 6.7 | 8.4 |
+| La3eb | arcade | 5.1 | 5.1 | 6.8 |
+| Upshift | bridge | 3.1 | 5.3 | 7.2 |
+
+The emblem hover table moved from `Emblems.tsx` into `geometry.ts` so it can be
+tested against the real structure heights. It had drifted in both directions:
+emblems floated at 6.1 over 2.5-tall structures, while the 9.1 tower punched
+straight through its own emblem at 8.5. Three invariants now hold it: every
+published structure clears 4.5, every emblem clears its structure by at least 1,
+and the skyline is not allowed to descend monotonically along the travel order.
+
+**Terrain variance is deliberately NOT done.** Varying island radii per seed
+would desync the fake contact shadows in `Ocean.tsx`, which are drawn at a fixed
+`scale={[1.35, 0.62, 1]}` per island with no knowledge of the terrain radius. It
+is worth doing, but the shadow decals have to become radius-aware in the same
+change, and that wants a browser.
 
 ## 4. Typography has no scale [FIXED]
 
