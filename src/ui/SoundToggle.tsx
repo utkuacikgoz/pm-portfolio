@@ -1,5 +1,5 @@
 import { sfx, useSound } from "../audio/sfx";
-import { T } from "../theme";
+import { T, TYPE } from "../theme";
 
 /**
  * Bottom-left speaker toggle. Sound (waterfall bed + interaction SFX) is ON by
@@ -29,7 +29,7 @@ export default function SoundToggle() {
         background: "rgba(29,24,22,0.8)",
         border: `1px solid ${T.border}`,
         color: T.textSoft,
-        fontSize: 18,
+        fontSize: TYPE.lead,
         cursor: "pointer",
         backdropFilter: "blur(6px)",
       }}

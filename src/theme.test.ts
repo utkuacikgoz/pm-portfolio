@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { T, paletteColor, textAccent } from "./theme";
+import { T, TYPE, paletteColor, textAccent } from "./theme";
 import { PROJECTS } from "./projects/projects";
 
 /** WCAG relative luminance. */
@@ -37,6 +37,41 @@ describe("palette contract", () => {
   it("uses only active palette accents for project surfaces", () => {
     const accents = new Set([T.blue, T.gold, T.coral, T.mauve, T.seafoam]);
     expect(PROJECTS.every((project) => accents.has(project.accent))).toBe(true);
+  });
+});
+
+describe("type scale", () => {
+  it("has strictly ascending steps", () => {
+    const steps = Object.values(TYPE);
+    expect(steps).toEqual([...steps].sort((a, b) => a - b));
+    expect(new Set(steps).size).toBe(steps.length);
+  });
+
+  it("uses no raw numeric font sizes anywhere in the UI", () => {
+    // The scale is only worth having if it is the only way to set a size. This
+    // reads the source rather than trusting review: the UI previously drifted to
+    // twenty sizes, four of them invisible half-steps.
+    //
+    // import.meta.glob rather than node:fs, so this stays inside the app's
+    // browser-typed project and needs no node types.
+    const sources = import.meta.glob("./**/*.{ts,tsx}", {
+      query: "?raw",
+      import: "default",
+      eager: true,
+    }) as Record<string, string>;
+
+    const offenders: string[] = [];
+    for (const [file, source] of Object.entries(sources)) {
+      if (/\.test\.tsx?$/.test(file)) continue;
+      source.split("\n").forEach((line, i) => {
+        // clamp() sizes on the hero are fluid by design, not steps.
+        if (/fontSize[:=]\s*"?[0-9]/.test(line) && !line.includes("clamp(")) {
+          offenders.push(`${file}:${i + 1}`);
+        }
+      });
+    }
+
+    expect(offenders).toEqual([]);
   });
 });
 
