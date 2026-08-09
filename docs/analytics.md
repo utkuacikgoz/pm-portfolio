@@ -55,6 +55,7 @@ on every restyle. These named events are the funnel:
 | `surf_entered` | free surf mode entered | |
 | `surf_run_completed` | all 42 collectibles found | |
 | `easter_egg_found` | konami or "hire" typed | `egg` |
+| `app_crashed` | a render threw and a fallback was shown | `area`, `message`, `fatal` |
 
 The two funnels worth saving in PostHog:
 
@@ -62,6 +63,17 @@ The two funnels worth saving in PostHog:
    `cta_clicked` (or `cv_downloaded`). Break down by `channel`.
 2. **Skip funnel**: `$pageview` → `resume_opened` without `world_entered`. If
    this dominates, the world is a toll booth, not a hook.
+
+### Errors
+
+`capture_exceptions` is on, so unhandled errors and promise rejections reach
+PostHog on their own. On top of that, two React error boundaries report
+`app_crashed`: one around the 3D world (`area: "world"`, `fatal: false`, since it
+degrades to the flat map) and one around the whole app (`area: "app"`,
+`fatal: true`, which used to be a blank white page).
+
+Worth an alert. A crash on a recruiter's device is otherwise indistinguishable
+from a visitor who simply did not engage.
 
 ## Attribution
 

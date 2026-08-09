@@ -49,6 +49,10 @@ function initPostHog() {
       capture_pageleave: true,
       defaults: "2026-05-30",
       person_profiles: "identified_only",
+      // Unhandled errors and promise rejections, not just the ones a React
+      // boundary catches. A white screen on a recruiter's phone is otherwise
+      // indistinguishable from a visitor who did not engage.
+      capture_exceptions: true,
       // Replay is the only way to see how a recruiter actually moves through a
       // 3D portfolio (do they explore, or bolt for the resume?). Every string
       // and input is masked: the visitor's own screen is not the data we want.
