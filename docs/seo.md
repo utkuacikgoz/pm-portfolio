@@ -70,7 +70,10 @@ it. Two things to keep true outside the code:
 
 - any other hostname that still serves this app (an old subdomain, the
   `*.vercel.app` URL) should **301 to the apex**, not serve a copy;
-- the OG image at `/og-image.png` must stay 2400x1260.
+- the OG image at `/og-image.jpg` must stay 2400x1260. It is generated:
+  `npm run gen:og` renders `scripts/og-image.svg` (headless Chrome) and encodes
+  JPEG at q80. Edit the SVG, never the export. It carries the domain and the
+  five project accents, both of which have drifted before.
 
 ## Checks worth running after a change
 

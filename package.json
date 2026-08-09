@@ -17,7 +17,8 @@
     "coverage": "vitest run --coverage",
     "knip": "npx --yes knip@5",
     "gen:avatars": "node scripts/gen-avatars.mjs",
-    "utm": "node scripts/utm.mjs"
+    "utm": "node scripts/utm.mjs",
+    "gen:og": "node scripts/gen-og.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.8",

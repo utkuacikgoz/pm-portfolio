@@ -40,13 +40,13 @@
     <text x="180" y="880" font-family="Helvetica, Arial, sans-serif" font-size="46" font-weight="500" fill="#d7dbe6">8+ years across fintech, blockchain, HRtech and SaaS. 11 products shipped.</text>
 
     <g font-family="Helvetica, Arial, sans-serif" font-size="44" font-weight="700">
-      <text x="180" y="1030" fill="#6E86D6">BiLira</text>
-      <text x="400" y="1030" fill="#E0A45C">Mestores</text>
-      <text x="720" y="1030" fill="#3FA46A">Apollo</text>
-      <text x="950" y="1030" fill="#CB7BC7">La3eb</text>
-      <text x="1180" y="1030" fill="#E7684A">Upshift</text>
+      <text x="180" y="1030" fill="#7789D6">BiLira</text>
+      <text x="400" y="1030" fill="#EAC435">Mestores</text>
+      <text x="720" y="1030" fill="#D76F53">Apollo</text>
+      <text x="950" y="1030" fill="#C57EC2">La3eb</text>
+      <text x="1180" y="1030" fill="#80B192">Upshift</text>
     </g>
 
-    <text x="2220" y="1150" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="38" font-weight="600" fill="#aab0c0">portfolio.utkuacikgoz.com</text>
+    <text x="2220" y="1150" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="38" font-weight="600" fill="#aab0c0">utkuacikgoz.com</text>
   </g>
 </svg>
