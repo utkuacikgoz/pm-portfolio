@@ -155,6 +155,9 @@ function buildStructure(type: StructureType, accent: string): Cube[] {
       break;
     }
     case "market": {
+      // Stalls alone topped out at 2.5 against a 8.4-wide island, so this read
+      // as a plate with cubes on it and the emblem looked unmoored. The sign
+      // mast gives the storefront a silhouette you can pick out from the rail.
       const spots: [number, number][] = [
         [-2.2, -1],
         [1.4, -2.2],
@@ -165,15 +168,23 @@ function buildStructure(type: StructureType, accent: string): Cube[] {
         out.push(block(x, 1, z, i % 2 ? accent : deep, [2, 1, 2]));
         out.push(block(x, 2, z, bright)); // peaked cap
       });
+      out.push(block(0, 1, 0, deep, [0.6, 5, 0.6])); // sign mast
+      out.push(block(0, 5.2, 0, bright, [2.6, 1.2, 0.5])); // hanging board
+      out.push(block(0, 6.2, 0, accent, [0.5, 0.5, 0.5])); // finial
       break;
     }
     case "campus": {
+      // Same problem as market: two low pavilions and nothing above them. The
+      // central block plus its beacon give the campus a centre to read.
       out.push(block(-2, 1, 0, accent, [2, 1, 3]));
       out.push(block(1.5, 1, 0, deep, [2, 1, 4]));
       out.push(block(-0.2, 1, 0, bright, [1, 1, 1])); // connector
       out.push(block(-2, 2, 0, bright));
       out.push(block(1.5, 2, 1, bright));
       out.push(block(1.5, 2, -1, accent));
+      out.push(block(-0.2, 1, 0, accent, [1.8, 5, 1.8])); // main block
+      out.push(block(-0.2, 5.8, 0, bright, [0.6, 1.4, 0.6])); // beacon
+      out.push(block(-0.2, 6.1, 0, bright, [1.6, 0.5, 0.5])); // cross arm
       break;
     }
     case "arcade": {
@@ -190,11 +201,13 @@ function buildStructure(type: StructureType, accent: string): Cube[] {
       break;
     }
     case "bridge": {
-      out.push(block(-2.6, 1, 0, accent, [2, 2, 2]));
-      out.push(block(2.6, 1, 0, deep, [2, 2, 2]));
-      for (let x = -1.5; x <= 1.5; x++) out.push(block(x, 2, 0, bright));
-      out.push(block(-2.6, 3, 0, bright, [0.5, 0.6, 0.5]));
-      out.push(block(2.6, 3, 0, bright, [0.5, 0.6, 0.5]));
+      // Taller pylons carrying a raised deck: a two-sided span reads as a span
+      // when it is above the ground, not resting on it.
+      out.push(block(-2.6, 1, 0, accent, [2, 4, 2]));
+      out.push(block(2.6, 1, 0, deep, [2, 4, 2]));
+      for (let x = -1.5; x <= 1.5; x++) out.push(block(x, 4, 0, bright));
+      out.push(block(-2.6, 5, 0, bright, [0.5, 0.8, 0.5]));
+      out.push(block(2.6, 5, 0, bright, [0.5, 0.8, 0.5]));
       break;
     }
     case "beacon":
@@ -206,6 +219,31 @@ function buildStructure(type: StructureType, accent: string): Cube[] {
   }
   return out;
 }
+
+/** Highest point of a structure archetype, in island-local Y. */
+export function structureTop(type: StructureType): number {
+  return buildStructure(type, "#888888").reduce(
+    (top, c) => Math.max(top, c.position[1] + c.scale[1] / 2),
+    0
+  );
+}
+
+/**
+ * How high each domain emblem floats above its island.
+ *
+ * Lives here rather than in Emblems.tsx so it can be tested against the actual
+ * structure heights. It used to drift out of sync in both directions: the
+ * emblem sat at 6.1 over structures only 2.5 tall (an icon adrift over a flat
+ * plate), while the 9.1 tower punched straight through its own emblem at 8.5.
+ */
+export const EMBLEM_HOVER: Record<StructureType, number> = {
+  tower: 10.6,
+  market: 8.0,
+  campus: 8.4,
+  arcade: 6.8,
+  bridge: 7.2,
+  beacon: 6.8,
+};
 
 /** All cubes for all islands, flattened into one list → one InstancedMesh. */
 export function buildWorld(projects: Project[]): Cube[] {
