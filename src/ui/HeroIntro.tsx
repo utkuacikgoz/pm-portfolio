@@ -60,7 +60,7 @@ export default function HeroIntro({ onBegin }: { onBegin: () => void }) {
         world. Each island is a product I built.
       </p>
       <p style={{ marginTop: 10, fontSize: TYPE.small, fontWeight: 700, color: T.textMuted, ...rise(0.31) }}>
-        Five career stops. One optional surf run. Resume always one click away.
+        Five of them up close. One optional surf run. Resume always one click away.
       </p>
 
       <ProofRow reduced={reduced} style={rise(0.38)} />
@@ -87,7 +87,7 @@ export default function HeroIntro({ onBegin }: { onBegin: () => void }) {
 
 // ── Proof metrics: recruiter-skimmable numbers that count up on entry ─────────
 const STATS: { n: number; suffix: string; label: string }[] = [
-  { n: 11, suffix: "", label: "products shipped" },
+  { n: 11, suffix: "+", label: "products shipped" },
   { n: 100, suffix: "K+", label: "users reached" },
   { n: 8, suffix: "+", label: "years in product" },
 ];
