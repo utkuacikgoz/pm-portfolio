@@ -56,6 +56,9 @@ on every restyle. These named events are the funnel:
 | `surf_run_completed` | all 42 collectibles found | |
 | `easter_egg_found` | konami or "hire" typed | `egg` |
 
+**Setting these up: `docs/posthog-setup.md`** has the click-through. Until those
+funnels exist, none of this instrumentation is being read.
+
 The two funnels worth saving in PostHog:
 
 1. **Recruiter funnel**: `$pageview` → `case_study_opened` → `case_study_read` →
