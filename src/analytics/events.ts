@@ -25,6 +25,8 @@ export const EVENTS = {
   surfEntered: "surf_entered",
   surfRunCompleted: "surf_run_completed",
   easterEggFound: "easter_egg_found",
+  /** A render threw and a fallback was shown. Rare, and worth knowing about. */
+  appCrashed: "app_crashed",
 } as const;
 
 type EventName = (typeof EVENTS)[keyof typeof EVENTS];
