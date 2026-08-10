@@ -59,21 +59,6 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 900;
 }
 
-/* Keyboard focus, visible everywhere.
-   Only the skip link used to be styled, so every other control fell back to the
-   browser default ring, which is often invisible against dark taupe. The world
-   has a full sr-only keyboard path (WorldNav), and it is worth being able to see
-   where you are on it.
-
-   #7789D6 is the one brand colour that clears the 3.0 non-text contrast bar
-   against BOTH the dark panels (5.30) and the white escape-hatch button (3.18).
-   :focus-visible, not :focus, so it appears for keyboards and not mouse clicks. */
-:focus-visible {
-  outline: 3px solid #7789d6;
-  outline-offset: 2px;
-  border-radius: 2px;
-}
-
 /* Visually hidden but available to screen readers / keyboard focus. */
 .sr-only {
   position: absolute;
@@ -104,8 +89,12 @@ h1, h2, h3, h4, h5, h6 {
   top: 16px;
 }
 
+/* Keyboard focus ring. Mauve (#C57EC2) reads fine on the dark panels at 5.98,
+   but measures 2.82 against the white escape-hatch button, under the 3.0
+   non-text contrast bar. #7789D6 is the one brand colour clearing 3.0 on BOTH
+   (5.30 dark, 3.18 white), and 3px is easier to spot against a busy 3D scene. */
 :focus-visible {
-  outline: 2px solid #C57EC2;
+  outline: 3px solid #7789d6;
   outline-offset: 2px;
 }
 
