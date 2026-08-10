@@ -318,7 +318,7 @@ export default function WorldExperience() {
       {/* Static-until-enter: the heavy WebGL world (and three.js) mounts only once
           you enter (or deep-link a project). The bare landing stays pure DOM. */}
       {mode === "world" && (entered || panelOpen) ? (
-        <ErrorBoundary fallback={<FlatMap projects={projects} onOpen={open} />}>
+        <ErrorBoundary area="world" fallback={<FlatMap projects={projects} onOpen={open} />}>
           <Suspense fallback={<WorldLoading />}>
             <World
               activeIndex={active}
