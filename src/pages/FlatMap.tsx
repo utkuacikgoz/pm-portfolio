@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import { Link } from "../router";
 import type { Project } from "../projects/projects";
-import { INDIE_PROJECTS } from "../projects/projects";
+import { INDIE_PROJECTS, attributionLine } from "../projects/projects";
 import { useProgress, markEgg } from "../state/progress";
 import { CONTACT } from "../content/contact";
 import { EVENTS, track } from "../analytics/events";
@@ -46,7 +46,7 @@ export default function FlatMap({ projects, onOpen }: Props) {
           Senior Technical Product Manager
         </p>
         <p style={{ color: T.textSoft, fontSize: TYPE.body, marginTop: 12, lineHeight: 1.7, maxWidth: 560, marginInline: "auto" }}>
-          8+ years and 11 products shipped across fintech, blockchain, HRtech & SaaS. I lead distributed
+          8+ years and 11+ products shipped across fintech, blockchain, HRtech & SaaS. I lead distributed
           teams and lean hard on analytics and AI to ship.
         </p>
         <p style={{ color: T.textMuted, fontSize: TYPE.small, marginTop: 14 }}>
@@ -104,6 +104,11 @@ export default function FlatMap({ projects, onOpen }: Props) {
                 <span style={{ display: "block", fontSize: TYPE.small, color: T.textMuted, marginTop: 4, lineHeight: 1.5 }}>
                   {p.tagline}
                 </span>
+                {attributionLine(p) && (
+                  <span style={{ display: "block", fontSize: TYPE.micro, color: T.textMuted, marginTop: 5 }}>
+                    {attributionLine(p)}
+                  </span>
+                )}
               </span>
             </button>
           );

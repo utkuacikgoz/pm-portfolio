@@ -103,17 +103,30 @@ Single source of truth → single Canvas → one draw path.
   `npm run utm -- --list` prints the tagged links to paste per channel.
 
 ## Content truth (IMPORTANT)
-The real CV is the source of truth (Senior PM, 8+ yrs; roles: **BiLira, Upshift, Lean
-Scale, Technolera**). The portfolio's `apollo / la3eb / mestores / mona` are NOT separate
-CV roles — likely Lean Scale/Technolera client work or embellished — and several studies
-had numbers **bolder than the CV** (e.g. BiLira "92%" vs CV "35%"). The CV is linked from
-the site, so inconsistencies are a credibility risk. **All 5 visible studies are now
-voice-rewritten with insight callouts. BiLira uses CV-accurate numbers; the other 4 KEEP
-their original (bolder-than-CV) numbers — the user explicitly said "do not touch" the
-facts. Mona (hidden) is still original AI-ish copy.** Real BiLira facts:
-100K+ users, 150+ assets, 5+ chains, 25-person team, −35% review time, 99.7% accuracy,
-−40% false positives, Chainalysis/Notabene, OTC 500→275ms / +45%, Trade API 50M calls/mo /
-99.9% uptime, releases quarterly→bi-weekly, 0 breaches.
+The real CV (`public/UtkuAcikgoz-CV.pdf`) is the source of truth. It lists **four
+employers**: BiLira (Senior PM, 2025 to present), Upshift (Senior PM, 2022 to
+2025), Lean Scale (PM, 2020 to 2022), Technolera (Product Owner, 2018 to 2020).
+
+**Resolved 2026-08-10.** The world shows five islands, and three of them
+(Mestores, Apollo, La3eb) are **client engagements delivered during Lean Scale**,
+confirmed by Utku. They are not separate jobs. Every published project now
+carries `role` / `org` / `period` (+ `clientWork`) in the registry, rendered by
+`attributionLine()` on the panel, the resume, the flat map and the crawlable
+summaries, and a test asserts every project maps to an employer that exists on
+the CV. Do not add a project without one. The hero says "five products shipped",
+not "career stops", for the same reason.
+
+**Upshift's numbers are real**, per Utku: the site's churn 8% to 4%, $30M ARR and
+$5M contracts are accurate, the CV bullets simply chose the HR-ops and RevOps
+story instead (NPS 32 to 50, hiring cycle 45 to 34 days, ROI +22%). The two
+documents describe the same job from different angles rather than disagreeing.
+Worth adding a churn bullet to the CV so they corroborate each other; until then
+the site is the only place that story appears.
+
+**BiLira matches the CV exactly** (35% review time, 99.7% accuracy, 40% fewer
+false positives, 500ms to 275ms, +45% throughput, 50M+ calls/month, 99.9%
+uptime, quarterly to bi-weekly, 0 breaches). Real BiLira facts: 100K+ users,
+150+ assets, 5+ chains, 25-person team, Chainalysis/Notabene.
 
 Indie products (shown as light "glimpse" panels, `published:true`, no full case study):
 **Buyback Signal** (trading-signal bot), **PassATS**, **Cofoundr** (co-founder matching).

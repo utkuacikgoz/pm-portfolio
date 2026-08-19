@@ -1,4 +1,4 @@
-import { PUBLISHED_PROJECTS, type Project } from "../projects/projects";
+import { PUBLISHED_PROJECTS, attributionLine, type Project } from "../projects/projects";
 
 // Single source of truth for everything a crawler or a link preview reads.
 // Imported twice on purpose:
@@ -96,6 +96,7 @@ function projectRoute(project: Project, index: number): SeoRoute {
     description: clamp(`${tagline}. ${lead(project)}`),
     summary: [
       `${project.title}: ${tagline}.`,
+      ...(attributionLine(project) ? [attributionLine(project) as string] : []),
       ...beats.slice(0, 3).map((b) => b.body[0]).filter(Boolean),
     ],
     priority: 0.8,
@@ -132,11 +133,13 @@ const HOME: SeoRoute = {
   path: "/",
   title: `${AUTHOR}, ${JOB_TITLE}`,
   description:
-    "Senior product manager, 8+ years across fintech, blockchain, HRtech and SaaS, 11 products shipped. Explore the work as an interactive world, or skip to the resume.",
+    "Senior product manager, 8+ years across fintech, blockchain, HRtech and SaaS, 11+ products shipped. Explore the work as an interactive world, or skip to the resume.",
   summary: [
     `${AUTHOR}, ${JOB_TITLE}.`,
-    "8+ years across fintech, blockchain, HRtech and SaaS. 11 products shipped.",
-    ...PUBLISHED_PROJECTS.map((p) => `${p.title}: ${prose(p.tagline)}.`),
+    "8+ years across fintech, blockchain, HRtech and SaaS. 11+ products shipped.",
+    ...PUBLISHED_PROJECTS.map(
+      (p) => `${p.title}: ${prose(p.tagline)}.${attributionLine(p) ? ` ${attributionLine(p)}.` : ""}`
+    ),
   ],
   priority: 1,
   jsonLd: [
@@ -144,7 +147,7 @@ const HOME: SeoRoute = {
       "@context": "https://schema.org",
       ...person,
       description:
-        "Senior product manager with 8+ years across fintech, blockchain, HRtech and SaaS; 11 products shipped.",
+        "Senior product manager with 8+ years across fintech, blockchain, HRtech and SaaS; 11+ products shipped.",
       knowsAbout: [
         "Product Management",
         "Technical Product Management",
