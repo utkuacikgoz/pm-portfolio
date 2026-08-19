@@ -191,23 +191,41 @@ chain end-to-end, no per-step hand-holding:
    interactive). I have no browser, so visual/interaction QA still has to be eyeballed on the
    resulting prod/preview URL.
 
-## Status & next steps (as of 2026-06-07)
-- **Done (Increment 1):** full architecture + all 5 employment islands navigable; BiLira
-  fully fleshed; content bug in `bilira.ts` (mis-nested `metrics`) fixed.
-- **Done (quick-win batch):** `vercel.json` SPA rewrite (deep links no longer 404 in
-  prod); `index.html` real title + OG/Twitter meta; WebGL probe cached in
-  `useExperienceMode`; `npm audit fix` (high rollup + postcss cleared; 2 dev-only Vite/
-  esbuild moderates remain, need breaking Vite 6).
-- **Done (dead-code cleanup):** deleted the orphaned old portfolio — `pages/LandingPage`,
-  `pages/CaseStudyPage`, all of `src/components/*`, `content/useCaseStudy`, the
-  `*-with-viz`/`bilira-enhanced` drafts, `cases.json`, `assets/react.svg`,
-  `public/vite.svg`, empty `App.css`. Whole repo now type-checks clean (`tsc` 0 errors).
-- **Done (dep upgrade + Increment 2):** upgraded to React 19 / r3f 9 / drei 10 / three
-  0.184 / router 7 / Vite 6 / TS 6 (0 vulns); retuned lighting for PBR; spline-rail camera
-  with weaving island path + idle drift; richer per-domain structures + foliage. Staging on
-  branch `voxel-world`.
-- **Known gaps / TODO (see audits):**
-  - No résumé PDF, no analytics, thin "about/positioning", no social proof — business gaps.
-  - Real 1200×630 PNG OG image (currently the SVG logo, renders inconsistently on socials).
-  - Indie products (PassATS, Stats XI) still hidden — flip `published` + add content when ready.
-  - Visual tuning of lighting/structures is unverified by Claude (no browser) — eyeball on staging.
+## Status & next steps (as of 2026-08-20)
+
+The long "Done" log that used to live here described work from June and had gone
+stale enough to mislead: it listed the CV, analytics, the OG image and the fonts
+as missing months after each shipped. Git history is the record of what was done.
+This section is only what is *true now* and what is *left*.
+
+**Shipped and verified in production**
+- Architecture per the section above: one Canvas, one registry, DOM overlay.
+- `public/UtkuAcikgoz-CV.pdf` is live and linked from the resume.
+- PostHog is live: the token is set in Vercel and baked into the deployed bundle,
+  `/ingest` proxies, funnel events and UTM attribution are recorded.
+- Real `og-image.jpg` (198 KB, generated from source by `scripts/gen-og.mjs`).
+- Fonts are self-hosted and cached immutable; three.js and posthog are both off
+  the critical path.
+- The apex `https://utkuacikgoz.com` serves with its own certificate, so
+  `SITE_URL` and every canonical / og:url finally resolve.
+- Every route has one `<h1>` and a `<main>`, moving between the world and the
+  resume moves focus, and the panel's section jumps carry real ARIA.
+
+**Open, roughly by value**
+- `www.utkuacikgoz.com` and `portfolio.utkuacikgoz.com` still return 200 with the
+  full site instead of a 308 to the apex. Three hosts serving identical content
+  splits analytics and link previews. Vercel dashboard fix, no code.
+- Content-Security-Policy is the last missing security header. Ship it
+  `Content-Security-Policy-Report-Only` first: inline styles need
+  `'unsafe-inline'` in `style-src` and PostHog's recorder needs `blob:` workers.
+  See `docs/dependency-audit.md`.
+- CI hardening: pin actions to commit SHAs, add a `concurrency` block so
+  superseded PR runs cancel.
+- `src/router.tsx` drops `search` and `hash` from the pathname. Nothing depends
+  on either today, so it is latent rather than broken; it bites the first time a
+  link carries a query or a fragment.
+- Business gaps, needing Utku rather than code: thin about/positioning, no social
+  proof. Indie products (PassATS, Stats XI) stay hidden until there is content;
+  flipping `published` is the whole mechanism.
+- Visual tuning of lighting and structures is still unverified by Claude (no
+  browser). Eyeball anything that moves the 3D scene on a preview URL.

@@ -31,7 +31,7 @@ export default function Resume() {
   }, []);
 
   return (
-    <main className="page-in" style={{ minHeight: "100vh", padding: "64px 24px 96px", maxWidth: 800, margin: "0 auto" }}>
+    <main tabIndex={-1} className="page-in" style={{ minHeight: "100vh", padding: "64px 24px 96px", maxWidth: 800, margin: "0 auto", outline: "none" }}>
       <Link
         to="/"
         style={{

@@ -63,10 +63,6 @@ describe("portfolio journey", () => {
       return 1;
     });
     vi.stubGlobal("cancelAnimationFrame", vi.fn());
-    Object.defineProperty(HTMLElement.prototype, "scrollTo", {
-      configurable: true,
-      value: vi.fn(),
-    });
     vi.stubGlobal("matchMedia", vi.fn().mockReturnValue({
       matches: true,
       addEventListener: vi.fn(),
