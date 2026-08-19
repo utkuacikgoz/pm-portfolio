@@ -1,13 +1,13 @@
 # Dependency and delivery audit
 
-Snapshot: 2026-08-07. Re-run the commands under "How to redo this" to refresh it.
+Snapshot: 2026-08-19. Re-run the commands under "How to redo this" to refresh it.
 
 ## Where it stands
 
 | Area | State |
 | --- | --- |
 | Production dependencies | 0 advisories |
-| Dev dependencies | 1 high, dev-only, no fix available (js-yaml via eslint) |
+| Dev dependencies | 0 advisories |
 | Outdated majors | 4, every one deliberately held, reasons below |
 | Static asset caching | fixed here (was re-downloading the bundle on every visit) |
 | Security headers | fixed here (only HSTS was present) |
@@ -54,6 +54,49 @@ Only `strict-transport-security` was present (a Vercel default). Added
 
 `@react-three/drei` 10.7.8, `posthog-js` 1.413.3.
 
+## What the 2026-08-19 pass changed
+
+### The one advisory that actually shipped is gone
+
+`posthog-js` 1.413.3 carried `dompurify@3.4.12` (moderate). It was the only
+advisory in the production tree, so it was the only one a visitor could ever
+have been exposed to. `posthog-js` 1.418.1 clears it. Same major, no API change.
+
+Cost of the bump: the posthog chunk goes 240 KB to 253 KB raw (79.7 to 84.1 kB
+gzip). It is lazy, idle-loaded and gated on a project token, so it stays off the
+critical path either way.
+
+### js-yaml resolved itself
+
+The previous pass recorded this as "the fix was not backported below v5" and
+held it. That is no longer true: `js-yaml@4.3.1` is patched, and a plain
+`npm install` picks it up through `@eslint/eslintrc`. No override needed, and
+the note holding it has been removed.
+
+An override forcing `js-yaml@^5` was tried and reverted. It cleared the audit,
+but only because flat config never loads js-yaml at all, so it bought a green
+number and left a major-version trap for whoever next touches eslint.
+
+### nanoid pinned forward via overrides
+
+`vite > postcss > nanoid@3.3.17` (high). Same situation as the postcss override
+above and handled the same way: `overrides.nanoid = "^3.3.18"`, a patch bump
+inside the same major. Remove it once Vite ships with a patched nanoid.
+
+### The audit allowlist is empty again
+
+`scripts/check-audit.mjs` still excused `GHSA-qwww-vcr4-c8h2` (react-router RSC
+CSRF) long after react-router stopped being a dependency. Routing is now
+`src/router.tsx`, hand-rolled over `history.pushState`. An allowlist entry that
+outlives its package turns the CI gate into a rubber stamp, so it is gone and
+the list is empty.
+
+### Routine bumps
+
+`@testing-library/jest-dom` 7.0.1, `@vitest/coverage-v8` 4.1.11,
+`eslint-plugin-react-refresh` 0.5.4, `globals` 17.11.0, `typescript-eslint`
+8.67.0, `vitest` 4.1.11. All same-major.
+
 ## What is deliberately held back, and why
 
 ### eslint-plugin-react-hooks 7
@@ -85,13 +128,6 @@ TS 7 API and `npm run lint` dies with
 cannot resolve. Dependabot PR #52 fails `npm ci` with ERESOLVE and should be
 closed, not merged. Both packages are dev-only, used by `npm run gen:avatars`
 to produce checked-in SVGs.
-
-### js-yaml (1 high, dev-only)
-
-Reaches us as `eslint > @eslint/eslintrc > js-yaml@4.3.0`. The advisory says the
-fix was not backported below v5, and forcing v5 under eslintrc risks breaking
-lint for a quadratic-CPU issue that only bites when parsing hostile YAML, which
-here means our own config. Wait for eslint to move.
 
 ### Vite 7 and @vitejs/plugin-react 5
 
