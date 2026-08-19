@@ -145,10 +145,20 @@ Ordered by value per unit of effort.
 2. **Decide on `@vercel/analytics`.** PostHog now covers pageviews, funnels and
    web vitals. The Vercel script is a second analytics vendor on every page for
    a dashboard that may go unread. Removing it drops a dependency and a request.
-3. **Content-Security-Policy.** The remaining header. Non-trivial here: inline
-   styles need `'unsafe-inline'` in `style-src`, and PostHog's recorder needs
-   `blob:` worker support. Ship it `Content-Security-Policy-Report-Only` first
-   and read the violations before enforcing.
+3. ~~**Content-Security-Policy.**~~ **Shipped report-only 2026-08-20.**
+   `vercel.json` now sends `Content-Security-Policy-Report-Only` with
+   `'unsafe-inline'` in `style-src` (React writes inline style attributes),
+   `worker-src 'self' blob:` for PostHog's recorder, `va.vercel-scripts.com` in
+   `script-src`, and the PostHog hosts in `connect-src` in case the `/ingest`
+   proxy is bypassed. Report-only enforces nothing, so it cannot break the site.
+
+   **To finish:** load the apex, `/resume` and a case study with devtools open,
+   including the booking CTA, and read the console for violations. There is no
+   `report-uri`, so the console is the only channel. When it is quiet, rename the
+   header to `Content-Security-Policy`. Do not enforce before reading it: the
+   JSON-LD block is `application/ld+json`, which browsers do not treat as an
+   executable script, but the Vercel Analytics injection is the piece most likely
+   to trip.
 4. ~~**Trim the three.js chunk.** 1 MB raw / 305 kB gzip, already lazy so only the
    world path pays. If it needs to come down, drei is the place to look before
    three itself.~~ **Both halves of this were wrong.** It was not lazy (see
