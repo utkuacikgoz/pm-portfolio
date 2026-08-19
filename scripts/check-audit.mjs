@@ -5,14 +5,11 @@
 // this replaces a bare `npm audit --audit-level=high` that also flagged dev deps.
 import { execSync } from "node:child_process";
 
-// Advisory IDs we knowingly accept, each with a reason.
-const ALLOW = new Map([
-  // React Router RSC-mode CSRF. This is a client-only SPA that never uses RSC
-  // (framework) mode, so it is not exposed. No non-breaking fix exists (the only
-  // "fix" is a downgrade into a worse advisory cluster). Revisit when RR ships a
-  // patched line in our range.
-  ["GHSA-qwww-vcr4-c8h2", "react-router RSC CSRF — SPA does not use RSC mode"],
-]);
+// Advisory IDs we knowingly accept, each with a reason. Empty is the goal, not a
+// gap: an entry that outlives the dependency it excused turns this gate into a
+// rubber stamp. The react-router RSC CSRF entry that used to live here went out
+// with react-router itself, once routing moved to src/router.tsx.
+const ALLOW = new Map([]);
 
 let audit;
 try {
