@@ -302,7 +302,9 @@ export default function WorldExperience() {
 
   return (
     <main
+      tabIndex={-1}
       style={{
+        outline: "none",
         minHeight: "100vh",
         // Sky behind the transparent WebGL canvas. Dusk on the rail; a bright,
         // cheerful daytime while free-surfing (cross-fades with the 3D lighting).

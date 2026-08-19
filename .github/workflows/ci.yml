@@ -8,12 +8,18 @@ on:
 permissions:
   contents: read
 
+# A new push to the same ref makes the in-flight run irrelevant. Without this
+# they queue up and the slowest one still reports.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           # Match package.json engines (^22.22.2 || >=24.15). jsdom 30 sets the
           # floor; Vite 7 is happy anywhere at or above it.
@@ -39,13 +45,17 @@ jobs:
   secret-scan:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0   # scan full history, not just the tip
       - name: Install gitleaks
         run: |
           VERSION=8.24.3
+          # Pinned digest, from the release's own checksums.txt. Without it this
+          # step pipes whatever that URL happens to serve into a privileged run.
+          SHA256=9991e0b2903da4c8f6122b5c3186448b927a5da4deef1fe45271c3793f4ee29c
           curl -sSL "https://github.com/gitleaks/gitleaks/releases/download/v${VERSION}/gitleaks_${VERSION}_linux_x64.tar.gz" -o gl.tgz
+          echo "${SHA256}  gl.tgz" | sha256sum -c -
           tar -xzf gl.tgz gitleaks
           sudo install gitleaks /usr/local/bin/gitleaks
       - name: Scan (repo + history)
