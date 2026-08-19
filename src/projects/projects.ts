@@ -36,6 +36,18 @@ export interface Project {
   accent: string; // palette accent (see src/theme.ts)
   structure: StructureType;
   mark?: MarkType; // emblem floating over the island (conveys the domain at a glance)
+  /**
+   * Where this work actually happened, and when. Shown wherever the project is,
+   * because the CV lists four employers (BiLira, Upshift, Lean Scale,
+   * Technolera) while the world shows five islands: Mestores, Apollo and La3eb
+   * were client engagements during Lean Scale. Without this a recruiter reading
+   * both documents finds three roles that do not exist in the employment
+   * history, which costs more credibility than the studies earn.
+   */
+  role?: string; // title held, matching the CV
+  org?: string; // employer of record
+  period?: string; // years, matching the CV
+  clientWork?: boolean; // engagement delivered for a client, not a staff role
   content?: CaseStudy; // omitted for indie glimpses (no full case study yet)
   glimpse?: string; // teaser line shown on the glimpse panel for indie products
   story?: string; // one-line narrative caption for the fly-through tour
@@ -47,6 +59,9 @@ const C = CASE_STUDIES as Record<string, CaseStudy>;
 export const PROJECTS: Project[] = [
   {
     id: "bilira",
+    role: "Senior Product Manager",
+    org: "BiLira",
+    period: "2025 to present",
     title: "BiLira",
     tagline: "Regulated fintech at scale · 35% faster AML review",
     kind: "employment",
@@ -59,6 +74,10 @@ export const PROJECTS: Project[] = [
   },
   {
     id: "mestores",
+    role: "Product Manager",
+    org: "Lean Scale",
+    period: "2020 to 2022",
+    clientWork: true,
     title: "Mestores",
     tagline: "Ecommerce zero to one · +163% conversion, $500K recovered",
     kind: "employment",
@@ -71,6 +90,10 @@ export const PROJECTS: Project[] = [
   },
   {
     id: "apollo",
+    role: "Product Manager",
+    org: "Lean Scale",
+    period: "2020 to 2022",
+    clientWork: true,
     title: "Apollo",
     tagline: "Healthcare transformation · $2M/yr saved",
     kind: "employment",
@@ -83,6 +106,10 @@ export const PROJECTS: Project[] = [
   },
   {
     id: "la3eb",
+    role: "Product Manager",
+    org: "Lean Scale",
+    period: "2020 to 2022",
+    clientWork: true,
     title: "La3eb",
     tagline: "Gaming super app · 6× DAU in 10 weeks",
     kind: "employment",
@@ -95,6 +122,9 @@ export const PROJECTS: Project[] = [
   },
   {
     id: "upshift",
+    role: "Senior Product Manager",
+    org: "Upshift",
+    period: "2022 to 2025",
     title: "Upshift",
     tagline: "HRtech marketplace · churn halved to 4%, built the PM function",
     kind: "employment",
@@ -156,6 +186,17 @@ export const PUBLISHED_PROJECTS: Project[] = PROJECTS.filter((p) => p.published)
 
 /** Indie products shown as coming-soon bubbles on the separate ocean island. */
 export const INDIE_PROJECTS: Project[] = PROJECTS.filter((p) => p.kind === "indie" && !!p.glimpse);
+
+/**
+ * One line placing a project in the CV: who you were, where, when. Client
+ * engagements say so explicitly, so nothing implies a staff role that the
+ * employment history does not show.
+ */
+export function attributionLine(project: Project): string | null {
+  if (!project.role || !project.org || !project.period) return null;
+  const where = project.clientWork ? `${project.org}, client engagement` : project.org;
+  return `${project.role}, ${where}, ${project.period}`;
+}
 
 export const projectIndexById = (id: string | undefined): number =>
   id ? PUBLISHED_PROJECTS.findIndex((p) => p.id === id) : -1;

@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
+  attributionLine,
   PROJECTS,
   PUBLISHED_PROJECTS,
   INDIE_PROJECTS,
@@ -47,5 +48,36 @@ describe("projectIndexById", () => {
   it("returns -1 for undefined or unknown ids", () => {
     expect(projectIndexById(undefined)).toBe(-1);
     expect(projectIndexById("does-not-exist")).toBe(-1);
+  });
+});
+
+describe("attribution", () => {
+  // The CV lists four employers: BiLira, Upshift, Lean Scale, Technolera. The
+  // world shows five islands. Without an employer on every one, three of them
+  // read as roles that are not in the employment history, which is the single
+  // most expensive thing a recruiter can notice on a portfolio.
+  const CV_EMPLOYERS = new Set(["BiLira", "Upshift", "Lean Scale", "Technolera"]);
+
+  it("places every published project at an employer that exists on the CV", () => {
+    for (const project of PUBLISHED_PROJECTS) {
+      expect(project.org, `${project.id} has no employer`).toBeTruthy();
+      expect(CV_EMPLOYERS.has(project.org as string), `${project.id}: ${project.org}`).toBe(true);
+      expect(project.role).toBeTruthy();
+      expect(project.period).toBeTruthy();
+    }
+  });
+
+  it("says so explicitly when the work was a client engagement", () => {
+    const leanScale = PUBLISHED_PROJECTS.filter((p) => p.org === "Lean Scale");
+    expect(leanScale.length).toBeGreaterThan(0);
+    for (const project of leanScale) {
+      expect(project.clientWork).toBe(true);
+      expect(attributionLine(project)).toContain("client engagement");
+    }
+  });
+
+  it("renders a line that names the role, the employer and the years", () => {
+    const bilira = PUBLISHED_PROJECTS.find((p) => p.id === "bilira");
+    expect(attributionLine(bilira!)).toBe("Senior Product Manager, BiLira, 2025 to present");
   });
 });
