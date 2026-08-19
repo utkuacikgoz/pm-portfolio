@@ -1,0 +1,81 @@
+import { act } from "react";
+import { createRoot, type Root } from "react-dom/client";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { BrowserRouter } from "../router";
+
+// The rest of the suite runs in flat mode (jsdom has no WebGL), where FlatMap
+// carries the <h1>. That left the world path, which is what most visitors
+// actually get, completely unexercised: the hero owns the only heading, and
+// once you enter it unmounts, so the primary route had no <h1> at all and the
+// case-study panel's <h2> hung off nothing.
+vi.mock("../state/useExperienceMode", () => ({ useExperienceMode: () => "world" }));
+vi.mock("../world/World", () => ({ default: () => null }));
+
+let container: HTMLDivElement;
+let root: Root;
+
+function headings() {
+  return [...container.querySelectorAll("h1")].map((h) => h.textContent ?? "");
+}
+
+async function renderWorld(path = "/") {
+  window.history.replaceState(null, "", path);
+  const { default: WorldExperience } = await import("./WorldExperience");
+  await act(async () => {
+    root.render(
+      <BrowserRouter>
+        <WorldExperience />
+      </BrowserRouter>
+    );
+  });
+}
+
+describe("world route headings", () => {
+  beforeEach(() => {
+    (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
+    container = document.createElement("div");
+    document.body.append(container);
+    root = createRoot(container);
+    sessionStorage.clear();
+    vi.stubGlobal("matchMedia", vi.fn().mockReturnValue({
+      matches: false,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    }));
+  });
+
+  afterEach(() => {
+    act(() => root.unmount());
+    container.remove();
+    vi.unstubAllGlobals();
+  });
+
+  it("gives the landing hero exactly one h1", async () => {
+    await renderWorld();
+    expect(headings()).toHaveLength(1);
+    expect(headings()[0]).toContain("Product Manager");
+  });
+
+  it("keeps exactly one h1 once the hero is gone", async () => {
+    await renderWorld();
+    await act(async () => {
+      [...container.querySelectorAll("button")]
+        .find((b) => b.textContent?.includes("ENTER"))
+        ?.click();
+    });
+
+    const after = headings();
+    expect(after).toHaveLength(1);
+    expect(after[0]).toContain("Utku Acikgoz");
+  });
+
+  it("declares the page on a deep-linked case study, where the hero never shows", async () => {
+    await renderWorld("/p/bilira");
+    expect(headings()).toHaveLength(1);
+  });
+
+  it("wraps the route in a main landmark", async () => {
+    await renderWorld();
+    expect(container.querySelectorAll("main")).toHaveLength(1);
+  });
+});

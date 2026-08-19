@@ -31,7 +31,7 @@ export default function Resume() {
   }, []);
 
   return (
-    <div className="page-in" style={{ minHeight: "100vh", padding: "64px 24px 96px", maxWidth: 800, margin: "0 auto" }}>
+    <main className="page-in" style={{ minHeight: "100vh", padding: "64px 24px 96px", maxWidth: 800, margin: "0 auto" }}>
       <Link
         to="/"
         style={{
@@ -128,7 +128,7 @@ export default function Resume() {
           ))}
         </Section>
       )}
-    </div>
+    </main>
   );
 }
 
