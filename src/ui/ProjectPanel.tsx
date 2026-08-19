@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type { Project } from "../projects/projects";
+import { attributionLine, type Project } from "../projects/projects";
 import type { Beat } from "../content/types";
 import { Metrics, Decisions, Initiatives, Stakeholders } from "./viz";
 import { CONTACT } from "../content/contact";
@@ -175,6 +175,8 @@ export default function ProjectPanel({ project, onClose, onNext, nextTitle }: Pr
     <Shell scrollRef={scrollRef} accent={project.accent} title={project.title}>
       <StickyHeader title={project.title} accent={project.accent} total={beats.length} active={active} onClose={onClose} onJump={jumpTo} />
 
+      <Attribution project={project} />
+
       {beats.map((b, i) => {
         const label = beatLabel(b);
         const isLast = i === beats.length - 1;
@@ -243,6 +245,30 @@ export default function ProjectPanel({ project, onClose, onNext, nextTitle }: Pr
 
 // Opens each beat with its first sentence emphasized — an at-a-glance takeaway
 // so the panel skims instead of reading as a wall of text.
+/**
+ * Who, where, when. The CV lists four employers and the world shows five
+ * islands, so without this line three of the studies read as jobs that are not
+ * in the employment history.
+ */
+function Attribution({ project }: { project: Project }) {
+  const line = attributionLine(project);
+  if (!line) return null;
+  return (
+    <p
+      style={{
+        padding: "0 clamp(20px, 5vw, 40px)",
+        marginTop: 14,
+        fontSize: TYPE.small,
+        fontWeight: 600,
+        color: T.textMuted,
+        letterSpacing: 0.2,
+      }}
+    >
+      {line}
+    </p>
+  );
+}
+
 function Lead({ text }: { text: string }) {
   const cut = text.indexOf(". ");
   if (cut === -1) return <strong style={{ color: T.text, fontWeight: 800 }}>{text}</strong>;

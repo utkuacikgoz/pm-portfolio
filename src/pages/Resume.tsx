@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Link } from "../router";
-import { PUBLISHED_PROJECTS, INDIE_PROJECTS } from "../projects/projects";
+import { PUBLISHED_PROJECTS, INDIE_PROJECTS, attributionLine } from "../projects/projects";
 import { useProgress } from "../state/progress";
 import { CONTACT } from "../content/contact";
 import { EVENTS, track } from "../analytics/events";
@@ -92,6 +92,7 @@ export default function Resume() {
             accent={p.accent}
             title={p.title}
             sub={p.tagline}
+            attribution={attributionLine(p)}
             cta={read.has(p.id) ? "READ ✓" : "VIEW →"}
             read={read.has(p.id)}
           />
@@ -145,6 +146,7 @@ function Row({
   accent,
   title,
   sub,
+  attribution,
   cta,
   read,
 }: {
@@ -152,6 +154,7 @@ function Row({
   accent: string;
   title: string;
   sub: string;
+  attribution?: string | null;
   cta: string;
   read?: boolean;
 }) {
@@ -176,6 +179,11 @@ function Row({
             {read && <span aria-label="read" style={{ color: textAccent(accent), fontSize: TYPE.small }}>✓</span>}
           </span>
           <span style={{ display: "block", fontSize: TYPE.small, color: T.textMuted, marginTop: 3, lineHeight: 1.5 }}>{sub}</span>
+          {attribution && (
+            <span style={{ display: "block", fontSize: TYPE.micro, color: T.textMuted, marginTop: 5, letterSpacing: 0.2 }}>
+              {attribution}
+            </span>
+          )}
         </span>
         <span style={{ color: textAccent(accent), fontSize: TYPE.small, fontWeight: 700, whiteSpace: "nowrap" }}>{cta}</span>
       </Link>
