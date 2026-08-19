@@ -260,6 +260,10 @@ export default function WorldExperience() {
   }, [mode, entered, panelOpen]);
 
   const isIndie = active === INDIE_INDEX;
+  // The hero owns the visible <h1> while it is up. Once it goes, nothing else in
+  // the world carries one (the title card is a div, the panel starts at <h2>),
+  // so the primary route was left with no top-level heading at all.
+  const heroVisible = mode === "world" && !entered && !panelOpen && !choosingAvatar;
 
   const open = useCallback(
     (i: number) => {
@@ -297,7 +301,7 @@ export default function WorldExperience() {
   }, [panelOpen, entered, surfing, active, open, projects.length]);
 
   return (
-    <div
+    <main
       style={{
         minHeight: "100vh",
         // Sky behind the transparent WebGL canvas. Dusk on the rail; a bright,
@@ -309,6 +313,12 @@ export default function WorldExperience() {
       <Link to="/resume" className="skip-link">
         Skip to resume
       </Link>
+      {/* Kept out of the visual design on purpose: the world says who this is
+          through the scene, not a headline. Screen readers and crawlers still
+          need the page to declare itself. */}
+      {!heroVisible && mode === "world" && (
+        <h1 className="sr-only">Utku Acikgoz, Senior Technical Product Manager, career world</h1>
+      )}
       <EscapeHatch />
       {/* Sound only exists inside the world (off by default, chosen at entry). */}
       {entered && <SoundToggle />}
@@ -343,9 +353,7 @@ export default function WorldExperience() {
         </Suspense>
       )}
 
-      {mode === "world" && !entered && !panelOpen && !choosingAvatar && (
-        <HeroIntro onBegin={onEnter} />
-      )}
+      {heroVisible && <HeroIntro onBegin={onEnter} />}
 
       {flashing && (
         <div
@@ -544,7 +552,7 @@ export default function WorldExperience() {
         />
         </Suspense>
       )}
-    </div>
+    </main>
   );
 }
 

@@ -57,7 +57,9 @@ where each island = a project, with the narrative + metrics in a fast DOM overla
   (not localStorage), so it re-asks every fresh launch; a same-tab refresh keeps the pick.
 - **No dashes in visible copy, ever** (house style): no em/en dashes or minus signs in
   any rendered string; plain-Latin ("resume", not the accented spelling). Comments are
-  exempt. Metric ranges read as "X to Y".
+  exempt. Metric ranges read as "X to Y". Guarded by
+  `src/content/house-style.test.ts`, which walks every case study, registry row,
+  contact detail and SEO route and names the offending path.
 - **Biomes now (visible):** BiLira, Mestores, Apollo, La3eb, Upshift (employment,
   strongest-signal first). **Hidden, ready to flip:** PassATS, Stats XI, Mona — set
   `published: true` in the registry to surface.
@@ -90,7 +92,8 @@ Single source of truth → single Canvas → one draw path.
   stakeholders) as **SVG, not WebGL** (no extra GL contexts; accessible).
 - `src/ui/WorldNav.tsx` — sr-only keyboard/screen-reader path (Tab travels, Enter opens).
 - `src/ui/EscapeHatch.tsx` + `src/pages/Resume.tsx` — persistent "skip to résumé".
-- Routing (`src/router.tsx`): `/`, `/p/:id` (deep-linkable), `/resume`. URL is the source
+- Routing (`src/router.tsx`, hand-rolled over history.pushState, no router dependency):
+  `/`, `/p/:id` (deep-linkable), `/resume`. URL is the source
   of truth for the open panel.
 - `src/seo/routes.ts` — title/description/JSON-LD/no-JS summary per route, **derived from
   the project registry**. `scripts/vite-seo.ts` (Vite plugin) prerenders one static HTML
@@ -128,7 +131,10 @@ false positives, 500ms to 275ms, +45% throughput, 50M+ calls/month, 99.9%
 uptime, quarterly to bi-weekly, 0 breaches). Real BiLira facts: 100K+ users,
 150+ assets, 5+ chains, 25-person team, Chainalysis/Notabene.
 
-Indie products (shown as light "glimpse" panels, `published:true`, no full case study):
+Indie products (shown as light "glimpse" panels, no full case study). They are
+`published: false`, which keeps them off the main rail; `INDIE_PROJECTS` selects
+them by `kind: "indie"` plus a `glimpse` line, so they still reach the resume
+shelf and the ocean island:
 **Buyback Signal** (trading-signal bot), **PassATS**, **Cofoundr** (co-founder matching).
 
 ## Content model
@@ -139,7 +145,7 @@ the quantified outcomes are the gold.
 
 ## Stack / conventions
 - **React 19 + Vite 7 + @vitejs/plugin-react 5 + @react-three/fiber 9 + drei 10 +
-  three 0.184 + react-router 7 + TS 6.** TS **strict** + `verbatimModuleSyntax` → **use
+  three 0.185 + TS 6.** TS **strict** + `verbatimModuleSyntax` → **use
   `import type` for type-only imports** (this bites otherwise).
 - **Node ≥22.22.2 required** (jsdom 30 sets the floor; Vite 7 is fine above it).
   The machine's default `node` is **22.11**, which is BELOW the floor — local
