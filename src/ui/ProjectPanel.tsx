@@ -144,7 +144,7 @@ export default function ProjectPanel({ project, onClose, onNext, nextTitle }: Pr
   if (!content) {
     return (
       <Shell scrollRef={scrollRef} accent={project.accent} title={project.title}>
-        <StickyHeader title={project.title} accent={project.accent} total={0} active={0} onClose={onClose} onJump={jumpTo} />
+        <StickyHeader title={project.title} accent={project.accent} labels={[]} active={0} onClose={onClose} onJump={jumpTo} />
         <div style={{ padding: "26px clamp(20px, 5vw, 40px) calc(56px + env(safe-area-inset-bottom))" }}>
           <span
             style={{
@@ -173,7 +173,14 @@ export default function ProjectPanel({ project, onClose, onNext, nextTitle }: Pr
 
   return (
     <Shell scrollRef={scrollRef} accent={project.accent} title={project.title}>
-      <StickyHeader title={project.title} accent={project.accent} total={beats.length} active={active} onClose={onClose} onJump={jumpTo} />
+      <StickyHeader
+        title={project.title}
+        accent={project.accent}
+        labels={beats.map(beatLabel)}
+        active={active}
+        onClose={onClose}
+        onJump={jumpTo}
+      />
 
       <Attribution project={project} />
 
@@ -323,14 +330,14 @@ function CTA({ accent, projectId }: { accent: string; projectId: string }) {
 function StickyHeader({
   title,
   accent,
-  total,
+  labels,
   active,
   onClose,
   onJump,
 }: {
   title: string;
   accent: string;
-  total: number;
+  labels: string[];
   active: number;
   onClose: () => void;
   onJump: (i: number) => void;
@@ -370,19 +377,18 @@ function StickyHeader({
           ✕
         </button>
       </div>
-      {total > 1 && (
-        <div role="tablist" aria-label="Case study sections" style={{ display: "flex", gap: 6, marginTop: 12 }}>
-          {Array.from({ length: total }).map((_, i) => (
+      {labels.length > 1 && (
+        <nav aria-label="Case study sections" style={{ display: "flex", gap: 6, marginTop: 12 }}>
+          {labels.map((label, i) => (
             <button
               key={i}
-              role="tab"
-              aria-selected={i === active}
-              aria-label={`Section ${i + 1}`}
+              aria-current={i === active ? "true" : undefined}
+              aria-label={`Jump to ${label}, section ${i + 1} of ${labels.length}`}
               onClick={() => onJump(i)}
               style={{ flex: 1, height: 4, padding: 0, border: "none", cursor: "pointer", background: i <= active ? accent : T.border }}
             />
           ))}
-        </div>
+        </nav>
       )}
     </div>
   );
