@@ -61,7 +61,6 @@ describe("focus on route change", () => {
     });
     vi.stubGlobal("cancelAnimationFrame", vi.fn());
     vi.stubGlobal("scrollTo", vi.fn());
-    Object.defineProperty(HTMLElement.prototype, "scrollTo", { configurable: true, value: vi.fn() });
     vi.stubGlobal("matchMedia", vi.fn().mockReturnValue({
       matches: true,
       addEventListener: vi.fn(),

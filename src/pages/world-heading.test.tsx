@@ -71,6 +71,13 @@ describe("world route headings", () => {
 
   it("declares the page on a deep-linked case study, where the hero never shows", async () => {
     await renderWorld("/p/bilira");
+    // Flush the lazy drawer explicitly. Leaving it to chance meant this case
+    // sometimes ran without the panel mounted, so it passed locally and failed
+    // in CI on the run where the chunk resolved in time.
+    await act(async () => {
+      await import("../ui/ProjectPanel");
+    });
+    expect(container.querySelector('[role="dialog"]')).toBeInTheDocument();
     expect(headings()).toHaveLength(1);
   });
 
