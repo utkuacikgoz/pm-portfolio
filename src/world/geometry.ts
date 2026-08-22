@@ -246,9 +246,12 @@ export const EMBLEM_HOVER: Record<StructureType, number> = {
   beacon: 6.8,
 };
 
-// Radius of the ring the indie pylons stand on. Inside the 4.2 terrain disc,
-// and well inside the 5.5 surf collider at this island (surf-journey.ts).
-const INDIE_RING = 2.5;
+// Radius of the ring the indie pylons stand on, and where the first one starts.
+// Inside the 4.2 terrain disc and the 5.5 surf collider (surf-journey.ts). At
+// 2.5 two of the three lined up along the rail camera's sight line and the
+// third was occluded; 3.4 with the ring rotated spreads them across the frame.
+const INDIE_RING = 3.4;
+const INDIE_RING_START = -Math.PI / 6;
 
 /**
  * The indie island, out past the water gap.
@@ -270,7 +273,7 @@ export function buildIndieIsland(projects: Project[]): Cube[] {
   const local: Cube[] = buildTerrain(T.seafoam, 9173);
 
   projects.forEach((p, i) => {
-    const angle = -Math.PI / 2 + (i * 2 * Math.PI) / projects.length;
+    const angle = INDIE_RING_START + (i * 2 * Math.PI) / projects.length;
     // Snapped to the voxel grid so the pylons sit on the terrain, not between it.
     const x = Math.round(Math.cos(angle) * INDIE_RING);
     const z = Math.round(Math.sin(angle) * INDIE_RING);
