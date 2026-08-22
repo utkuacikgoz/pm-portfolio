@@ -38,22 +38,32 @@ const SEA_SEGMENTS_SURF = 180;
 
 export function Water({ surfing }: { surfing: boolean }) {
   const uTime = useRef({ value: 0 });
+  // Crest contrast, driven by the same 0..1 daylight level the fog and lights
+  // use. It is 0 on the rail (the diorama's sea stays a flat calm slab, exactly
+  // as it was) and fades to 1 as free surf opens the world up, where a camera
+  // sitting ON the surface needs to be able to READ the swell. Without it the
+  // ocean renders as one uniform teal field and every sense of motion, scale and
+  // direction is lost.
+  const uCrest = useRef({ value: 0 });
   const matRef = useRef<THREE.MeshStandardMaterial>(null);
   const reduced = usePrefersReducedMotion();
   const segments = surfing ? SEA_SEGMENTS_SURF : SEA_SEGMENTS_RAIL;
   useFrame((s) => {
     if (!reduced) uTime.current.value = s.clock.elapsedTime;
+    uCrest.current.value = daylight.v;
     // Brighten toward turquoise as free-surf fades to daytime.
     if (matRef.current) matRef.current.color.lerpColors(WATER_DUSK, WATER_DAY, daylight.v);
   });
 
   const onBeforeCompile = (shader: THREE.WebGLProgramParametersWithUniforms) => {
     shader.uniforms.uTime = uTime.current;
+    shader.uniforms.uCrest = uCrest.current;
     shader.vertexShader = shader.vertexShader
       .replace(
         "#include <common>",
         `#include <common>
         uniform float uTime;
+        varying float vWaveH;
         float waveH(vec2 p){
           return sin(p.x*0.06 + uTime*0.8)*0.6
                + sin(p.y*0.09 - uTime*0.6)*0.4
@@ -81,7 +91,27 @@ export function Water({ surfing }: { surfing: boolean }) {
       .replace(
         "#include <begin_vertex>",
         `#include <begin_vertex>
-        transformed.z += waveH(position.xy);`
+        float wh = waveH(position.xy);
+        transformed.z += wh;
+        vWaveH = wh;`
+      );
+    // Crest / trough shading. Three ALU ops on a value the vertex stage already
+    // had to compute, so the cost is one varying — no extra samples, no texture,
+    // no second pass. It is what turns the surf ocean from a flat plane into
+    // legible moving swell you can steer relative to.
+    shader.fragmentShader = shader.fragmentShader
+      .replace(
+        "#include <common>",
+        `#include <common>
+        uniform float uCrest;
+        varying float vWaveH;`
+      )
+      .replace(
+        "#include <color_fragment>",
+        `#include <color_fragment>
+        float crest = clamp(vWaveH / 1.3, -1.0, 1.0);
+        diffuseColor.rgb *= 1.0 + crest * 0.26 * uCrest;
+        diffuseColor.rgb += vec3(0.05) * uCrest * smoothstep(0.85, 1.25, vWaveH);`
       );
   };
 
