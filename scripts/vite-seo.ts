@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import type { Plugin } from "vite";
 import { INDEXABLE, ROBOTS_CONTENT, SEO_ROUTES, SITE_URL, canonicalUrl, type SeoRoute } from "../src/seo/routes";
+import { escapeHtml, jsonLdScript } from "../src/seo/escape";
 
 // This app is a single HTML file with client-side routing, so every URL used to
 // serve the same <title>, description and og:image. Crawlers that run JS
@@ -13,13 +14,6 @@ import { INDEXABLE, ROBOTS_CONTENT, SEO_ROUTES, SITE_URL, canonicalUrl, type Seo
 // route: same JS app, route-correct head and no-JS fallback. Vercel serves
 // dist/resume/index.html for /resume before the SPA rewrite ever runs, so the
 // preview is right on the first request.
-
-const escapeHtml = (value: string): string =>
-  value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
 
 /**
  * Replace the single line carrying data-seo="<key>". Tagged elements are
@@ -48,18 +42,6 @@ function replaceSummary(html: string, route: SeoRoute): string {
     ...rest.map((line) => `        <p>${escapeHtml(line)}</p>`),
   ].join("\n");
   return `${html.slice(0, from + start.length)}\n${body}\n        ${html.slice(to)}`;
-}
-
-/**
- * JSON inside a <script> block is not HTML-escaped by JSON.stringify: it leaves
- * both `<` and `/` alone, so a registry string containing `</script>` closes the
- * element and everything after it is parsed as markup. Every other slot in
- * renderRoute goes through escapeHtml; this one cannot, because the contents
- * have to stay valid JSON. Escaping `<` as \u003c satisfies both: JSON parsers
- * read it as `<`, and the HTML tokenizer never sees a tag.
- */
-function jsonLdScript(jsonLd: unknown): string {
-  return JSON.stringify(jsonLd).replace(/</g, "\\u003c");
 }
 
 function renderRoute(template: string, route: SeoRoute): string {
