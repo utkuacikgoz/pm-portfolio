@@ -321,7 +321,7 @@ export default function WorldExperience() {
       {!heroVisible && mode === "world" && (
         <h1 className="sr-only">Utku Acikgoz, Senior Technical Product Manager, career world</h1>
       )}
-      <EscapeHatch />
+      <EscapeHatch raised={heroVisible} />
       {/* Sound only exists inside the world (off by default, chosen at entry). */}
       {entered && <SoundToggle />}
       <EggToast />

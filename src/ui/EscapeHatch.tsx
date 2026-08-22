@@ -5,8 +5,14 @@ import { T, TYPE } from "../theme";
 /**
  * Persistent "skip the world / see résumé" escape hatch. Always visible so a
  * recruiter who hates puzzles gets the goods in seconds.
+ *
+ * `raised` lifts it over the hero (z-index 70), which otherwise covers it. The
+ * hero used to carry its own resume link underneath the CTA; now that it does
+ * not, this is the only resume affordance on the landing screen and it has to
+ * be on top. It stays at 50 everywhere else, deliberately UNDER the case-study
+ * drawer (60), which is meant to cover it.
  */
-export default function EscapeHatch() {
+export default function EscapeHatch({ raised = false }: { raised?: boolean }) {
   return (
     <Link
       to="/resume"
@@ -17,7 +23,7 @@ export default function EscapeHatch() {
         position: "fixed",
         top: 20,
         right: 24,
-        zIndex: 50,
+        zIndex: raised ? 71 : 50,
         padding: "10px 18px",
         background: T.text,
         color: T.ink,
