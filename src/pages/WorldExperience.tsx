@@ -278,6 +278,42 @@ export default function WorldExperience() {
     [navigate, projects]
   );
 
+  // Moving between case studies, shared by the drawer's "Next" button and the
+  // arrow keys below so both do exactly the same thing.
+  const goNext = useCallback(() => {
+    if (openIndex < projects.length - 1) open(openIndex + 1);
+    else {
+      // Past the last case study is the indie island, which has no drawer.
+      navigate("/");
+      setActive(INDIE_INDEX);
+    }
+  }, [openIndex, projects.length, navigate, open]);
+  const goPrev = useCallback(() => {
+    if (openIndex > 0) open(openIndex - 1);
+  }, [openIndex, open]);
+
+  // Left/Right move between case studies WHILE the drawer is open. The travel
+  // handler below is disabled in that state (it drives the camera, which would
+  // fight the open panel), so without this the keyboard dead-ends on the first
+  // case study you open. Up/Down are deliberately left alone: they scroll the
+  // drawer, which is the more common thing to want once you are reading.
+  useEffect(() => {
+    if (!panelOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (target && ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName)) return;
+      if (e.key === "ArrowRight") {
+        e.preventDefault();
+        goNext();
+      } else if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        goPrev();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [panelOpen, goNext, goPrev]);
+
   const close = useCallback(() => {
     sfx.play("close");
     track(EVENTS.caseStudyClosed, { project_id: projects[openIndex]?.id });
@@ -466,7 +502,7 @@ export default function WorldExperience() {
             backdropFilter: "blur(6px)",
           }}
         >
-          🏄 Bonus: free surf
+          🏄 Surf
         </button>
       )}
 
@@ -544,13 +580,7 @@ export default function WorldExperience() {
           project={projects[openIndex]}
           onClose={close}
           nextTitle={openIndex === projects.length - 1 ? "What I'm building" : projects[openIndex + 1].title}
-          onNext={() => {
-            if (openIndex < projects.length - 1) open(openIndex + 1);
-            else {
-              navigate("/");
-              setActive(INDIE_INDEX);
-            }
-          }}
+          onNext={goNext}
         />
         </Suspense>
       )}
