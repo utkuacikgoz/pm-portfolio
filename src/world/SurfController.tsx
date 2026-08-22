@@ -1,13 +1,35 @@
 import { useEffect, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
-import { WATER_Y, seaHeight } from "./geometry";
+import { WATER_Y, seaHeight, seaSlopeX, seaSlopeZ } from "./geometry";
 import Surfer from "./Surfer";
 import { nearestTakeoff, SURF_LAUNCH, type SurfSpot } from "./surf-spots";
 import { surfSignal } from "./surf-signal";
 import { SURF_COLLIDERS, COINS, COIN_TOTAL, CHECKPOINTS, collectedCoins, type Checkpoint } from "./surf-journey";
 import { sfx } from "../audio/sfx";
-import { BOARD_CLEARANCE, SURF_BOUNDS, boardFloatY, isDoubleSpacePress } from "./surf-controls";
+import {
+  BOARD_CLEARANCE,
+  SURF_BOUNDS,
+  boardFloatY,
+  isDoubleSpacePress,
+  approach,
+  paceRatio,
+  turnRate,
+  courseChase,
+  clampSlip,
+  leanTarget,
+  wrapAngle,
+  cameraFov,
+  cameraDistance,
+  cameraHeight,
+  cameraLookHeight,
+  cameraBank,
+  chaseStiffness,
+  chaseDamping,
+  wakeInterval,
+  wakeScale,
+  sprayInterval,
+} from "./surf-controls";
 
 // Free-roam surf mode: hop on a board and steer around the ocean with WASD /
 // arrow keys, third-person chase camera. Active only while `active` is true;
@@ -28,6 +50,10 @@ const CATCH_RADIUS = 26; // enter this close to a break's takeoff and you drop i
 const CATCH_MIN_SPEED = 4; // need some pace to catch
 const RIDE_DUR = 5; // enough time to feel a full face, carve, and clean exit
 const RIDE_ENTRY_RADIUS = 10; // catches happen close enough to cleanly enter the authored line
+// Matches the Canvas camera in World.tsx (45), which is NOT the surf base
+// (SURF_FOV, 46). Surf widens the lens with speed and has to hand back exactly
+// the rail's value on exit, or the diorama keeps a slightly wide angle forever.
+const RAIL_FOV = 45;
 const MAX_YAW = 0.6; // how far the cursor can swing the view (radians)
 const MAX_PITCH = 0.45;
 const SPIN_DUR = 0.48; // a fast but readable 360 after the second Space press
@@ -43,9 +69,20 @@ const LANDING_DROPLETS = Array.from({ length: 8 }, (_, i) => ({
 }));
 // Foam trail left on the water behind the board. Pooled: the slots are reused in
 // a ring so a long tail never allocates inside the render loop.
-const WAKE_N = 20;
-const WAKE_DUR = 1.8;
+const WAKE_N = 28;
+const WAKE_DUR = 2.4;
 const WAKE_GEO = new THREE.CircleGeometry(0.34, 7);
+// Spray thrown off the tail. Pooled exactly like the wake: fixed slots reused in
+// a ring, so a continuous plume never allocates inside the render loop.
+const SPRAY_N = 22;
+// Short on purpose. A droplet drifts backward at roughly the board's own speed,
+// so with the camera ~15 units behind it reaches the lens in about 0.6s and,
+// being camera-facing, arrives as a screen-filling white slab. It has to die
+// near the tail, where it belongs.
+const SPRAY_DUR = 0.42;
+const SPRAY_GRAVITY = 14;
+// Round, not square: a hard-edged quad reads as a sheet of paper, not water.
+const SPRAY_GEO = new THREE.CircleGeometry(0.13, 8);
 
 export default function SurfController({
   active,
@@ -61,7 +98,13 @@ export default function SurfController({
   const board = useRef<THREE.Group>(null);
   const rider = useRef<THREE.Group>(null);
   const pos = useRef(new THREE.Vector3(60, WATER_Y + 0.3, 0));
-  const heading = useRef(Math.PI); // face back toward the islands
+  const heading = useRef(Math.PI); // where the nose POINTS
+  // Where the board actually TRAVELS. It chases `heading` rather than matching
+  // it, and the lag between the two is the tail washing out. Without it the
+  // board turns like a cursor instead of something with mass on water.
+  const course = useRef(Math.PI);
+  const camVel = useRef(new THREE.Vector3()); // chase-camera spring velocity
+  const camDelta = useRef(new THREE.Vector3()); // scratch: target minus current
   const speed = useRef(0);
   const keys = useRef<Record<string, boolean>>({});
   const jumpQueued = useRef(false);
@@ -117,6 +160,16 @@ export default function SurfController({
   const wakeSlots = useRef(Array.from({ length: WAKE_N }, () => ({ born: -99, x: 0, z: 0, heading: 0 })));
   const wakeCursor = useRef(0);
   const lastWakeAt = useRef(-99);
+  // Wave-slope tilt, low-passed. The raw field is far too lively to drive the
+  // board directly: it reads as vibration rather than as sitting on water.
+  const pitchSlope = useRef(0);
+  const rollSlope = useRef(0);
+  const sprayMeshes = useRef<(THREE.Mesh | null)[]>([]);
+  const spraySlots = useRef(
+    Array.from({ length: SPRAY_N }, () => ({ born: -99, x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0 }))
+  );
+  const sprayCursor = useRef(0);
+  const lastSprayAt = useRef(-99);
 
   useEffect(() => {
     if (!active) return;
@@ -162,6 +215,8 @@ export default function SurfController({
     if (!active) return;
     pos.current.set(SURF_LAUNCH.position[0], WATER_Y + 0.3, SURF_LAUNCH.position[1]);
     heading.current = SURF_LAUNCH.heading;
+    course.current = SURF_LAUNCH.heading;
+    camVel.current.set(0, 0, 0);
     speed.current = 0;
     airY.current = 0;
     vy.current = 0;
@@ -187,6 +242,11 @@ export default function SurfController({
     wakeCursor.current = 0;
     lastWakeAt.current = -99;
     for (const slot of wakeSlots.current) slot.born = -99;
+    sprayCursor.current = 0;
+    lastSprayAt.current = -99;
+    for (const slot of spraySlots.current) slot.born = -99;
+    pitchSlope.current = 0;
+    rollSlope.current = 0;
     introStart.current = -1; // begin the paddle-in intro on the first frame
     turnVel.current = 0;
     riderPitch.current = PRONE_PITCH; // start prone (belly down, head toward the nose)
@@ -194,14 +254,20 @@ export default function SurfController({
     cameraLook.current.set(pos.current.x, WATER_Y + 1, pos.current.z);
   }, [active, camera]);
 
-  // Leaving surf mode clears the checkpoint card + spray signal.
+  // Leaving surf mode clears the checkpoint card + spray signal, and hands the
+  // lens back at its rail width: the speed-widened FOV is ours, not CameraRig's.
   useEffect(() => {
     if (!active) {
       shownCpId.current = null;
       onCheckpointRef.current?.(null);
       surfSignal.rideSpotId = null;
+      const persp = camera as THREE.PerspectiveCamera;
+      if (persp.isPerspectiveCamera && persp.fov !== RAIL_FOV) {
+        persp.fov = RAIL_FOV;
+        persp.updateProjectionMatrix();
+      }
     }
-  }, [active]);
+  }, [active, camera]);
 
   useFrame((state, dt) => {
     if (!active || !board.current) return;
@@ -229,10 +295,14 @@ export default function SurfController({
     // Smoothed turning: ease angular velocity toward the target rate (no twitch).
     // Speed now WIDENS the arc instead of tightening it — carving fast should feel
     // committed, not twitchy — and the peak rate is lower than it was.
-    const bite = 1.15 - Math.min(1, Math.abs(speed.current) / 26) * 0.45;
-    const targetTurnRate = turnIn * 1.9 * bite;
-    turnVel.current += (targetTurnRate - turnVel.current) * (1 - Math.exp(-6.5 * d));
+    const targetTurnRate = turnRate(turnIn, speed.current);
+    turnVel.current += (targetTurnRate - turnVel.current) * approach(6.5, d);
     heading.current += turnVel.current * d;
+    // The line catches up to the nose, and never further than MAX_SLIP behind it.
+    course.current = wrapAngle(
+      course.current + wrapAngle(heading.current - course.current) * approach(courseChase(speed.current), d)
+    );
+    course.current = clampSlip(heading.current, course.current);
     // Boost / pump: hold Shift for a burst while stamina lasts; recharge otherwise.
     const boosting = !intro && !!k["shift"] && stamina.current > 0.02 && fwd > 0;
     stamina.current = THREE.MathUtils.clamp(stamina.current + (boosting ? -0.5 : 0.28) * d, 0, 1);
@@ -310,18 +380,18 @@ export default function SurfController({
       }
     }
 
-    pos.current.x += Math.sin(heading.current) * speed.current * d;
-    pos.current.z += Math.cos(heading.current) * speed.current * d;
+    pos.current.x += Math.sin(course.current) * speed.current * d;
+    pos.current.z += Math.cos(course.current) * speed.current * d;
 
     // Reused wake pool: one small foam patch every few frames. Each patch
     // expands and fades in place, producing a persistent tail without creating
     // or destroying objects during the render loop.
-    if (!intro && airY.current < 0.12 && Math.abs(speed.current) > 3 && t - lastWakeAt.current > 0.09) {
+    if (!intro && airY.current < 0.12 && Math.abs(speed.current) > 3 && t - lastWakeAt.current > wakeInterval(speed.current)) {
       const slot = wakeSlots.current[wakeCursor.current % WAKE_N];
       slot.born = t;
       slot.x = pos.current.x - Math.sin(heading.current) * 1.35;
       slot.z = pos.current.z - Math.cos(heading.current) * 1.35;
-      slot.heading = heading.current;
+      slot.heading = course.current;
       wakeCursor.current += 1;
       lastWakeAt.current = t;
     }
@@ -336,10 +406,19 @@ export default function SurfController({
       }
       const p = age / WAKE_DUR;
       mesh.visible = true;
-      mesh.position.set(slot.x, WATER_Y + 0.16, slot.z);
+      // Clearance matters more than it looks: the CPU `seaHeight` mirror and the
+      // shader that actually draws the water agree closely but not exactly, which
+      // is why the board carries BOARD_CLEARANCE rather than sitting at the
+      // computed surface. Foam needs the same margin or it spends its life a few
+      // centimetres under an opaque wave and never appears at all.
+      mesh.position.set(slot.x, WATER_Y + seaHeight(slot.x, slot.z, t) + BOARD_CLEARANCE * 0.8, slot.z);
       mesh.rotation.set(-Math.PI / 2, slot.heading, 0);
-      mesh.scale.set(0.7 + p * 2.6, 0.45 + p * 1.2, 1);
-      (mesh.material as THREE.MeshBasicMaterial).opacity = (1 - p) * (riding.current ? 0.62 : 0.38);
+      const w = wakeScale(speed.current);
+      mesh.scale.set((0.9 + p * 3.4) * w, (0.6 + p * 1.7) * w, 1);
+      // Fade late rather than linearly: a trail that holds and then goes is more
+      // legible edge-on than one that starts dimming immediately.
+      (mesh.material as THREE.MeshBasicMaterial).opacity =
+        (1 - p * p) * (riding.current ? 0.72 : 0.52);
     }
 
     // Soft glide-away off a surface: only when heading INTO it (dot < 0), ease
@@ -433,23 +512,87 @@ export default function SurfController({
     bobSmooth.current += (bobRaw - bobSmooth.current) * (1 - Math.exp(-4.5 * d));
     const bobY = boardFloatY(surfaceY, bobSmooth.current);
     board.current.position.set(pos.current.x, bobY + airY.current, pos.current.z);
+
+    // Sit ON the surface rather than merely at its height: sample the wave field
+    // a board length fore/aft and rail to rail, and tilt to the slope between.
+    // Four extra seaHeight calls per frame, no allocation. This is the single
+    // thing that makes the board read as floating instead of sliding on glass.
+    const fx = Math.sin(heading.current);
+    const fz = Math.cos(heading.current);
+    // Exact partial derivatives rather than four finite-difference probes: same
+    // answer, half the trigonometry, and no span constant to tune.
+    const gx = seaSlopeX(pos.current.x, pos.current.z, t);
+    const gz = seaSlopeZ(pos.current.x, pos.current.z, t);
+    // Airborne, the board holds its own attitude instead of the water's.
+    const grounded = Math.max(0, 1 - airY.current * 0.8);
+    const pitchAim = Math.atan(gx * fx + gz * fz) * grounded;
+    const rollAim = Math.atan(gx * fz - gz * fx) * grounded;
+    pitchSlope.current += (pitchAim - pitchSlope.current) * approach(5, d);
+    rollSlope.current += (rollAim - rollSlope.current) * approach(5, d);
+
     const airPitch = airY.current * 0.06; // nose lifts as it leaves the water
     const carveRoll = riding.current ? Math.sin((t - rideStart.current) * 4.2) * 0.4 : 0;
     const spinP = spinning.current ? THREE.MathUtils.clamp((t - spinStart.current) / SPIN_DUR, 0, 1) : 0;
     const trickSpin = spinP * spinP * (3 - 2 * spinP) * Math.PI * 2;
     const turnRatio = THREE.MathUtils.clamp(turnVel.current / 1.9, -1, 1);
     board.current.rotation.set(
-      Math.sin(t * 1.4) * 0.05 - airPitch,
+      // Climbing a face lifts the nose, so the slope enters negated.
+      -pitchSlope.current - airPitch,
       heading.current + trickSpin,
-      turnRatio * -0.18 + Math.sin(t * 1.8) * 0.025 + carveRoll
+      turnRatio * -0.18 + rollSlope.current * 0.7 + carveRoll
     );
     // Rider leans into the carve (z) and is pitched prone during the paddle-in (x).
     // A gentle paddle sway while prone sells the stroke.
-    const leanTarget = turnRatio * 0.36 + carveRoll * 0.6 + (intro ? Math.sin(t * 6) * 0.08 : 0);
-    lean.current += (leanTarget - lean.current) * (1 - Math.exp(-6 * d));
+    const leanAim =
+      leanTarget(turnIn, turnVel.current, speed.current) + carveRoll * 0.6 + (intro ? Math.sin(t * 6) * 0.08 : 0);
+    lean.current += (leanAim - lean.current) * approach(6, d);
     if (rider.current) {
       rider.current.rotation.z = lean.current;
       rider.current.rotation.x = riderPitch.current;
+    }
+
+    // Tail spray: thrown only with real pace and only in contact with the water.
+    // Each droplet gets its own outward and upward velocity so the plume fans
+    // instead of moving as one sheet.
+    const fast = Math.abs(speed.current);
+    if (!intro && airY.current < 0.12 && t - lastSprayAt.current > sprayInterval(speed.current)) {
+      const slot = spraySlots.current[sprayCursor.current % SPRAY_N];
+      const side = (Math.random() - 0.5) * 2;
+      slot.born = t;
+      slot.x = pos.current.x - Math.sin(heading.current) * 0.9;
+      slot.y = bobY + 0.1;
+      slot.z = pos.current.z - Math.cos(heading.current) * 0.9;
+      // Back along the wake, fanned sideways, with a kick of lift that scales
+      // with how hard the board is being driven.
+      const back = -(0.35 + fast * 0.06);
+      const lateral = side * (1.1 + Math.abs(turnRatio) * 2.6);
+      slot.vx = Math.sin(heading.current) * back + Math.cos(heading.current) * lateral;
+      slot.vz = Math.cos(heading.current) * back - Math.sin(heading.current) * lateral;
+      slot.vy = 3.4 + Math.random() * 1.8 + Math.abs(turnRatio) * 2.6;
+      sprayCursor.current += 1;
+      lastSprayAt.current = t;
+    }
+    for (let i = 0; i < SPRAY_N; i++) {
+      const mesh = sprayMeshes.current[i];
+      if (!mesh) continue;
+      const slot = spraySlots.current[i];
+      const age = t - slot.born;
+      if (age < 0 || age > SPRAY_DUR) {
+        mesh.visible = false;
+        continue;
+      }
+      const p = age / SPRAY_DUR;
+      mesh.visible = true;
+      mesh.position.set(
+        slot.x + slot.vx * age,
+        slot.y + slot.vy * age - 0.5 * SPRAY_GRAVITY * age * age,
+        slot.z + slot.vz * age
+      );
+      // Always face the camera, so a flat quad never turns edge-on and vanishes.
+      mesh.quaternion.copy(camera.quaternion);
+      mesh.scale.setScalar(0.7 + p * 0.9);
+      // Hold, then go: a droplet that starts fading at once never registers.
+      (mesh.material as THREE.MeshBasicMaterial).opacity = Math.min(1, (1 - p) * 1.8) * 0.6;
     }
 
     // Ride exit splash: two soft ripples and angular water droplets, fading out
@@ -490,22 +633,57 @@ export default function SurfController({
 
     // Chase camera: behind + above the board, pulling in tighter while riding,
     // yawed/pitched by the cursor.
-    const camYaw = heading.current + lookYaw.current + (riding.current ? 0.48 : 0);
-    const behind = riding.current ? 11.5 : 12;
-    const height = (riding.current ? 8.5 : 6) + airY.current * 0.4 + lookPitch.current * 4;
+    //
+    // The height/distance ratio is not a taste call, it decides whether you can
+    // see the sea at all. At 6 up over 12 back the camera looks down at 26.6
+    // degrees while its vertical half-FOV is 22.5, so the horizon sat ~4 degrees
+    // ABOVE the top edge of the frame: no skyline, no wave relief, just a flat
+    // teal plan view of a board. Staying under the half-FOV puts the horizon back
+    // on screen, and then the swell reads as relief because you see it edge-on.
+    const paceT = paceRatio(speed.current);
+    // Trail the COURSE, not the nose: with slip, framing off the heading swings
+    // the whole view sideways every time the tail steps out.
+    const camYaw = course.current + lookYaw.current + (riding.current ? 0.48 : 0);
+    const behind = cameraDistance(speed.current, riding.current);
+    const height = cameraHeight(speed.current, riding.current) + airY.current * 0.4 + lookPitch.current * 4;
     camTarget.current.set(
       pos.current.x - Math.sin(camYaw) * behind,
       bobY + height,
       pos.current.z - Math.cos(camYaw) * behind
     );
-    camera.position.lerp(camTarget.current, 1 - Math.exp(-7 * d));
+    // Critically-damped spring rather than a lerp. A lerp is a first-order lag:
+    // it always trails by the same proportion and can never overshoot, so it
+    // reads as a camera being dragged. A spring settles, and softening it with
+    // pace is what makes fast travel feel loose without ever losing the board.
+    const springK = chaseStiffness(speed.current);
+    const springC = chaseDamping(springK);
+    // Reused scratch vector: `camTarget.clone()` here would allocate a Vector3
+    // every frame, which is the exact thing CameraRig was once fixed for.
+    camDelta.current.subVectors(camTarget.current, camera.position);
+    camVel.current.addScaledVector(camDelta.current, springK * d);
+    camVel.current.addScaledVector(camVel.current, -springC * d);
+    camera.position.addScaledVector(camVel.current, d);
+    // Aim down the line, and let the aim point SINK toward the water as pace
+    // builds: that levels the lens, drops the board into the lower third and
+    // climbs the horizon into frame. It is the whole difference between an ocean
+    // and a teal plane.
+    const lookAhead = (riding.current ? 4 : 2.5) + paceT * 5;
     lookTarget.current.set(
-      pos.current.x + (riding.current ? Math.sin(heading.current) * 2 : 0),
-      bobY + 1 + airY.current * 0.5 + lookPitch.current * 2,
-      pos.current.z + (riding.current ? Math.cos(heading.current) * 2 : 0)
+      pos.current.x + Math.sin(course.current) * lookAhead,
+      bobY + cameraLookHeight(speed.current, riding.current) + airY.current * 0.5 + lookPitch.current * 2,
+      pos.current.z + Math.cos(course.current) * lookAhead
     );
-    cameraLook.current.lerp(lookTarget.current, 1 - Math.exp(-10 * d));
+    cameraLook.current.lerp(lookTarget.current, approach(10, d));
     camera.lookAt(cameraLook.current);
+    // A little roll into the carve. Applied after lookAt, which zeroes roll.
+    camera.rotateZ(cameraBank(lean.current, speed.current));
+    // Speed widens the lens. Small in degrees, large in how fast it feels.
+    const persp = camera as THREE.PerspectiveCamera;
+    const targetFov = cameraFov(speed.current, airY.current);
+    if (Math.abs(persp.fov - targetFov) > 0.02) {
+      persp.fov += (targetFov - persp.fov) * approach(2.6, d);
+      persp.updateProjectionMatrix();
+    }
     if (Math.abs(speed.current) > 0.5 || turnIn !== 0 || intro || airY.current > 0.05) regress();
   });
 
@@ -520,6 +698,19 @@ export default function SurfController({
         <mesh rotation={[-Math.PI / 2, 0.5, 0]} geometry={LANDING_RING_GEO} material={LANDING_RING_MAT} raycast={() => null} />
         {LANDING_DROPLETS.map((_, i) => (
           <mesh key={i} geometry={LANDING_DROP_GEO} material={LANDING_DROP_MAT} raycast={() => null} />
+        ))}
+      </group>
+      <group>
+        {spraySlots.current.map((_, i) => (
+          <mesh
+            key={i}
+            ref={(mesh) => { sprayMeshes.current[i] = mesh; }}
+            visible={false}
+            raycast={() => null}
+          >
+            <primitive object={SPRAY_GEO} attach="geometry" />
+            <meshBasicMaterial color="#f2fbf8" transparent opacity={0} depthWrite={false} />
+          </mesh>
         ))}
       </group>
       <group>

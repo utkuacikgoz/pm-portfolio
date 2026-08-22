@@ -78,6 +78,16 @@ Single source of truth → single Canvas → one draw path.
   Procedural (no GLTF/asset downloads).
 - `src/world/CameraRig.tsx` — on-rails camera, damped lerp, **reused vectors (no
   per-frame allocation)**. (The old code allocated a `THREE.Group` every frame — don't.)
+- `src/world/surf-controls.ts` — **pure handling + camera curves for free surf**, all
+  expressed against `paceRatio(speed)` and unit-tested. Steering bite, slip/drift,
+  lean, chase distance/height/aim/FOV/spring and wake/spray cadence live here, NOT
+  inline in the frame loop. The tested invariant that matters: the chase camera's
+  downward pitch must stay inside its vertical half-FOV at every speed, or the
+  horizon leaves the frame and the ocean reads as a flat teal plane.
+- `src/world/geometry.ts` `seaHeight` / `seaSlopeX` / `seaSlopeZ` — the wave field and
+  its exact analytic gradient. **All three mirror the Water vertex shader in
+  `Ocean.tsx` and must be changed together** (a test compares the slopes against a
+  numeric derivative).
 - `src/state/useExperienceMode.ts` — returns `'world' | 'flat'`. Flat when small
   screen / reduced-motion / no-WebGL. `<World>` is lazy so the **flat path never
   downloads the three chunk** — true again as of 2026-08-07, after a `manualChunks`
@@ -188,10 +198,11 @@ chain end-to-end, no per-step hand-holding:
 5. **Merge:** `gh pr merge --squash --delete-branch` (admin-merge if checks aren't required).
 6. **Deploy:** merging to `main` auto-deploys prod via the Vercel↔GitHub integration — confirm
    it kicked off; don't run `vercel --prod` locally (repo isn't `.vercel`-linked, would go
-   interactive). I have no browser, so visual/interaction QA still has to be eyeballed on the
-   resulting prod/preview URL.
+   interactive). Visual QA can now be driven with Playwright + Chromium (see
+   `docs/performance.md`), but **feel** (motion, camera, pacing) still has to be
+   eyeballed by Utku on the resulting prod/preview URL.
 
-## Status & next steps (as of 2026-08-20)
+## Status & next steps (as of 2026-08-22)
 
 The long "Done" log that used to live here described work from June and had gone
 stale enough to mislead: it listed the CV, analytics, the OG image and the fonts
@@ -210,22 +221,34 @@ This section is only what is *true now* and what is *left*.
   `SITE_URL` and every canonical / og:url finally resolve.
 - Every route has one `<h1>` and a `<main>`, moving between the world and the
   resume moves focus, and the panel's section jumps carry real ARIA.
+- **Corrected 2026-08-22, all three were listed as open long after they shipped:**
+  CI actions ARE pinned to commit SHAs (with a `concurrency` block); `npm audit` is
+  **0 vulnerabilities**, so the two "accepted" esbuild/vite highs are gone; and
+  `www.` and `portfolio.` both 308 to the apex (verified with curl).
+- `X-Robots-Tag: noindex, nofollow` on `/(.*\.pdf)`. `<meta name="robots">` cannot
+  reach a PDF, so the CV was crawlable and indexable while every HTML route said
+  noindex. HSTS also now declares `includeSubDomains` explicitly.
+- **Verification has a browser now.** Playwright + Chromium drive the real app; see
+  `docs/performance.md`. Anything touching the 3D scene must run **headed**:
+  headless Chromium renders WebGL through SwiftShader and reports ~7 fps for a
+  scene that runs at 60.
 
 **Open, roughly by value**
-- `www.utkuacikgoz.com` and `portfolio.utkuacikgoz.com` still return 200 with the
-  full site instead of a 308 to the apex. Three hosts serving identical content
-  splits analytics and link previews. Vercel dashboard fix, no code.
-- Content-Security-Policy is the last missing security header. Ship it
-  `Content-Security-Policy-Report-Only` first: inline styles need
-  `'unsafe-inline'` in `style-src` and PostHog's recorder needs `blob:` workers.
-  See `docs/dependency-audit.md`.
-- CI hardening: pin actions to commit SHAs, add a `concurrency` block so
-  superseded PR runs cancel.
+- Content-Security-Policy still ships as `Content-Security-Policy-Report-Only`
+  **with no reporting endpoint**, so it collects nothing and the trial can never
+  conclude. A 2026-08-22 audit verified the policy is already compatible with the
+  app (zero `eval`/`new Function` in all shipped chunks, every script same-origin,
+  fonts self-hosted), so the choice is: wire a collector, or just flip the header
+  name. Known casualty of enforcing: PostHog's `?__posthog` debug toolbar.
+- The six case studies are **41.2 KB, 36% of the entry chunk**, because
+  `useSeo` reads `project.content.beats` at runtime. Fixing it means precomputing
+  the SEO summaries at build time, which changes the "add row, flip `published`"
+  extensibility contract. Deliberately not done.
 - `src/router.tsx` drops `search` and `hash` from the pathname. Nothing depends
   on either today, so it is latent rather than broken; it bites the first time a
   link carries a query or a fragment.
 - Business gaps, needing Utku rather than code: thin about/positioning, no social
   proof. Indie products (PassATS, Stats XI) stay hidden until there is content;
   flipping `published` is the whole mechanism.
-- Visual tuning of lighting and structures is still unverified by Claude (no
-  browser). Eyeball anything that moves the 3D scene on a preview URL.
+- Lighting and structure tuning is checkable now (Playwright, **headed** for
+  anything 3D), but nobody has done a pass. Feel still needs Utku's eyes.
