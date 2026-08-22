@@ -56,6 +56,16 @@ describe("world route headings", () => {
     expect(headings()[0]).toContain("Product Manager");
   });
 
+  it("reads as the plain title, with no duplicated words from the heat glow", async () => {
+    // The hero's per-word glow is a `::after` pseudo-element fed by `data-word`
+    // precisely so its text stays out of the DOM. An earlier version rendered it
+    // as a twin <span>, which made the heading read
+    // "SeniorSenior TechnicalTechnical ProductProduct ManagerManager" to a
+    // crawler while still passing a `toContain` assertion.
+    await renderWorld();
+    expect(headings()[0]?.replace(/\s+/g, " ").trim()).toBe("Senior Technical Product Manager");
+  });
+
   it("keeps exactly one h1 once the hero is gone", async () => {
     await renderWorld();
     await act(async () => {

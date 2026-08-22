@@ -11,7 +11,7 @@ import EggToast from "../ui/EggToast";
 import SoundToggle from "../ui/SoundToggle";
 import StoryCaption from "../ui/StoryCaption";
 import SurfJourneyStatus from "../ui/SurfJourneyStatus";
-import { readAvatar } from "../ui/avatars";
+import { readAvatar } from "../ui/avatar-store";
 import type { Checkpoint } from "../world/surf-journey";
 import { COIN_TOTAL, CHECKPOINT_TOTAL } from "../world/surf-journey";
 import { CONTACT } from "../content/contact";
