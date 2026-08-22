@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { usePrefersReducedMotion } from "./hooks/useReducedMotion";
-import { AVATARS, writeAvatar } from "./avatars";
+import { AVATARS } from "./avatars";
+import { writeAvatar } from "./avatar-store";
 import { T, TYPE } from "../theme";
 
 // "Choose your character" gate, styled as an arcade cabinet select: pixel-stepped

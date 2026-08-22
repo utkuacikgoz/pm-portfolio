@@ -5,8 +5,6 @@ import managerPortrait from "./avatars/manager.svg";
 import stalkerPortrait from "./avatars/stalker.svg";
 import { T } from "../theme";
 
-const AVATAR_KEY = "pmworld.avatar";
-
 interface Stat {
   label: string;
   value: number; // 0..10
@@ -67,20 +65,6 @@ export const AVATARS: Avatar[] = [
   },
 ];
 
-// Session memory (NOT localStorage): the pick survives a same-tab refresh but a
-// fresh launch re-asks, so character-select shows every relaunch.
-export function readAvatar(): string | null {
-  try {
-    return sessionStorage.getItem(AVATAR_KEY);
-  } catch {
-    return null;
-  }
-}
-
-export function writeAvatar(id: string) {
-  try {
-    sessionStorage.setItem(AVATAR_KEY, id);
-  } catch {
-    // private mode — the gate just won't be remembered; harmless.
-  }
-}
+// Persistence lives in its own leaf module so reading the stored pick does not
+// pull this table (and three portrait SVGs) into the entry chunk.
+export { readAvatar, writeAvatar } from "./avatar-store";
