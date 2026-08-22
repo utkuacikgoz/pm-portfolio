@@ -229,19 +229,23 @@ h1, h2, h3, h4, h5, h6 {
   position: absolute;
   top: 50%;
   right: calc(var(--rocket-w) * 0.63);
-  left: -6%;
-  height: 240px;
+  left: -4%;
+  height: 210px;
   transform: translateY(-50%);
   transform-origin: right center;
   clip-path: polygon(100% 45%, 100% 55%, 0% 100%, 0% 0%);
-  filter: blur(26px);
+  filter: blur(30px);
   background: linear-gradient(
     270deg,
-    rgba(241, 156, 35, 0.72) 0%,
-    rgba(215, 111, 83, 0.44) 24%,
-    rgba(197, 126, 194, 0.18) 60%,
-    rgba(98, 115, 191, 0) 100%
+    rgba(241, 156, 35, 0.78) 0%,
+    rgba(215, 111, 83, 0.42) 20%,
+    rgba(197, 126, 194, 0.12) 42%,
+    rgba(98, 115, 191, 0) 62%
   );
+  /* Without this the cone still had alpha where the clip-path cut it, so the
+     tail read as a straight diagonal edge rather than as exhaust dispersing. */
+  -webkit-mask-image: linear-gradient(270deg, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.5) 38%, rgba(0, 0, 0, 0) 72%);
+  mask-image: linear-gradient(270deg, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.5) 38%, rgba(0, 0, 0, 0) 72%);
 }
 
 /* The hot core running straight back from the nozzle. */
@@ -358,8 +362,8 @@ h1, h2, h3, h4, h5, h6 {
   position: absolute;
   top: 50%;
   right: calc(var(--rocket-w) * 0.63);
-  left: -6%;
-  height: 240px;
+  left: -4%;
+  height: 210px;
   transform: translateY(-50%);
   transform-origin: right center;
   clip-path: polygon(100% 45%, 100% 55%, 0% 100%, 0% 0%);
@@ -375,8 +379,8 @@ h1, h2, h3, h4, h5, h6 {
     rgba(241, 156, 35, 0) 220px
   );
   /* Fade the stripes out toward the tail so the cone still dissolves. */
-  -webkit-mask-image: linear-gradient(270deg, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.45) 58%, rgba(0, 0, 0, 0) 100%);
-  mask-image: linear-gradient(270deg, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.45) 58%, rgba(0, 0, 0, 0) 100%);
+  -webkit-mask-image: linear-gradient(270deg, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.4) 34%, rgba(0, 0, 0, 0) 66%);
+  mask-image: linear-gradient(270deg, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.4) 34%, rgba(0, 0, 0, 0) 66%);
 }
 
 @keyframes plumeFlow {
