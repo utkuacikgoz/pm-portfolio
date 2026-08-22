@@ -8,10 +8,12 @@ import {
   islandBaseZ,
   islandPosition,
   buildWorld,
+  buildIndieIsland,
   structureTop,
   EMBLEM_HOVER,
+  WATER_Y,
 } from "./geometry";
-import { PUBLISHED_PROJECTS } from "../projects/projects";
+import { PUBLISHED_PROJECTS, INDIE_PROJECTS } from "../projects/projects";
 
 describe("island layout math", () => {
   it("places employment islands evenly along the rail", () => {
@@ -62,6 +64,41 @@ describe("buildWorld", () => {
 
   it("returns no cubes for an empty registry", () => {
     expect(buildWorld([])).toEqual([]);
+  });
+});
+
+describe("buildIndieIsland", () => {
+  // Regression: the indie island used to be two hand-placed boxes with nothing
+  // on them, so the "what I'm building" panel listed three products over an
+  // empty slab. It is registry-driven geometry now, like every other island.
+  it("builds well-formed cubes out at the indie island", () => {
+    const cubes = buildIndieIsland(INDIE_PROJECTS);
+    expect(cubes.length).toBeGreaterThan(0);
+    for (const c of cubes) {
+      expect(c.position.every((n) => Number.isFinite(n))).toBe(true);
+      expect(c.color).toMatch(/^#[0-9a-fA-F]{6}$/);
+      // Everything sits on the island, not adrift in the ocean: inside the 5.5
+      // surf collider that surf-journey.ts puts here.
+      const [x, , z] = islandPosition(INDIE_INDEX);
+      expect(Math.hypot(c.position[0] - x, c.position[2] - z)).toBeLessThan(5.5);
+    }
+  });
+
+  it("gives every indie product its own accent on the island", () => {
+    const colors = new Set(buildIndieIsland(INDIE_PROJECTS).map((c) => c.color));
+    for (const project of INDIE_PROJECTS) {
+      expect(colors.has(project.accent)).toBe(true);
+    }
+  });
+
+  it("stands the pylons clear of the water", () => {
+    for (const c of buildIndieIsland(INDIE_PROJECTS)) {
+      expect(c.position[1] + c.scale[1] / 2).toBeGreaterThan(WATER_Y);
+    }
+  });
+
+  it("returns no cubes when nothing is in the indie shelf", () => {
+    expect(buildIndieIsland([])).toEqual([]);
   });
 });
 
