@@ -25,6 +25,28 @@ export function seaHeight(wx: number, wz: number, t: number): number {
   );
 }
 
+// Exact partial derivatives of seaHeight, in WORLD axes: the slope of the face
+// the board is sitting on, so it can pitch and roll to the swell instead of
+// only riding its height. This is the same gradient the Water shader already
+// carries as `waveGrad` (which works in plane-local coords), differentiated by
+// hand rather than sampled — so it is ALSO covered by the KEEP IN SYNC rule
+// above: change waveH and all three of these move together.
+//
+// Amplitudes fall out of the chain rule: 0.6*0.06 = 0.036, 0.4*0.09 = 0.036,
+// 0.3*0.05 = 0.015.
+export function seaSlopeX(wx: number, wz: number, t: number): number {
+  const px = wx - 60;
+  const py = -wz;
+  return Math.cos(px * 0.06 + t * 0.8) * 0.036 + Math.cos((px + py) * 0.05 + t * 0.5) * 0.015;
+}
+
+export function seaSlopeZ(wx: number, wz: number, t: number): number {
+  const px = wx - 60;
+  const py = -wz;
+  // py = -wz, so the chain rule flips the sign of every py-bearing term.
+  return -(Math.cos(py * 0.09 - t * 0.6) * 0.036 + Math.cos((px + py) * 0.05 + t * 0.5) * 0.015);
+}
+
 interface Cube {
   position: [number, number, number];
   scale: [number, number, number];
