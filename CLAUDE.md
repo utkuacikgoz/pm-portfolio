@@ -227,7 +227,10 @@ This section is only what is *true now* and what is *left*.
   `www.` and `portfolio.` both 308 to the apex (verified with curl).
 - `X-Robots-Tag: noindex, nofollow` on `/(.*\.pdf)`. `<meta name="robots">` cannot
   reach a PDF, so the CV was crawlable and indexable while every HTML route said
-  noindex. HSTS also now declares `includeSubDomains` explicitly.
+  noindex. HSTS declares `includeSubDomains` **on the app's own responses only**
+  (`vercel.json`'s `/(.*)` rule). The `www.` and `portfolio.` 308s are Vercel
+  domain-level redirects that never touch `vercel.json`, and still answer with a
+  bare `max-age=63072000`. Verified with curl 2026-08-22.
 - **Verification has a browser now.** Playwright + Chromium drive the real app; see
   `docs/performance.md`. Anything touching the 3D scene must run **headed**:
   headless Chromium renders WebGL through SwiftShader and reports ~7 fps for a
