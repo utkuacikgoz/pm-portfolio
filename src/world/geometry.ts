@@ -1,5 +1,6 @@
 import { PUBLISHED_PROJECTS } from "../projects/projects";
 import type { Project, StructureType } from "../projects/projects";
+import { T } from "../theme";
 
 // Distance between island centers along the rail (X axis). Roomier than a tight
 // diorama so the world reads as a place you travel through.
@@ -244,6 +245,54 @@ export const EMBLEM_HOVER: Record<StructureType, number> = {
   bridge: 7.2,
   beacon: 6.8,
 };
+
+// Radius of the ring the indie pylons stand on. Inside the 4.2 terrain disc,
+// and well inside the 5.5 surf collider at this island (surf-journey.ts).
+const INDIE_RING = 2.5;
+
+/**
+ * The indie island, out past the water gap.
+ *
+ * Its monuments were missing outright: the island was two hand-placed dark
+ * boxes (off-palette blue-black, no cubes, no structures), so the "what I'm
+ * building" panel listed three products over an empty slab. This builds it the
+ * same way every other island is built, from the registry: one pylon per indie
+ * product, in that product's own accent.
+ *
+ * Deliberately scaffolding rather than finished monuments. Each stack is
+ * missing a course and carries a scaffold frame and a signal light instead of a
+ * capstone, because none of these have shipped yet. That is the difference the
+ * island is there to show.
+ */
+export function buildIndieIsland(projects: Project[]): Cube[] {
+  if (projects.length === 0) return [];
+  const [ox, , oz] = islandPosition(INDIE_INDEX);
+  const local: Cube[] = buildTerrain(T.seafoam, 9173);
+
+  projects.forEach((p, i) => {
+    const angle = -Math.PI / 2 + (i * 2 * Math.PI) / projects.length;
+    // Snapped to the voxel grid so the pylons sit on the terrain, not between it.
+    const x = Math.round(Math.cos(angle) * INDIE_RING);
+    const z = Math.round(Math.sin(angle) * INDIE_RING);
+    const bright = mix(p.accent, "#ffffff", 0.4);
+    const deep = mix(p.accent, "#000000", 0.35);
+    const height = 4 + (i % 3);
+
+    for (let y = 1; y <= height; y++) {
+      if (y === height - 1) continue; // the course still to be built
+      local.push(block(x, y, z, y % 2 ? p.accent : deep));
+    }
+    local.push(block(x + 1, 1, z, deep, [0.3, 2, 0.3])); // scaffold posts
+    local.push(block(x - 1, 1, z, deep, [0.3, 2, 0.3]));
+    local.push(block(x, height + 1, z, bright, [0.6, 0.8, 0.6])); // signal light
+  });
+
+  return local.map((c) => ({
+    position: [c.position[0] + ox, c.position[1], c.position[2] + oz] as [number, number, number],
+    scale: c.scale,
+    color: c.color,
+  }));
+}
 
 /** All cubes for all islands, flattened into one list → one InstancedMesh. */
 export function buildWorld(projects: Project[]): Cube[] {

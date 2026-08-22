@@ -4,14 +4,14 @@ import * as THREE from "three";
 import { Instances, Instance, PerformanceMonitor, Stars } from "@react-three/drei";
 import { usePrefersReducedMotion } from "../ui/hooks/useReducedMotion";
 import { daylight } from "./daylight";
-import { PUBLISHED_PROJECTS } from "../projects/projects";
-import { buildWorld } from "./geometry";
+import { PUBLISHED_PROJECTS, INDIE_PROJECTS } from "../projects/projects";
+import { buildWorld, buildIndieIsland } from "./geometry";
 import CameraRig from "./CameraRig";
 import Emblems from "./Emblems";
 import SurfController from "./SurfController";
 import SurfSpots from "./SurfSpots";
 import type { Checkpoint } from "./surf-journey";
-import { Water, IslandShadows, IndieIsland, Ripples, LightShaft, SunDisc, DistantMountains } from "./Ocean";
+import { Water, IslandShadows, Ripples, LightShaft, SunDisc, DistantMountains } from "./Ocean";
 import { T } from "../theme";
 
 // Horizon color the fog fades islands into — the logo-derived dusk haze, matching
@@ -111,7 +111,9 @@ interface Props {
  * color) — no per-cube draw calls. Lazy-loaded so three.js only ships here.
  */
 function World({ activeIndex, entered, dive, surfing, onOpen, onCoin, onCheckpoint, onComplete, frameloop = "always" }: Props) {
-  const cubes = useMemo(() => buildWorld(PUBLISHED_PROJECTS), []);
+  // One list, one InstancedMesh: the indie island's pylons ride in the same
+  // field as the rail, so showing it costs no extra draw call.
+  const cubes = useMemo(() => [...buildWorld(PUBLISHED_PROJECTS), ...buildIndieIsland(INDIE_PROJECTS)], []);
   const accent = PUBLISHED_PROJECTS[activeIndex]?.accent ?? T.blue;
   const [dpr, setDpr] = useState(1.5);
   // Range form, not a scalar: r3f only clamps DPR to the actual devicePixelRatio
@@ -173,7 +175,6 @@ function World({ activeIndex, entered, dive, surfing, onOpen, onCoin, onCheckpoi
         <IslandShadows />
         {!surfing && <Ripples active={activeIndex} />}
         {!surfing && <LightShaft active={activeIndex} />}
-      <IndieIsland />
       <Emblems active={activeIndex} onOpen={onOpen} />
       {/* The breaks only exist while surfing → the rail diorama stays clean. */}
       {surfing && <SurfSpots />}
