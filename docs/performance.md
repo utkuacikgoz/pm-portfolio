@@ -150,6 +150,45 @@ Because the chunk is genuinely lazy now, `WorldExperience` warms it with
    treats "add row, flip `published`" as the extensibility contract, and making
    unpublished content lazy is a change to that contract, not a cleanup.
 
+## Hero animation invariant (measured 2026-08-22)
+
+**No infinite animation on the hero may touch `text-shadow`, `box-shadow`,
+`background-position` or `filter`. Looping animations get `transform` and
+`opacity` only.**
+
+This is not a style preference, it is the difference between 60 fps and 14 fps.
+Measured on the built site over a 6 s steady-state window, 1440x900, after the
+entrance one-shots had finished:
+
+| loop | raster / 6 s | fps (GPU raster) | fps (software raster) |
+| --- | --- | --- | --- |
+| all loops running | 5039 ms | 58.5 | **13.8** |
+| everything static | 0 ms | 59.8 | 59.8 |
+| `wordHeat` alone (`text-shadow` on 82px text) | **5001 ms** | 59.0 | 39.4 |
+| `plumeFlow` alone (`background-position` under `filter`) | 33 ms | 60.0 | **23.2** |
+| `ctaGlow` alone (`box-shadow`) | 26 ms | 58.0 | 60.0 |
+| rocket flame + shudder, 15 sparks, plume pulse | 0 ms | 60.0 | 56.8+ |
+
+Two lessons, both counterintuitive:
+
+1. **`text-shadow` on large text was 99% of all raster on the page.** It is not
+   compositable, so every frame repainted five elements plus a 44px blur halo.
+   The glow now lives on a `.hero-word::after` that fades `opacity`; the word
+   itself keeps a `transform` loop. Raster went to zero.
+2. **A GPU hides the `background-position` cost completely** (33 ms) and a
+   software rasterizer does not (23 fps on its own). Testing only on a fast Mac
+   would have shipped this. The stripes now scroll as a `translate3d` on a child
+   whose texture rasterizes once.
+
+Software raster was simulated with `--disable-gpu-rasterization
+--num-raster-threads=1`, a stand-in for a low-end or GPU-blocklisted machine,
+not a real device. CPU throttling alone (4x, 6x) never dropped below 55 fps on
+this hardware and would have missed both findings.
+
+**Note this is a fan-and-battery problem, not a load-time one.** LCP stayed
+816 to 824 ms and CLS 0.0006 either way. The pre-fix cost was ~1.5 cores burned
+continuously on a static hero. Do not sell fixes like this as load wins.
+
 ## Unrelated thing worth an eyeball
 
 `CameraRig.tsx` initializes `enterT` to `entered ? 1 : 0`, but `World` only

@@ -58,9 +58,18 @@ export default function HeroIntro({ onBegin }: { onBegin: () => void }) {
       : {
           animation:
             `exhaustIn .8s cubic-bezier(.16,.84,.3,1) ${delay}s both, ` +
-            `wordHeat 2.2s ease-in-out ${heat}s infinite`,
+            `wordShift 2.2s ease-in-out ${heat}s infinite`,
           transformOrigin: "right center",
-        };
+          // Read by `.hero-word::after`, which an inline style cannot reach.
+          "--glow-delay": `${heat}s`,
+        } as React.CSSProperties;
+  // The hot half of the pulse renders as `.hero-word::after` (index.css), which
+  // reads the word off `data-word` and fades its own opacity. A pseudo-element
+  // rather than a twin span so the glow's text never lands in the heading's
+  // `textContent`. The per-word delay has to travel as a custom property because
+  // an inline style cannot address a pseudo-element.
+  const glow = (text: string) =>
+    reduced ? { className: "hero-word is-static" } : { className: "hero-word", "data-word": text };
 
   return (
     <div
@@ -91,18 +100,35 @@ export default function HeroIntro({ onBegin }: { onBegin: () => void }) {
       <div className="hero-identity">
         <Exhaust reduced={reduced} />
         <div className="hero-identity-copy">
-          <p style={{ letterSpacing: 5, fontSize: TYPE.small, fontWeight: 700, color: T.textMuted, marginBottom: 16, ...exhaust(0.4, HEAT_START + HEAT_STAGGER * 2) }}>
+          <p
+            {...glow("UTKU ACIKGOZ")}
+            style={{
+              letterSpacing: 5,
+              fontSize: TYPE.small,
+              fontWeight: 700,
+              color: T.textMuted,
+              marginBottom: 16,
+              ...exhaust(0.4, HEAT_START + HEAT_STAGGER * 2),
+            }}
+          >
             UTKU ACIKGOZ
           </p>
           <h1 style={{ fontSize: "clamp(40px, 8vw, 82px)", fontWeight: 900, lineHeight: 1.05 }}>
             {HEADLINE.map((words, lineIndex) => (
-              <span key={words.join(" ")} style={{ display: "block" }}>
+              <Fragment key={words.join(" ")}>
+                {/* The two lines are block spans sitting flush against each
+                    other, so without this the heading's text content reads
+                    "Senior TechnicalProduct Manager". Invisible in a block
+                    layout, correct to a crawler. */}
+                {lineIndex > 0 && " "}
+                <span style={{ display: "block" }}>
                 {words.map((word, wordIndex) => (
                   <Fragment key={word}>
                     {/* A real space, so the heading's text content still reads
                         "Senior Technical Product Manager" to a crawler. */}
                     {wordIndex > 0 && " "}
                     <span
+                      {...glow(word)}
                       style={{
                         display: "inline-block",
                         ...exhaust(wordDelay(lineIndex, wordIndex), heatDelay(wordIndex, words.length)),
@@ -111,8 +137,9 @@ export default function HeroIntro({ onBegin }: { onBegin: () => void }) {
                       {word}
                     </span>
                   </Fragment>
-                ))}
-              </span>
+                  ))}
+                </span>
+              </Fragment>
             ))}
           </h1>
         </div>
@@ -193,25 +220,29 @@ function Exhaust({ reduced }: { reduced: boolean }) {
     ? undefined
     : { animation: "plumePaint .9s cubic-bezier(.16,.84,.3,1) .28s both, plumePulse 2.1s ease-in-out 1.1s infinite" };
 
-  // Stripes scrolling back down the cone: the flow that never stops. Its paint-on
-  // shares the plume's clock, then `plumeFlow` runs forever on background
-  // position, which no other animation here touches.
-  const flow = (seconds: number) =>
-    reduced
-      ? undefined
-      : {
-          animation:
-            `plumePaint .9s cubic-bezier(.16,.84,.3,1) .28s both, plumeFlow ${seconds}s linear .8s infinite`,
-        };
+  // Stripes scrolling back down the cone: the flow that never stops. The paint-on
+  // stays on the cone (it shares the plume's clock); the endless scroll lives on
+  // a child so it can be a composited transform instead of a per-frame repaint.
+  const flow = reduced
+    ? undefined
+    : { animation: "plumePaint .9s cubic-bezier(.16,.84,.3,1) .28s both" };
+  // The stripes live on this child so the loop can be a composited transform.
+  const stripes = reduced
+    ? undefined
+    : { animation: "plumeFlow var(--flow-secs) linear .8s infinite" };
 
   return (
     <div className="hero-exhaust" aria-hidden>
       <div className="hero-plume" style={plume} />
-      <div className="hero-plume-flow" style={flow(0.62)} />
+      <div className="hero-plume-flow" style={flow}>
+        <i style={stripes} />
+      </div>
       {/* Second, finer sheet running faster over the first: the two shear
           against each other, which is what stops the flow reading as one rigid
           scrolling texture. */}
-      <div className="hero-plume-flow is-fine" style={flow(0.28)} />
+      <div className="hero-plume-flow is-fine" style={flow}>
+        <i style={stripes} />
+      </div>
       <div className="hero-plume-core" style={plume} />
       {!reduced &&
         SPARKS.map((spark) => (
@@ -327,16 +358,20 @@ function MagneticCTA({
   // the entrance settles. Disabled entirely under reduced-motion.
   const animation = reduced
     ? undefined
-    : `heroRise .7s cubic-bezier(.22,.61,.36,1) ${delay}s both, ctaGlow 2.8s ease-in-out ${delay + 0.9}s infinite`;
+    : `heroRise .7s cubic-bezier(.22,.61,.36,1) ${delay}s both`;
+  // The breathe rides an ::after overlay (index.css) whose opacity animates.
+  const glow = reduced ? undefined : `ctaGlow 2.8s ease-in-out ${delay + 0.9}s infinite`;
 
   return (
     <button
       ref={ref}
+      className="hero-cta"
       onClick={onClick}
       onPointerMove={onMove}
       onPointerLeave={reset}
       autoFocus
       style={{
+        ...(glow ? ({ "--cta-glow": glow } as React.CSSProperties) : null),
         marginTop: 42,
         padding: "18px 40px",
         fontSize: TYPE.body,

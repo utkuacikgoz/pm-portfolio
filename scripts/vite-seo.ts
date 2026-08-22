@@ -50,8 +50,22 @@ function replaceSummary(html: string, route: SeoRoute): string {
   return `${html.slice(0, from + start.length)}\n${body}\n        ${html.slice(to)}`;
 }
 
+/**
+ * JSON inside a <script> block is not HTML-escaped by JSON.stringify: it leaves
+ * both `<` and `/` alone, so a registry string containing `</script>` closes the
+ * element and everything after it is parsed as markup. Every other slot in
+ * renderRoute goes through escapeHtml; this one cannot, because the contents
+ * have to stay valid JSON. Escaping `<` as \u003c satisfies both: JSON parsers
+ * read it as `<`, and the HTML tokenizer never sees a tag.
+ */
+function jsonLdScript(jsonLd: unknown): string {
+  return JSON.stringify(jsonLd).replace(/</g, "\\u003c");
+}
+
 function renderRoute(template: string, route: SeoRoute): string {
-  const url = canonicalUrl(route.path);
+  // Escaped like every other interpolated value: `url` embeds project.id, and
+  // a quote in an id would otherwise break out of the href/content attribute.
+  const url = escapeHtml(canonicalUrl(route.path));
   const title = escapeHtml(route.title);
   const description = escapeHtml(route.description);
 
@@ -59,7 +73,7 @@ function renderRoute(template: string, route: SeoRoute): string {
   html = replaceTaggedLine(
     html,
     "robots",
-    `<meta data-seo="robots" name="robots" content="${ROBOTS_CONTENT}" />`
+    `<meta data-seo="robots" name="robots" content="${escapeHtml(ROBOTS_CONTENT)}" />`
   );
   html = replaceTaggedLine(html, "title", `<title data-seo="title">${title}</title>`);
   html = replaceTaggedLine(
@@ -100,7 +114,7 @@ function renderRoute(template: string, route: SeoRoute): string {
   html = replaceTaggedLine(
     html,
     "route-jsonld",
-    `<script data-seo="route-jsonld" type="application/ld+json">${JSON.stringify(route.jsonLd)}</script>`
+    `<script data-seo="route-jsonld" type="application/ld+json">${jsonLdScript(route.jsonLd)}</script>`
   );
   return replaceSummary(html, route);
 }
