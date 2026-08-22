@@ -1,84 +1,73 @@
-# React + TypeScript + Vite
+# utkuacikgoz.com
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Utku Acikgoz's portfolio: a stylized low-poly **career world** you fly through, where
+each island is a product he shipped. Built as an on-rails diorama with the narrative and
+metrics in a fast DOM overlay, plus an optional free surf mode.
 
-## Analytics and SEO
+Live at **[utkuacikgoz.com](https://utkuacikgoz.com)**.
 
-- **Analytics + attribution:** [`docs/analytics.md`](docs/analytics.md). PostHog behind a
-  first-party `/ingest` proxy, named funnel events, first/last touch UTM capture, and the
-  tagged links to paste per channel (`npm run utm -- --list`).
-- **SEO:** [`docs/seo.md`](docs/seo.md). Route metadata derives from the project registry;
-  the build stamps a static HTML file per route plus `sitemap.xml` and `robots.txt`.
+React 19 · Vite 7 · TypeScript 6 (strict) · three.js via @react-three/fiber 9 + drei 10 ·
+Vitest · deployed on Vercel.
+
+## Run it
+
+**Node >= 22.22.2 is required** (jsdom 30 sets the floor). The usual default of 22.11 is
+below it, so with nvm:
+
+```bash
+source ~/.nvm/nvm.sh && nvm use 22
+npm install
+npm run dev          # Vite on :5173
+```
+
+| Command | What it does |
+| --- | --- |
+| `npm run dev` | dev server with HMR |
+| `npm run build` | production build. **Vite only, no type-check** |
+| `npm run typecheck` | `tsc --noEmit -p tsconfig.app.json`. Run it separately, the build does not |
+| `npm run test:run` | Vitest, one pass |
+| `npm run lint` | ESLint |
+| `npm run utm -- --list` | print the tagged campaign links to paste per channel |
+
+`npm run build` deliberately does not type-check, so **typecheck and build are two
+separate gates**. Green build is not green types.
+
+## How it fits together
+
+One registry, one `<Canvas>`, one draw path.
+
+- **`src/projects/projects.ts`** is the single source of truth. One row per project. The
+  world, the flat map and the resume all map over it. Adding a product = add a content
+  file + a registry row + flip `published`. That is the whole extensibility contract.
+- **`src/world/`** holds the 3D scene: every cube across every island is one instanced
+  mesh, and three.js is lazy-loaded so the flat fallback never downloads it.
+- **`src/ui/`** holds the DOM overlay, including the case-study drawer and the SVG
+  charts (charts are SVG, not WebGL, so they stay accessible and add no GL contexts).
+- Small screens, reduced-motion and no-WebGL get a fast flat map instead of the world.
+
+**`CLAUDE.md` is the deep guide**: architecture, locked product decisions, content truth,
+house style and the shipping workflow. Read it before changing anything structural.
+
+## Docs
+
+| Doc | What is in it |
+| --- | --- |
+| [`docs/performance.md`](docs/performance.md) | bundle and runtime budget, the hero animation invariant, how to measure |
+| [`docs/analytics.md`](docs/analytics.md) | PostHog behind a first-party `/ingest` proxy, funnel events, UTM attribution |
+| [`docs/seo.md`](docs/seo.md) | per-route metadata derived from the registry, build-time prerendering |
+| [`docs/dependency-audit.md`](docs/dependency-audit.md) | held-back majors and why, audit posture, security headers |
+| [`docs/design-system.md`](docs/design-system.md) | palette and type scale, both guarded by tests |
+| [`docs/case-study-visuals.md`](docs/case-study-visuals.md) | how to add metrics, decisions, initiatives and stakeholders to a case study |
+| [`docs/posthog-setup.md`](docs/posthog-setup.md) | one-time PostHog project setup |
+
+## Environment
 
 Set `VITE_POSTHOG_PROJECT_TOKEN` in Vercel to turn analytics on. Copy `.env.example` to
-`.env.local` for local testing. Without the token the site runs normally and sends nothing.
+`.env.local` for local testing. Without the token the site runs normally and sends
+nothing.
 
-Currently, two official plugins are available:
+## Deploying
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(["dist"]),
-  {
-    files: ["**/*.{ts,tsx}"],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ["./tsconfig.node.json", "./tsconfig.app.json"],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from "eslint-plugin-react-x";
-import reactDom from "eslint-plugin-react-dom";
-
-export default defineConfig([
-  globalIgnores(["dist"]),
-  {
-    files: ["**/*.{ts,tsx}"],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs["recommended-typescript"],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ["./tsconfig.node.json", "./tsconfig.app.json"],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
-```
+Merging to `main` auto-deploys production through the Vercel integration. Do not run
+`vercel --prod` locally: the repo is not `.vercel`-linked and the CLI will go
+interactive. See the shipping workflow in `CLAUDE.md`.
