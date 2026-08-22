@@ -17,7 +17,10 @@ import { describe, expect, it } from "vitest";
  * import.meta.glob rather than node:fs, matching `theme.test.ts`, so this stays
  * inside the app's browser-typed project and needs no node types.
  */
-const markdown = import.meta.glob("/**/*.md", {
+// Globs are RELATIVE, never rooted with a leading slash. `import.meta.glob("/**")`
+// works locally but knip resolves that pattern as an absolute filesystem path and
+// walks the machine root, which fails CI with EACCES on /lost+found.
+const markdown = import.meta.glob(["../*.md", "../docs/*.md", "../.claude/**/*.md"], {
   query: "?raw",
   import: "default",
   eager: true,
@@ -25,28 +28,44 @@ const markdown = import.meta.glob("/**/*.md", {
 
 // Keys only (not eager), so this is a cheap file listing rather than a read of
 // every asset in the repo.
-const repoFiles = new Set(
-  Object.keys(
-    import.meta.glob("/{src,scripts,docs,public,.github,.claude}/**/*", { eager: false })
-  )
+//
+// Two globs, because Vite normalizes their keys differently: a pattern rooted
+// inside this file's own directory comes back as "./App.tsx", while one that
+// climbs out comes back as "../docs/seo.md". Normalizing both to plain
+// repo-relative paths is the whole reason `repoRelative` exists.
+const insideSrc = import.meta.glob(["../src/**/*"], { eager: false });
+const outsideSrc = import.meta.glob(
+  ["../scripts/**/*", "../docs/**/*", "../public/**/*", "../.github/**/*", "../.claude/**/*"],
+  { eager: false }
 );
-for (const key of Object.keys(markdown)) repoFiles.add(key);
-// import.meta.glob never returns the module doing the globbing, so this file has
-// to add itself or CLAUDE.md's reference to it reads as a broken path.
-repoFiles.add("/src/docs-integrity.test.ts");
-for (const root of ["/package.json", "/vercel.json", "/index.html", "/vite.config.ts", "/eslint.config.js"]) {
-  repoFiles.add(root);
-}
+
+/** Any glob key or link target, as a plain repo-relative path. */
+const repoRelative = (key: string) =>
+  key.startsWith("./") ? "src/" + key.slice(2) : key.replace(/^(\.\.\/)+/, "").replace(/^\//, "");
+
+const repoFiles = new Set([
+  ...Object.keys(insideSrc).map(repoRelative),
+  ...Object.keys(outsideSrc).map(repoRelative),
+  ...Object.keys(markdown).map(repoRelative),
+  // import.meta.glob never returns the module doing the globbing, so this file
+  // has to add itself or CLAUDE.md's reference to it reads as a broken path.
+  "src/docs-integrity.test.ts",
+  "package.json",
+  "vercel.json",
+  "index.html",
+  "vite.config.ts",
+  "eslint.config.js",
+]);
 
 const scripts = Object.keys(
   (JSON.parse(
-    (import.meta.glob("/package.json", { query: "?raw", import: "default", eager: true }) as Record<string, string>)[
-      "/package.json"
+    (import.meta.glob("../package.json", { query: "?raw", import: "default", eager: true }) as Record<string, string>)[
+      "../package.json"
     ]
   ) as { scripts: Record<string, string> }).scripts
 );
 
-const docs = Object.entries(markdown).filter(([path]) => !path.includes("/node_modules/"));
+const docs = Object.entries(markdown).map(([path, source]) => [repoRelative(path), source] as const);
 
 /** Resolve a link relative to the doc containing it, into a repo-absolute path. */
 function resolveFrom(docPath: string, target: string): string {
@@ -57,7 +76,7 @@ function resolveFrom(docPath: string, target: string): string {
     if (segment === "..") out.pop();
     else out.push(segment);
   }
-  return "/" + out.join("/");
+  return out.join("/");
 }
 
 describe("documentation integrity", () => {
@@ -99,7 +118,7 @@ describe("documentation integrity", () => {
         const target = match[1];
         if (target.includes("*") || target.startsWith("http")) continue;
         if (!/^(src|scripts|docs|public|\.github|\.claude)\//.test(target)) continue;
-        if (!repoFiles.has("/" + target)) missing.push(`${docPath} -> ${target}`);
+        if (!repoFiles.has(target)) missing.push(`${docPath} -> ${target}`);
       }
     }
     expect(missing).toEqual([]);
