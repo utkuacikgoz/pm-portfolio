@@ -169,8 +169,12 @@ the quantified outcomes are the gold.
 - Styling: **inline styles**, palette tokens from `src/theme.ts` `T`; see
   `docs/design-system.md` for approved values and roles. Font: Plus Jakarta Sans, headings
   weight 900.
-- `src/global.d.ts` has a permissive JSX intrinsic shim so r3f elements type-check —
-  leave it.
+- **No JSX intrinsic shim is needed.** A permissive one used to live in
+  src/global.d.ts (deleted in `6f339c5`); r3f 9 ships its own JSX types and `tsc`
+  is clean without it. This bullet told sessions to "leave it" for months after
+  the file was gone, which is why `src/docs-integrity.test.ts` now exists.
+  **Backticks around a path mean it is live** — that test asserts it. Write a
+  removed path as plain text, as above.
 - `npm run build` runs **vite only (no tsc)** — type-check separately with
   `npx tsc --noEmit -p tsconfig.app.json` before claiming type-clean.
 
