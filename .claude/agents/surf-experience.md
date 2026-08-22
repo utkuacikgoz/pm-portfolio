@@ -59,8 +59,15 @@ Run, with Node 22 (`source ~/.nvm/nvm.sh && nvm use 22`):
   Any steering or journey math you change needs its test updated or added.
 - `npm run build`
 
-**You have no browser.** Motion, feel and camera work cannot be verified by you.
-Finish by listing exactly what Utku has to eyeball on the dev server, in the order
-he should check it. Never describe unverified feel as confirmed.
+**You have a browser, and you must use it.** Playwright + Chromium drive the real
+app (`docs/performance.md` has the recipe). Screenshot before and after, and take
+frame timings so "smoother" is a number. **Run headed for anything 3D**: headless
+Chromium renders WebGL through SwiftShader and will report ~7 fps for a scene that
+actually runs at 60.
+
+What a browser still cannot tell you is **feel**. Camera lag, turn response and
+whether a FOV push reads as speed or as nausea are Utku's call, not yours. Finish
+by listing exactly what he has to eyeball, in the order he should check it, and
+never describe unverified feel as confirmed.
 
 Report in caveman mode: what changed, what it should feel like, what needs eyes.

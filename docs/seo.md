@@ -21,6 +21,13 @@ combination that actually keeps a page out. robots.txt therefore still says
 Link unfurlers (LinkedIn, Slack, WhatsApp) ignore robots directives, so all the
 per-route titles and OG cards below keep working while noindex is on.
 
+**The blind spot: `<meta name="robots">` only reaches HTML.** Because robots.txt
+deliberately allows the crawl, any non-HTML file is fair game, and the CV PDF was
+being served crawlable and indexable by name while every page said noindex. It is
+covered now by an `X-Robots-Tag: noindex, nofollow` header on `/(.*\.pdf)` in
+`vercel.json`. **Add any future downloadable asset to that rule**, or flipping
+`INDEXABLE` will not be the only thing deciding what shows up in search.
+
 Flipping `INDEXABLE` to true switches the meta to `index, follow`, restores
 `sitemap.xml` and advertises it in robots.txt. Nothing else needs touching.
 

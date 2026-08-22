@@ -1,13 +1,23 @@
 # Visual quality audit
 
-2026-08-07. Audited from the code that produces the visuals: palette use against
-`docs/design-system.md`, computed WCAG contrast, structure silhouettes from
-`geometry.ts`, and typographic consistency. **No browser was involved**, so this
-covers what is measurable, not what it feels like. Anything about taste, motion
-or lighting still needs eyes.
+2026-08-07, a point-in-time snapshot. Kept as a record of what was wrong and what
+was decided, not as a live checklist. Audited from the code that produces the
+visuals: palette use against `docs/design-system.md`, computed WCAG contrast,
+structure silhouettes from `geometry.ts`, and typographic consistency. **No
+browser was involved**, so it covered what is measurable, not what it felt like.
 
-> **Status:** sections 1, 2 and 4 are fixed (see the entries below). Section 3
-> (silhouettes) is still open and wants eyes on a browser.
+> **Status, corrected 2026-08-22:** all five sections are resolved and each is
+> marked `[FIXED]` below. The header used to claim section 3 was still open while
+> section 3's own heading said `[FIXED]`; the "Suggested order" at the foot is
+> likewise a historical plan, not outstanding work.
+>
+> Two things have changed since this was written. Visual checks are no longer
+> blind: Playwright + Chromium drive the real app (see `docs/performance.md`), and
+> anything touching the 3D scene must run **headed**, because headless renders
+> WebGL through SwiftShader. And the indie island, not covered here at all, had no
+> monuments whatsoever until 2026-08-22, which is the kind of gap a code-only
+> audit of `buildStructure` could not see: it only built cubes for
+> `PUBLISHED_PROJECTS`.
 
 ## 1. The design system is documented, then contradicted [FIXED]
 
@@ -188,7 +198,7 @@ than a cleanup, and it wants a browser.
 - `#f2a900` (coin) and `#e6f7f2` (foam) are deliberate object colors in the 3D
   scene, not interface surfaces.
 
-## Suggested order
+## Suggested order (historical, all since done)
 
 1. **Retire the blue-black scrims** (section 1). Mechanical, no taste calls,
    removes the most visible inconsistency.

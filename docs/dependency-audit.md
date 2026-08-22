@@ -1,6 +1,6 @@
 # Dependency and delivery audit
 
-Snapshot: 2026-08-19. Re-run the commands under "How to redo this" to refresh it.
+Snapshot: 2026-08-22. Re-run the commands under "How to redo this" to refresh it.
 
 ## Where it stands
 
@@ -137,11 +137,9 @@ Unchanged policy from CLAUDE.md: 8 and 6 target the unreleased rolldown build.
 
 Ordered by value per unit of effort.
 
-1. **Self-host the fonts.** `index.html` pulls Plus Jakarta Sans from
-   `fonts.googleapis.com`, which costs two extra connections on a render
-   blocking path and hands a third party every visitor's IP. Serving a subset
-   woff2 from `/public` removes both. Needs a visual check that the fallback
-   metrics do not shift the hero.
+1. ~~**Self-host the fonts.**~~ **Done.** `public/fonts/*.woff2` are served from
+   the same origin, preloaded in `index.html` and cached immutable. Nothing on
+   the critical path reaches `fonts.googleapis.com` any more.
 2. **Decide on `@vercel/analytics`.** PostHog now covers pageviews, funnels and
    web vitals. The Vercel script is a second analytics vendor on every page for
    a dashboard that may go unread. Removing it drops a dependency and a request.
@@ -152,20 +150,41 @@ Ordered by value per unit of effort.
    `script-src`, and the PostHog hosts in `connect-src` in case the `/ingest`
    proxy is bypassed. Report-only enforces nothing, so it cannot break the site.
 
-   **To finish:** load the apex, `/resume` and a case study with devtools open,
-   including the booking CTA, and read the console for violations. There is no
-   `report-uri`, so the console is the only channel. When it is quiet, rename the
-   header to `Content-Security-Policy`. Do not enforce before reading it: the
-   JSON-LD block is `application/ld+json`, which browsers do not treat as an
-   executable script, but the Vercel Analytics injection is the piece most likely
-   to trip.
+   **Updated 2026-08-22.** A security review checked the policy against the built
+   output rather than by loading pages: **zero** `eval(` and `new Function` across
+   all shipped chunks (so no `'unsafe-eval'` is needed), every script is
+   same-origin (`/assets/*`, `/_vercel/insights/script.js`,
+   `/ingest/static/recorder.js`), the built CSS references only the self-hosted
+   woff2, and no off-origin images exist in `src/`. The policy as written is
+   already compatible.
+
+   The blocker is that **report-only with no `report-uri` or `report-to` collects
+   nothing**: violations land only in each visitor's own console, so the trial can
+   never conclude. Either wire a collector or just rename the header. Known
+   casualty of enforcing: PostHog's `?__posthog` debug toolbar loads from
+   `us.posthog.com`, which is not in `script-src`. That is Utku-only.
 4. ~~**Trim the three.js chunk.** 1 MB raw / 305 kB gzip, already lazy so only the
    world path pays. If it needs to come down, drei is the place to look before
    three itself.~~ **Both halves of this were wrong.** It was not lazy (see
    `docs/performance.md`), and drei is 0.6% of that chunk, not the place to look.
    Fixed and corrected.
-5. **CI hardening.** Pin actions to commit SHAs (`sha_pinning_required` is off)
-   and add a `concurrency` block so superseded PR runs cancel.
+5. ~~**CI hardening.**~~ **Done.** `.github/workflows/ci.yml` pins every action to
+   a commit SHA, pins gitleaks by version *and* verifies a SHA256 checksum before
+   a privileged install, sets `permissions: contents: read`, and has a
+   `concurrency` block so superseded PR runs cancel.
+
+## Security headers
+
+`vercel.json` sends HSTS (with `includeSubDomains`), `X-Content-Type-Options`,
+`Referrer-Policy`, `X-Frame-Options`, `Permissions-Policy` and the report-only CSP
+above on every response.
+
+**`X-Robots-Tag: noindex, nofollow` on `/(.*\.pdf)`** is the one that is easy to
+miss. `INDEXABLE = false` works through `<meta name="robots">`, which a PDF cannot
+carry, and `robots.txt` deliberately allows crawling so the meta can be read (see
+`docs/seo.md`). Without the header the CV was crawlable and indexable by name
+while every HTML route asked not to be. Any future non-HTML asset that should stay
+out of search needs the same treatment.
 
 ## How to redo this
 
