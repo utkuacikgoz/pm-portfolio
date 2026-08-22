@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { PUBLISHED_PROJECTS } from "../projects/projects";
+import { PUBLISHED_PROJECTS, INDIE_PROJECTS } from "../projects/projects";
 import { islandPosition, INDIE_INDEX, WATER_Y } from "./geometry";
 import { usePrefersReducedMotion } from "../ui/hooks/useReducedMotion";
 import { T } from "../theme";
@@ -204,7 +204,10 @@ export function Ripples({ active }: { active: number }) {
   const meshes = useRef<(THREE.Mesh | null)[]>([]);
   const slots = useRef(Array.from({ length: 3 }, () => ({ born: -99, x: 0, z: 0 })));
   const cursor = useRef(0);
-  const accent = PUBLISHED_PROJECTS[active]?.accent ?? T.mauve;
+  // Past the last employment island the rail reaches the indie island, which is
+  // not in PUBLISHED_PROJECTS: without this the shaft fell back to a default and
+  // the one island with no monuments also lost its colour.
+  const accent = PUBLISHED_PROJECTS[active]?.accent ?? INDIE_PROJECTS[0]?.accent ?? T.mauve;
 
   useEffect(() => {
     if (reduced) return;
@@ -294,18 +297,3 @@ export function LightShaft({ active }: { active: number }) {
   );
 }
 
-export function IndieIsland() {
-  const [ix, , iz] = islandPosition(INDIE_INDEX);
-  return (
-    <group position={[ix, 0, iz]}>
-      <mesh position={[0, -0.5, 0]} raycast={() => null}>
-        <boxGeometry args={[7, 1, 7]} />
-        <meshStandardMaterial color="#13243a" flatShading />
-      </mesh>
-      <mesh position={[0, -1.5, 0]} raycast={() => null}>
-        <boxGeometry args={[4.5, 1, 4.5]} />
-        <meshStandardMaterial color="#0e1b2c" flatShading />
-      </mesh>
-    </group>
-  );
-}
