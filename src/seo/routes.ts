@@ -1,4 +1,14 @@
 import { PUBLISHED_PROJECTS, attributionLine, type Project } from "../projects/projects";
+import { SITE_URL, ROBOTS_CONTENT, INDEXABLE, canonicalUrl } from "./config";
+import { CASE_STUDIES, type CaseStudyId } from "../content";
+import type { Beat } from "../content/types";
+
+// The registry no longer carries `content` (it would pin every case study into
+// the entry chunk). This module is imported only by the build: the prerenderer
+// and the seo-meta plugin, both under Node. So it reads the content map here.
+const contentFor = (project: Project) => CASE_STUDIES[project.id as CaseStudyId];
+
+export { SITE_URL, ROBOTS_CONTENT, INDEXABLE, canonicalUrl };
 
 // Single source of truth for everything a crawler or a link preview reads.
 // Imported twice on purpose:
@@ -8,30 +18,6 @@ import { PUBLISHED_PROJECTS, attributionLine, type Project } from "../projects/p
 //     though they never run our JavaScript.
 // Keep it free of DOM and import.meta so the build can import it under Node.
 
-export const SITE_URL = "https://utkuacikgoz.com";
-
-/**
- * Whether this site wants to be in search results. Off on purpose: the case
- * studies carry numbers the CV does not, and traffic here comes from links Utku
- * pastes deliberately (LinkedIn, DMs, applications), not from ranking.
- *
- * Note the mechanism. Staying out of search means "crawlable but noindex", NOT
- * a robots.txt Disallow: blocking the crawl stops Google from ever reading the
- * noindex, and it can still list a bare URL it found linked elsewhere. So
- * robots.txt keeps letting crawlers in, and every page says noindex.
- *
- * Link unfurlers (LinkedIn, Slack, WhatsApp) ignore robots directives, so all
- * the per-route titles and OG cards keep working either way.
- *
- * Flip to true to be indexed: it turns the meta to index,follow, restores the
- * sitemap and advertises it in robots.txt.
- */
-export const INDEXABLE = false;
-
-/** Value for the robots meta tag on every route. */
-export const ROBOTS_CONTENT = INDEXABLE
-  ? "index, follow, max-image-preview:large, max-snippet:-1"
-  : "noindex, follow";
 const SITE_NAME = "Utku Acikgoz";
 const AUTHOR = "Utku Acikgoz";
 const JOB_TITLE = "Senior Technical Product Manager";
@@ -70,7 +56,7 @@ function firstSentence(text: string): string {
 
 /** The sharpest line in a case study: an insight callout, else the opening claim. */
 function lead(project: Project): string {
-  const beats = project.content?.beats ?? [];
+  const beats: Beat[] = contentFor(project)?.beats ?? [];
   const insight = beats.find((b) => b.insight)?.insight;
   if (insight) return insight;
   const body = beats[0]?.body?.[0];
@@ -88,7 +74,7 @@ const person = {
 
 function projectRoute(project: Project, index: number): SeoRoute {
   const tagline = prose(project.tagline);
-  const beats = project.content?.beats ?? [];
+  const beats: Beat[] = contentFor(project)?.beats ?? [];
 
   return {
     path: `/p/${project.id}`,
@@ -105,7 +91,7 @@ function projectRoute(project: Project, index: number): SeoRoute {
         "@context": "https://schema.org",
         "@type": "CreativeWork",
         name: `${project.title} product case study`,
-        headline: project.content?.title ?? project.title,
+        headline: contentFor(project)?.title ?? project.title,
         abstract: clamp(`${tagline}. ${lead(project)}`),
         url: `${SITE_URL}/p/${project.id}`,
         author: person,
@@ -203,6 +189,3 @@ export function seoForPath(pathname: string): SeoRoute {
 }
 
 /** Absolute, parameter-free URL used for canonical and og:url. */
-export function canonicalUrl(path: string): string {
-  return path === "/" ? `${SITE_URL}/` : `${SITE_URL}${path}`;
-}

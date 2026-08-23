@@ -1,6 +1,7 @@
 import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 import { seo } from "./scripts/vite-seo";
+import { seoMeta } from "./scripts/vite-seo-meta";
 
 // PostHog is called through a first-party /ingest path so ad blockers do not
 // eat the events (see src/analytics/config.ts). Vercel rewrites it in prod;
@@ -19,7 +20,7 @@ const POSTHOG_INGEST = {
 };
 
 export default defineConfig({
-  plugins: [react(), seo()],
+  plugins: [react(), seo(), seoMeta()],
   base: "/",
   server: { proxy: POSTHOG_INGEST },
   preview: { proxy: POSTHOG_INGEST },

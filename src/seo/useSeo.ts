@@ -1,5 +1,19 @@
 import { useEffect } from "react";
-import { ROBOTS_CONTENT, canonicalUrl, seoForPath } from "./routes";
+import { ROBOTS_CONTENT, canonicalUrl } from "./config";
+import routeMeta from "virtual:seo-meta";
+
+// Build-time metadata (scripts/vite-seo-meta.ts) rather than `seoForPath` from
+// `routes.ts`. Deriving it here at runtime meant importing the project registry,
+// which statically pulls the full text of every case study into the entry chunk
+// for every visitor. These strings never depend on the visitor, so they are
+// computed once at build.
+function metaForPath(pathname: string) {
+  // Unknown paths fall back to home, matching what `seoForPath` did. The path is
+  // returned alongside so the canonical URL follows the metadata that was
+  // actually used, not the URL that was asked for.
+  const path = routeMeta[pathname] ? pathname : "/";
+  return { path, ...routeMeta[path] };
+}
 
 // The build writes a static HTML file per route (scripts/vite-seo.ts), which is
 // what link unfurlers and non-JS crawlers read. This hook covers the other half:
@@ -26,7 +40,7 @@ function setMeta(kind: "name" | "property", key: string, content: string): void 
 /** Keep <head> in sync with the current route. */
 export function useSeo(pathname: string): void {
   useEffect(() => {
-    const route = seoForPath(pathname);
+    const route = metaForPath(pathname);
     const url = canonicalUrl(route.path);
 
     document.title = route.title;
