@@ -158,11 +158,22 @@ Ordered by value per unit of effort.
    woff2, and no off-origin images exist in `src/`. The policy as written is
    already compatible.
 
-   The blocker is that **report-only with no `report-uri` or `report-to` collects
-   nothing**: violations land only in each visitor's own console, so the trial can
-   never conclude. Either wire a collector or just rename the header. Known
-   casualty of enforcing: PostHog's `?__posthog` debug toolbar loads from
-   `us.posthog.com`, which is not in `script-src`. That is Utku-only.
+   **Enforced 2026-08-23.** The report-only phase was not a trial in progress, it
+   was a trial that could never conclude: with no `report-uri` or `report-to`,
+   violations only ever reached each visitor's own console. Rather than wire a
+   collector to gather data whose only purpose was to justify enforcing, the
+   header was renamed to `Content-Security-Policy`, since the unknowns it existed
+   to discover had already been enumerated statically (and more completely than
+   console-watching would manage: static analysis reads every path, visitors walk
+   only some). `https://us.posthog.com` was added to `script-src` so the
+   `?__posthog` debug toolbar keeps working.
+
+   **The standing tax:** any new third party (an embedded video, another
+   analytics tag, a webfont host) is now blocked by default, and the symptom is
+   "the thing did not load" rather than a named error. Adding one means adding
+   its host here in the same change. `style-src` keeps `'unsafe-inline'` because
+   the UI styles through inline `style={{}}` objects by convention, so the policy
+   is real for scripts and weak for styles by design.
 4. ~~**Trim the three.js chunk.** 1 MB raw / 305 kB gzip, already lazy so only the
    world path pays. If it needs to come down, drei is the place to look before
    three itself.~~ **Both halves of this were wrong.** It was not lazy (see
