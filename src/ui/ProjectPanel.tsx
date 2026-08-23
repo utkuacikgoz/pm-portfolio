@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { attributionLine, type Project } from "../projects/projects";
+import { CASE_STUDIES, type CaseStudyId } from "../content";
+import type { CaseStudy } from "../content/types";
 import type { Beat } from "../content/types";
 import { Metrics, Decisions, Initiatives, Stakeholders } from "./viz";
 import { CONTACT } from "../content/contact";
@@ -44,7 +46,9 @@ interface Props {
  */
 export default function ProjectPanel({ project, onClose, onNext, nextTitle }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const content = project.content;
+  // Looked up here, not carried on the registry row: this component is lazy, so
+  // the case-study prose loads with it instead of riding in the entry chunk.
+  const content = CASE_STUDIES[project.id as CaseStudyId] as CaseStudy | undefined;
   const [active, setActive] = useState(0);
   const readFired = useRef(false);
 

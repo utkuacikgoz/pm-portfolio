@@ -1,5 +1,3 @@
-import { CASE_STUDIES } from "../content";
-import type { CaseStudy } from "../content/types";
 import { T } from "../theme";
 
 // Silhouette archetype for the procedural low-poly island. The world renders
@@ -48,12 +46,16 @@ export interface Project {
   org?: string; // employer of record
   period?: string; // years, matching the CV
   clientWork?: boolean; // engagement delivered for a client, not a staff role
-  content?: CaseStudy; // omitted for indie glimpses (no full case study yet)
+  // NOTE: no `content` field. The case-study prose is looked up by `id` from
+  // `src/content` inside the LAZY ProjectPanel chunk instead of being referenced
+  // here. A static reference from this registry put the full text of all six
+  // case studies into the entry chunk for every visitor, including the flat
+  // mobile path that never opens one. Adding a project is unchanged: add a
+  // content file keyed by the same id, add a row here, flip `published`.
   glimpse?: string; // teaser line shown on the glimpse panel for indie products
   story?: string; // one-line narrative caption for the fly-through tour
 }
 
-const C = CASE_STUDIES as Record<string, CaseStudy>;
 
 // Order = travel order along the rail, strongest recruiter signal first.
 export const PROJECTS: Project[] = [
@@ -69,7 +71,6 @@ export const PROJECTS: Project[] = [
     accent: T.blue,
     structure: "tower",
     mark: "coin",
-    content: C.bilira,
     story: "The one where I made compliance fast enough to actually ship.",
   },
   {
@@ -85,7 +86,6 @@ export const PROJECTS: Project[] = [
     accent: T.gold,
     structure: "market",
     mark: "bag",
-    content: C.mestores,
     story: "The one where a broken store started printing money again.",
   },
   {
@@ -101,7 +101,6 @@ export const PROJECTS: Project[] = [
     accent: T.coral,
     structure: "campus",
     mark: "cross",
-    content: C.apollo,
     story: "The one where healthcare ops stopped bleeding two million a year.",
   },
   {
@@ -117,7 +116,6 @@ export const PROJECTS: Project[] = [
     accent: T.mauve,
     structure: "arcade",
     mark: "joystick",
-    content: C.la3eb,
     story: "The one where a gaming app found six times its players in ten weeks.",
   },
   {
@@ -132,7 +130,6 @@ export const PROJECTS: Project[] = [
     accent: T.seafoam,
     structure: "bridge",
     mark: "growth",
-    content: C.upshift,
     story: "The one where I built the entire product function from scratch.",
   },
 
@@ -177,7 +174,6 @@ export const PROJECTS: Project[] = [
     published: false,
     accent: T.seafoam,
     structure: "campus",
-    content: C.mona,
   },
 ];
 
