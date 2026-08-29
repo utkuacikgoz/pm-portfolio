@@ -10,7 +10,6 @@ import CameraRig from "./CameraRig";
 import Emblems from "./Emblems";
 import SurfController from "./SurfController";
 import SurfSpots from "./SurfSpots";
-import type { Checkpoint } from "./surf-journey";
 import { Water, IslandShadows, Ripples, LightShaft, SunDisc, DistantMountains } from "./Ocean";
 import { T } from "../theme";
 
@@ -130,9 +129,8 @@ interface Props {
   surfing: boolean;
   onOpen: (i: number) => void;
   onCoin?: (count: number) => void;
-  onCheckpoint?: (cp: Checkpoint | null) => void;
   onWave?: (projectId: string | null) => void;
-  onTotals?: (coins: number, checkpoints: number) => void;
+  onTotals?: (coins: number) => void;
   /**
    * Hands the shell a function that returns the current frame as a PNG data
    * URL, and null when the canvas goes away.
@@ -155,7 +153,7 @@ interface Props {
  * across every island lives in a single <Instances> (one draw call, per-instance
  * color) — no per-cube draw calls. Lazy-loaded so three.js only ships here.
  */
-function World({ activeIndex, entered, dive, surfing, onOpen, onCoin, onCheckpoint, onWave, onTotals, onCapture, onComplete, lowPower = false, frameloop = "always" }: Props) {
+function World({ activeIndex, entered, dive, surfing, onOpen, onCoin, onWave, onTotals, onCapture, onComplete, lowPower = false, frameloop = "always" }: Props) {
   // One list, one InstancedMesh: the indie island's pylons ride in the same
   // field as the rail, so showing it costs no extra draw call.
   const cubes = useMemo(() => [...buildWorld(PUBLISHED_PROJECTS), ...buildIndieIsland(INDIE_PROJECTS)], []);
@@ -228,7 +226,7 @@ function World({ activeIndex, entered, dive, surfing, onOpen, onCoin, onCheckpoi
       <Emblems active={activeIndex} onOpen={onOpen} />
       {/* The breaks only exist while surfing → the rail diorama stays clean. */}
       {surfing && <SurfSpots />}
-      <SurfController active={surfing} onCoin={onCoin} onCheckpoint={onCheckpoint} onWave={onWave} onTotals={onTotals} onComplete={onComplete} />
+      <SurfController active={surfing} onCoin={onCoin} onWave={onWave} onTotals={onTotals} onComplete={onComplete} />
       <FrameCapture onCapture={onCapture} />
       <CameraRig activeIndex={activeIndex} accent={accent} entered={entered} dive={dive} surfing={surfing} />
     </Canvas>
@@ -237,6 +235,6 @@ function World({ activeIndex, entered, dive, surfing, onOpen, onCoin, onCheckpoi
 
 // Every prop here is already referentially stable (numbers, booleans, useCallbacks),
 // so this memo actually bails out. Without it, surf-mode HUD state living in
-// WorldExperience (coins, checkpoints) re-rendered the whole scene on every coin
+// WorldExperience (the coin count, the caught wave) re-rendered the whole scene on every coin
 // pickup — reconciling 680 <Instance> elements mid-run, when the scene is heaviest.
 export default memo(World);

@@ -60,7 +60,14 @@ where each island = a project, with the narrative + metrics in a fast DOM overla
   exempt. Metric ranges read as "X to Y". Guarded by
   `src/content/house-style.test.ts`, which walks every case study, registry row,
   contact detail and SEO route and names the offending path.
-- **Biomes now (visible):** BiLira, Mestores, Apollo, La3eb, Upshift (employment,
+- - **No "product principles" in the ocean.** Four gates used to pop a maxim as
+  you surfed through them. They are gone and should not come back: two of the
+  four titles were borrowed (one is an Amazon leadership principle verbatim),
+  all four asserted things the rest of the site proves with numbers, and every
+  break now carries a real project with a real metric, which is the same job
+  done properly.
+
+**Biomes now (visible):** BiLira, Mestores, Apollo, La3eb, Upshift (employment,
   strongest-signal first). **Hidden, ready to flip:** PassATS, Stats XI, Mona — set
   `published: true` in the registry to surface.
 
@@ -282,12 +289,14 @@ This section is only what is *true now* and what is *left*.
   which share route a browser can take) is `src/ui/share-card.ts` and is tested;
   the canvas half is verified in a browser. `ShareRun` is lazy, so the compositor
   stays out of the entry chunk.
-- Content-Security-Policy still ships as `Content-Security-Policy-Report-Only`
-  **with no reporting endpoint**, so it collects nothing and the trial can never
-  conclude. A 2026-08-22 audit verified the policy is already compatible with the
-  app (zero `eval`/`new Function` in all shipped chunks, every script same-origin,
-  fonts self-hosted), so the choice is: wire a collector, or just flip the header
-  name. Known casualty of enforcing: PostHog's `?__posthog` debug toolbar.
+- ~~Content-Security-Policy still ships as report-only.~~ **This was false.** It
+  has been enforced since `security: enforce the CSP instead of reporting it to
+  nobody (#77)`; the bullet outlived the fix and was reported as open work twice
+  afterwards. Re-verified 2026-08-29 by serving the built `dist` under
+  `vercel.json`'s exact headers and driving it: a surf run, the share card
+  (which uses `data:` and `blob:` URLs and an anchor download), a case study and
+  the resume all produce **zero** violations. Known casualty, unchanged:
+  PostHog's `?__posthog` debug toolbar.
 - ~~The six case studies are 41.2 KB of the entry chunk~~ **Fixed, and this
   entry was wrong for a while after it was.** The registry no longer carries a
   `content` reference, so the prose lives in the lazy `ProjectPanel` chunk; a
