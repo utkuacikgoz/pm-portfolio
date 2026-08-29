@@ -5,30 +5,46 @@ type NavigateOptions = { replace?: boolean };
 
 type RouterState = {
   pathname: string;
+  /** Query string including the leading "?", or "" when there is none. */
+  search: string;
+  /** Fragment including the leading "#", or "" when there is none. */
+  hash: string;
   navigate: (to: string, options?: NavigateOptions) => void;
 };
 
 const RouterContext = createContext<RouterState | null>(null);
 
-function readPathname() {
-  return window.location.pathname;
+/**
+ * The whole location, not just the path.
+ *
+ * This used to read `window.location.pathname` alone. `navigate` pushed the
+ * full URL, so the address bar was right, but the router's own state dropped
+ * the query and the fragment the moment you moved: a link carrying either
+ * worked on a cold load and then silently lost it on the first client-side
+ * navigation. Nothing depended on either until a shareable link needed to
+ * carry state, which is exactly how a latent bug announces itself.
+ */
+function readLocation() {
+  const { pathname, search, hash } = window.location;
+  return { pathname, search, hash };
 }
 
 export function BrowserRouter({ children }: { children: ReactNode }) {
-  const [pathname, setPathname] = useState(readPathname);
+  const [location, setLocation] = useState(readLocation);
 
   useEffect(() => {
-    const onPopState = () => setPathname(readPathname());
+    const onPopState = () => setLocation(readLocation());
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
   }, []);
 
   const navigate = useCallback((to: string, { replace = false }: NavigateOptions = {}) => {
     window.history[replace ? "replaceState" : "pushState"](null, "", to);
-    setPathname(readPathname());
+    setLocation(readLocation());
   }, []);
 
-  const value = useMemo(() => ({ pathname, navigate }), [pathname, navigate]);
+  const { pathname, search, hash } = location;
+  const value = useMemo(() => ({ pathname, search, hash, navigate }), [pathname, search, hash, navigate]);
   return <RouterContext.Provider value={value}>{children}</RouterContext.Provider>;
 }
 
