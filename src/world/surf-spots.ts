@@ -19,6 +19,7 @@
 // (BiLira) is the one you drop into at the biggest break.
 import { PUBLISHED_PROJECTS } from "../projects/projects";
 import { T } from "../theme";
+import { CURL } from "./wave-face";
 
 export interface SurfSpot {
   id: string;
@@ -31,6 +32,12 @@ export interface SurfSpot {
    */
   projectId: string;
   accent: string; // palette marker + beacon color, taken from that project
+  /**
+   * How hard this wave throws its lip. Only a break that curls past vertical
+   * can cover a rider, so this is also what decides whether dropping in here
+   * puts you in a barrel or just on a face. See `wave-face.ts`.
+   */
+  curl: number;
 }
 
 /**
@@ -63,6 +70,7 @@ export const SURF_SPOTS: SurfSpot[] = [
     pos: [40, 58],
     take: [40, 58],
     ride: { lift: 1.7, direction: [80, -10] },
+    curl: CURL.slab,
     ...projectForBreak("teahupoo"),
   },
   {
@@ -70,6 +78,7 @@ export const SURF_SPOTS: SurfSpot[] = [
     pos: [0, -58],
     take: [0, -55],
     ride: { lift: 0.9, direction: [-25, 83] },
+    curl: CURL.gentle,
     ...projectForBreak("bondi"),
   },
   {
@@ -77,6 +86,7 @@ export const SURF_SPOTS: SurfSpot[] = [
     pos: [-25, 25],
     take: [-22, 27],
     ride: { lift: 1.8, direction: [85, -25] },
+    curl: CURL.peeling,
     ...projectForBreak("impossibles"),
   },
   {
@@ -84,6 +94,7 @@ export const SURF_SPOTS: SurfSpot[] = [
     pos: [120, 48],
     take: [122, 46],
     ride: { lift: 2.3, direction: [35, -120] },
+    curl: CURL.slab,
     ...projectForBreak("pipeline"),
   },
   {
@@ -91,6 +102,7 @@ export const SURF_SPOTS: SurfSpot[] = [
     pos: [155, -72],
     take: [162, -71],
     ride: { lift: 4.4, direction: [-155, 14] },
+    curl: CURL.slab,
     ...projectForBreak("nazare"),
   },
 ];
