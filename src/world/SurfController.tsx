@@ -6,7 +6,7 @@ import Surfer from "./Surfer";
 import { nearestTakeoff, SURF_LAUNCH, type SurfSpot } from "./surf-spots";
 import { surfSignal } from "./surf-signal";
 import { surfTouch } from "./surf-touch";
-import { SURF_COLLIDERS, COINS, COIN_TOTAL, CHECKPOINTS, collectedCoins, type Checkpoint } from "./surf-journey";
+import { SURF_COLLIDERS, COINS, COIN_TOTAL, CHECKPOINTS, CHECKPOINT_TOTAL, collectedCoins, type Checkpoint } from "./surf-journey";
 import { sfx } from "../audio/sfx";
 import {
   BOARD_CLEARANCE,
@@ -94,6 +94,7 @@ export default function SurfController({
   onCoin,
   onCheckpoint,
   onWave,
+  onTotals,
   onComplete,
 }: {
   active: boolean;
@@ -101,6 +102,12 @@ export default function SurfController({
   onCheckpoint?: (cp: Checkpoint | null) => void;
   /** Registry id of the project whose wave was just caught, or null on kick-out. */
   onWave?: (projectId: string | null) => void;
+  /**
+   * How many coins and checkpoints this run contains, reported once on entry.
+   * The HUD lives in the DOM shell, which must not import them: doing so put
+   * the whole island geometry graph in the entry chunk for every visitor.
+   */
+  onTotals?: (coins: number, checkpoints: number) => void;
   onComplete?: () => void;
 }) {
   const board = useRef<THREE.Group>(null);
@@ -143,6 +150,8 @@ export default function SurfController({
   onCheckpointRef.current = onCheckpoint;
   const onWaveRef = useRef(onWave);
   onWaveRef.current = onWave;
+  const onTotalsRef = useRef(onTotals);
+  onTotalsRef.current = onTotals;
   const coinCount = useRef(0);
   const shownCpId = useRef<number | null>(null);
   const cpRevealUntil = useRef(0);
@@ -253,6 +262,7 @@ export default function SurfController({
     // what's already collected; a page refresh starts a fresh run.
     coinCount.current = collectedCoins.size;
     shownCpId.current = null;
+    onTotalsRef.current?.(COIN_TOTAL, CHECKPOINT_TOTAL);
     onCoinRef.current?.(coinCount.current);
     stamina.current = 1;
     spinning.current = false;

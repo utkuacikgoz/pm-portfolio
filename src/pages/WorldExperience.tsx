@@ -1,7 +1,7 @@
 import { Suspense, lazy, useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "../router";
 import { PUBLISHED_PROJECTS, INDIE_PROJECTS, projectIndexById, projectById, type Project } from "../projects/projects";
-import { INDIE_INDEX } from "../world/geometry";
+import { INDIE_INDEX } from "../world/layout";
 import { useExperienceMode, useTouchSurf } from "../state/useExperienceMode";
 import WorldNav from "../ui/WorldNav";
 import EscapeHatch from "../ui/EscapeHatch";
@@ -15,7 +15,6 @@ import SurfTouchPad from "../ui/SurfTouchPad";
 import SpeedRush from "../ui/SpeedRush";
 import { readAvatar } from "../ui/avatar-store";
 import type { Checkpoint } from "../world/surf-journey";
-import { COIN_TOTAL, CHECKPOINT_TOTAL } from "../world/surf-journey";
 import { CONTACT } from "../content/contact";
 import { T, TYPE, textAccent } from "../theme";
 import { sfx, startSurfMusic, stopSurfMusic } from "../audio/sfx";
@@ -59,6 +58,14 @@ export default function WorldExperience() {
   // Journey HUD: coins collected + the checkpoint card currently showing.
   const [coins, setCoins] = useState(0);
   const [checkpoint, setCheckpoint] = useState<Checkpoint | null>(null);
+  // Reported by the world when a run starts, rather than imported. Importing
+  // them pulled `world/surf-journey`, and through it the whole island geometry
+  // graph, into the entry chunk that every visitor downloads.
+  const [totals, setTotals] = useState({ coins: 0, checkpoints: 0 });
+  const onTotals = useCallback(
+    (coins: number, checkpoints: number) => setTotals({ coins, checkpoints }),
+    []
+  );
   // The project whose wave is being ridden. Every break IS one of the five
   // products, so catching one is the ocean handing over a case study.
   const [wave, setWave] = useState<Project | null>(null);
@@ -435,6 +442,7 @@ export default function WorldExperience() {
               onCoin={setCoins}
               onCheckpoint={onSurfCheckpoint}
               onWave={onSurfWave}
+              onTotals={onTotals}
               onComplete={onRunComplete}
               // `touchControls` holds this for the whole run, so rotating a
               // phone into landscape does not hand a phone GPU the full-fat
@@ -608,7 +616,14 @@ export default function WorldExperience() {
               card is up: dismissing that card used to bring the meter back reading
               "42 / 42 · 100%", which is a progress bar announcing there is no
               progress left to make. */}
-          {!runFinished && <SurfJourneyStatus coins={coins} visited={visitedCheckpoints.size} />}
+          {!runFinished && (
+            <SurfJourneyStatus
+              coins={coins}
+              coinTotal={totals.coins}
+              visited={visitedCheckpoints.size}
+              checkpointTotal={totals.checkpoints}
+            />
+          )}
           {wave && (
             <WaveCaption
               key={wave.id}
@@ -623,6 +638,7 @@ export default function WorldExperience() {
           {checkpoint && <CheckpointCard key={checkpoint.id} cp={checkpoint} />}
           {runComplete && (
             <RunCompleteCard
+              coinTotal={totals.coins}
               onCases={() => {
                 setRunComplete(false);
                 exitSurf();
@@ -769,6 +785,8 @@ function WaveCaption({ project, onRead }: { project: Project; onRead: () => void
 }
 
 // A checkpoint you surf through pops a short "how I work" principle.
+// The "n of 4" counter is gone with the import that fed it. It was the weakest
+// thing on the card anyway: a principle does not need a position in a list.
 function CheckpointCard({ cp }: { cp: Checkpoint }) {
   return (
     <div
@@ -790,7 +808,7 @@ function CheckpointCard({ cp }: { cp: Checkpoint }) {
       }}
     >
       <div style={{ fontSize: TYPE.micro, fontWeight: 800, letterSpacing: 2, color: textAccent(cp.accent), marginBottom: 7 }}>
-        🧭 HOW I WORK · {cp.id + 1} / {CHECKPOINT_TOTAL}
+        🧭 HOW I WORK · {cp.id + 1}
       </div>
       <div style={{ fontSize: TYPE.lead, fontWeight: 900, letterSpacing: 0.3, color: T.text, marginBottom: 6 }}>{cp.title}</div>
       <div style={{ fontSize: TYPE.body, fontWeight: 600, lineHeight: 1.5, color: T.textSoft }}>{cp.text}</div>
@@ -802,7 +820,7 @@ function CheckpointCard({ cp }: { cp: Checkpoint }) {
 // things to collect. Rather than let them surf in circles forever, hand them the
 // two things that actually matter: a call, or the work. Non-blocking on purpose,
 // the ocean keeps running behind it and the card can be dismissed.
-function RunCompleteCard({ onCases, onDismiss }: { onCases: () => void; onDismiss: () => void }) {
+function RunCompleteCard({ coinTotal, onCases, onDismiss }: { coinTotal: number; onCases: () => void; onDismiss: () => void }) {
   return (
     <div
       role="dialog"
@@ -824,7 +842,7 @@ function RunCompleteCard({ onCases, onDismiss }: { onCases: () => void; onDismis
       }}
     >
       <div style={{ fontSize: TYPE.small, fontWeight: 800, letterSpacing: 1.5, color: T.seafoam, marginBottom: 8 }}>
-        🏄 RUN COMPLETE · {COIN_TOTAL} / {COIN_TOTAL}
+        🏄 RUN COMPLETE · {coinTotal} / {coinTotal}
       </div>
       <div style={{ fontSize: TYPE.body, fontWeight: 700, lineHeight: 1.55, color: T.text, marginBottom: 16 }}>
         You surfed the whole loop and picked up every last coin. That is the same stubbornness I

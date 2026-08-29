@@ -123,11 +123,25 @@ describe("portfolio journey", () => {
   });
 
   it("makes the surf run goal and progress legible", () => {
-    act(() => root.render(<SurfJourneyStatus coins={21} visited={2} />));
+    act(() =>
+      root.render(<SurfJourneyStatus coins={21} coinTotal={42} visited={2} checkpointTotal={4} />)
+    );
 
     expect(container.textContent).toContain("21 / 42");
     expect(container.textContent).toContain("50%");
     expect(container.textContent).toContain("2 / 4 product principles found");
     expect(container.querySelector<HTMLElement>('[data-testid="surf-progress-bar"]')?.style.width).toBe("50%");
+  });
+
+  // Totals arrive from the world once a run starts, so the HUD renders for one
+  // frame before they do. Dividing by that zero put "NaN%" on screen.
+  it("survives the frame before the world has reported its totals", () => {
+    act(() =>
+      root.render(<SurfJourneyStatus coins={0} coinTotal={0} visited={0} checkpointTotal={0} />)
+    );
+
+    expect(container.textContent).toContain("0%");
+    expect(container.textContent).not.toContain("NaN");
+    expect(container.querySelector<HTMLElement>('[data-testid="surf-progress-bar"]')?.style.width).toBe("0%");
   });
 });
