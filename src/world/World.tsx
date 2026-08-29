@@ -10,7 +10,7 @@ import CameraRig from "./CameraRig";
 import Emblems from "./Emblems";
 import SurfController from "./SurfController";
 import SurfSpots from "./SurfSpots";
-import { Water, IslandShadows, Ripples, LightShaft, SunDisc, DistantMountains } from "./Ocean";
+import { Water, IslandShadows, Ripples, LightShaft, SunDisc, DistantMountains, MountainReflections } from "./Ocean";
 import { T } from "../theme";
 
 // Horizon color the fog fades islands into — the logo-derived dusk haze, matching
@@ -219,6 +219,12 @@ function World({ activeIndex, entered, dive, surfing, onOpen, onCoin, onWave, on
         ))}
       </Instances>
 
+      {/* The horizon range, upside down in the water. Surf only: see Ocean.tsx.
+          The island cube field was mirrored here too and has been cut: the
+          islands sit far enough from the surf area that their reflection never
+          resolved into anything, so it was an extra draw call and 680 more
+          instance matrices for something invisible. */}
+      {surfing && <MountainReflections />}
       <Water surfing={surfing} lowPower={lowPower} />
         <IslandShadows />
         {!surfing && <Ripples active={activeIndex} />}
