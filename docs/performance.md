@@ -1,7 +1,8 @@
 # Performance
 
-Audited 2026-08-07 against the built output and live headers. This file records
-what was wrong, what is now guarded, and what is still open.
+Audited 2026-08-07 against the built output and live headers, re-measured
+2026-08-29. This file records what was wrong, what is now guarded, and what is
+still open.
 
 ## The critical path
 
@@ -9,9 +10,15 @@ what was wrong, what is now guarded, and what is still open.
 | --- | --- | --- |
 | Originally | 1,464 KB | 428 KB |
 | After the chunking fix | 564 KB | 185 KB |
-| Now | 302 KB | 100 KB |
+| After posthog, fonts and route splitting | 302 KB | 100 KB |
+| Now | 272 KB | 85 KB |
 
-That is a 79% cut raw, 77% gzip.
+That is an 81% cut raw, 80% gzip.
+
+"Critical path" here means what a visitor downloads before anything renders:
+`index.html`, the CSS, the entry chunk, and the react chunk the entry statically
+imports. Everything else (three, posthog, the case-study panel, the resume) is
+behind a dynamic import and is not counted.
 
 Everything below the first section is smaller than that one change.
 
@@ -124,6 +131,16 @@ Because the chunk is genuinely lazy now, `WorldExperience` warms it with
   awaits the same dynamic imports rather than hoping one microtask tick is
   enough.
 
+## Fixed: ocean plane density (2026-08-29)
+
+`[1400, 1400, 180, 180]` was 65K triangles, sized for surf mode but paid for on
+the rail, where fog far is 130 and most of it is invisible. Density now swaps on
+`surfing`: 96x96 on the rail, 180x180 in free surf, and 128x128 in free surf on
+a phone. The plane's EXTENT is untouched at 1400, so the sea edge still sits
+outside the surf fog and behind the horizon ring — only how finely it is
+tessellated changes. The geometry is keyed on the segment count so switching
+rebuilds it rather than mutating args r3f would not pick up.
+
 ## Fixed: surf coins and the ocean normal
 
 - **Coins are instanced.** 42 coins x 3 meshes was 126 draw calls, 84 of them
@@ -135,20 +152,87 @@ Because the chunk is genuinely lazy now, `WorldExperience` warms it with
   five times: fifteen sines each. The hand-derived gradient costs three cosines
   and is more accurate than the finite difference it replaces.
 
+## Fixed: the entry chunk carried the world's geometry (2026-08-29)
+
+The flat path stopped downloading three.js in August. It did not stop
+downloading the world.
+
+`src/ui/SurfJourneyStatus.tsx` and `src/pages/WorldExperience.tsx` both imported
+`COIN_TOTAL` and `CHECKPOINT_TOTAL` from `src/world/surf-journey.ts`, and
+`WorldExperience` also took `INDIE_INDEX` from `src/world/geometry.ts`. Those are
+three integers. Reaching them pulled `surf-journey` (which builds all 42 coin
+positions and the four checkpoint gates at module load, prose included), and
+through it `geometry` (every procedural island builder), `surf-spots`,
+`wave-face` and `distant-mountains` — into the chunk every visitor downloads,
+including the phone that renders a flat list of case studies and never draws a
+triangle.
+
+Two changes, no behaviour difference:
+
+- `src/world/layout.ts` now holds `EMP_COUNT`, `WATER_Y` and `INDIE_INDEX`,
+  the only layout facts the DOM shell needs. `geometry` re-exports them, so
+  every world module keeps its existing import.
+- The journey totals are REPORTED by the world instead of imported. The
+  controller fires `onTotals` once when a run starts and the HUD takes them as
+  props. The HUD renders for one frame before they arrive, so it guards the
+  divide: `0 / 0` shows 0%, not `NaN%`, and `src/App.test.tsx` pins that.
+
+| | raw | gzip |
+| --- | --- | --- |
+| Entry chunk before | 78.1 KB | 25.2 KB |
+| Entry chunk after | 70.7 KB | 22.1 KB |
+
+3.1 KB gzip off the critical path for every visitor, 12% of the entry chunk.
+The code did not shrink, it moved to the lazy `World` chunk where it is paid for
+only by visitors who enter the world.
+
+**How to check it stayed fixed.** Build, then look for a string that only exists
+in world code:
+
+```
+npm run build
+grep -c "Bias for action" dist/assets/index-*.js   # must be 0
+```
+
+That is one of the checkpoint principles in `src/world/surf-journey.ts`. If it
+appears in the entry chunk, something in `src/pages` or `src/ui` has taken a
+value import from a world module again.
+
+## Verification has a browser
+
+Playwright with Chromium drives the real app, which is how the surf work above
+was checked. Two rules make it worth trusting:
+
+**Run headed for anything 3D.** Headless Chromium renders WebGL through
+SwiftShader and reports roughly 7fps for a scene that runs at 60. Frame rates
+from a headless run are meaningless. Headless is still fine for DOM questions:
+does the button render, does the caption fire, does the overlay carry the right
+text.
+
+**Even headed, a machine with no GPU is measuring software rasterization.** On a
+CI box or a container the headed run goes through llvmpipe at around 20fps. That
+verifies correctness — geometry is where it should be, the shader compiles,
+the HUD reads right — and says nothing about performance. Real frame numbers
+need a real GPU.
+
+**Feel is not measurable here at all.** Motion, camera, pacing and how a wave
+reads still have to be eyeballed by a human on a real screen. Several things in
+the surf work were caught only by looking at a screenshot: speed lines that
+aliased into moire over the sky, a caption scrim that rendered as a hard dark
+rectangle, and a barrel that rendered as a wall.
+
 ## Still open
 
-1. **Ocean plane density.** `[1400, 1400, 180, 180]` is 65K triangles, sized for
-   surf mode but paid for on the rail, where fog far is 130 and most of it is
-   invisible. Swapping density on `surfing` is the remaining win, but it needs a
-   browser: dropping the plane's extent risks exposing the sea edge on the rail,
-   and dropping segment count changes how the swell reads.
-2. **Font metric overrides.** `size-adjust` / `ascent-override` tuned against the
+1. **Font metric overrides.** `size-adjust` / `ascent-override` tuned against the
    fallback stack would remove the swap reflow. Needs a browser to tune, so it
    was left out rather than guessed at.
-4. **The hidden `mona` case study** still ships (~8.6 KB) because the registry
-   row holds a static `content` reference. Left alone deliberately: `CLAUDE.md`
-   treats "add row, flip `published`" as the extensibility contract, and making
-   unpublished content lazy is a change to that contract, not a cleanup.
+2. **The hidden `mona` case study** still ships, but no longer on the critical
+   path. It used to be pulled in by a static `content` reference on the registry
+   row; that reference is gone, so its prose now sits in the lazy
+   `ProjectPanel` chunk and is paid for only by a visitor who opens a case
+   study. Left alone deliberately: `CLAUDE.md` treats "add row, flip
+   `published`" as the extensibility contract, and making unpublished content
+   lazy is a change to that contract, not a cleanup.
 
 ## Hero animation invariant (measured 2026-08-22)
 

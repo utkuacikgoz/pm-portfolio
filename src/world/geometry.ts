@@ -1,14 +1,17 @@
-import { PUBLISHED_PROJECTS } from "../projects/projects";
 import type { Project, StructureType } from "../projects/projects";
 import { T } from "../theme";
+import { EMP_COUNT, INDIE_INDEX, WATER_Y } from "./layout";
+
+// Re-exported so every world module can keep importing them from here, while
+// the DOM shell imports them from `layout` and leaves the builders below out of
+// the entry chunk.
+export { EMP_COUNT, INDIE_INDEX, WATER_Y };
 
 // Distance between island centers along the rail (X axis). Roomier than a tight
 // diorama so the world reads as a place you travel through.
 export const SPACING = 22;
-export const EMP_COUNT = PUBLISHED_PROJECTS.length;
+
 export const WATER_GAP = 46; // ocean you surf across to reach the indie island
-export const WATER_Y = -3.4;
-export const INDIE_INDEX = EMP_COUNT; // the separate indie island sits past the gap
 
 // Wave height (world Y offset above WATER_Y) at a world (x,z) — mirrors the Water
 // vertex shader's waveH (in Ocean.tsx) so things (the surfboard) ride the moving
