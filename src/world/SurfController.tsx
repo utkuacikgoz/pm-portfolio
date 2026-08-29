@@ -6,7 +6,7 @@ import Surfer from "./Surfer";
 import { nearestTakeoff, SURF_LAUNCH, type SurfSpot } from "./surf-spots";
 import { surfSignal } from "./surf-signal";
 import { surfTouch } from "./surf-touch";
-import { SURF_COLLIDERS, COINS, COIN_TOTAL, CHECKPOINTS, CHECKPOINT_TOTAL, collectedCoins, type Checkpoint } from "./surf-journey";
+import { SURF_COLLIDERS, COINS, COIN_TOTAL, collectedCoins } from "./surf-journey";
 import { sfx } from "../audio/sfx";
 import {
   BOARD_CLEARANCE,
@@ -92,22 +92,20 @@ const SPRAY_GEO = new THREE.CircleGeometry(0.13, 8);
 export default function SurfController({
   active,
   onCoin,
-  onCheckpoint,
   onWave,
   onTotals,
   onComplete,
 }: {
   active: boolean;
   onCoin?: (count: number) => void;
-  onCheckpoint?: (cp: Checkpoint | null) => void;
   /** Registry id of the project whose wave was just caught, or null on kick-out. */
   onWave?: (projectId: string | null) => void;
   /**
-   * How many coins and checkpoints this run contains, reported once on entry.
-   * The HUD lives in the DOM shell, which must not import them: doing so put
-   * the whole island geometry graph in the entry chunk for every visitor.
+   * How many coins this run contains, reported once on entry. The HUD lives in
+   * the DOM shell, which must not import it: doing so put the whole island
+   * geometry graph in the entry chunk for every visitor.
    */
-  onTotals?: (coins: number, checkpoints: number) => void;
+  onTotals?: (coins: number) => void;
   onComplete?: () => void;
 }) {
   const board = useRef<THREE.Group>(null);
@@ -143,18 +141,14 @@ export default function SurfController({
   const regress = useThree((s) => s.performance.regress);
   // Keep the callbacks in refs so the frame loop always calls the latest one
   // without re-subscribing effects.
-  // Journey: coin count + the checkpoint currently shown.
+  // Journey: coin count.
   const onCoinRef = useRef(onCoin);
   onCoinRef.current = onCoin;
-  const onCheckpointRef = useRef(onCheckpoint);
-  onCheckpointRef.current = onCheckpoint;
   const onWaveRef = useRef(onWave);
   onWaveRef.current = onWave;
   const onTotalsRef = useRef(onTotals);
   onTotalsRef.current = onTotals;
   const coinCount = useRef(0);
-  const shownCpId = useRef<number | null>(null);
-  const cpRevealUntil = useRef(0);
   const onCompleteRef = useRef(onComplete);
   onCompleteRef.current = onComplete;
   // Boost/pump stamina (0..1). Internal only — it gates the boost, and there is
@@ -261,8 +255,7 @@ export default function SurfController({
     // the loop can actually be finished instead of farmed. Resume the count from
     // what's already collected; a page refresh starts a fresh run.
     coinCount.current = collectedCoins.size;
-    shownCpId.current = null;
-    onTotalsRef.current?.(COIN_TOTAL, CHECKPOINT_TOTAL);
+    onTotalsRef.current?.(COIN_TOTAL);
     onCoinRef.current?.(coinCount.current);
     stamina.current = 1;
     spinning.current = false;
@@ -284,12 +277,10 @@ export default function SurfController({
     cameraLook.current.set(pos.current.x, WATER_Y + 1, pos.current.z);
   }, [active, camera]);
 
-  // Leaving surf mode clears the checkpoint card + spray signal, and hands the
+  // Leaving surf mode clears the wave caption + spray signal, and hands the
   // lens back at its rail width: the speed-widened FOV is ours, not CameraRig's.
   useEffect(() => {
     if (!active) {
-      shownCpId.current = null;
-      onCheckpointRef.current?.(null);
       onWaveRef.current?.(null);
       surfSignal.rideSpotId = null;
       surfSignal.pace = 0;
@@ -539,27 +530,6 @@ export default function SurfController({
         // reason to stop surfing and start talking.
         if (coinCount.current >= COIN_TOTAL) onCompleteRef.current?.();
       }
-    }
-
-    // ── Checkpoints: show a "how I work" card while inside, hold after ───────
-    let cp: Checkpoint | null = null;
-    for (const c of CHECKPOINTS) {
-      const dx = pos.current.x - c.x;
-      const dz = pos.current.z - c.z;
-      if (dx * dx + dz * dz < 196) {
-        cp = c;
-        break;
-      }
-    }
-    if (cp) {
-      if (cp.id !== shownCpId.current) {
-        shownCpId.current = cp.id;
-        onCheckpointRef.current?.(cp);
-      }
-      cpRevealUntil.current = t + 4;
-    } else if (shownCpId.current !== null && t > cpRevealUntil.current) {
-      shownCpId.current = null;
-      onCheckpointRef.current?.(null);
     }
 
     // Ride the moving swell (float ON the surface, never under it). Following the

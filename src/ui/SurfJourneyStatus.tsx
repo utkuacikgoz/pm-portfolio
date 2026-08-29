@@ -10,13 +10,9 @@ import { T, TYPE } from "../theme";
 export default function SurfJourneyStatus({
   coins,
   coinTotal,
-  visited,
-  checkpointTotal,
 }: {
   coins: number;
   coinTotal: number;
-  visited: number;
-  checkpointTotal: number;
 }) {
   const progress = coinTotal > 0 ? Math.round((coins / coinTotal) * 100) : 0;
   return (
@@ -43,9 +39,6 @@ export default function SurfJourneyStatus({
       </div>
       <div style={{ height: 4, margin: "8px 0", background: T.border }}>
         <div data-testid="surf-progress-bar" style={{ width: `${progress}%`, height: "100%", background: T.sand, transition: "width .25s ease" }} />
-      </div>
-      <div style={{ fontSize: TYPE.micro, color: T.textSoft }}>
-        🧭 {visited} / {checkpointTotal} product principles found
       </div>
     </div>
   );

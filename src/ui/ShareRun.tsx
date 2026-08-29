@@ -89,7 +89,9 @@ export default function ShareRun({
       style={{
         position: "fixed",
         bottom: "calc(24px + env(safe-area-inset-bottom))",
-        left: 24,
+        // Clear of the 42px sound toggle, which is fixed at left 20 in the same
+        // corner. At left 24 this sat directly on top of it.
+        left: 74,
         zIndex: 44,
         padding: "11px 18px",
         background: T.scrim,
