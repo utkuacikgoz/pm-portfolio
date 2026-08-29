@@ -1,8 +1,8 @@
 import { Suspense, lazy, useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "../router";
-import { PUBLISHED_PROJECTS, INDIE_PROJECTS, projectIndexById, type Project } from "../projects/projects";
+import { PUBLISHED_PROJECTS, INDIE_PROJECTS, projectIndexById, projectById, type Project } from "../projects/projects";
 import { INDIE_INDEX } from "../world/geometry";
-import { useExperienceMode } from "../state/useExperienceMode";
+import { useExperienceMode, useTouchSurf } from "../state/useExperienceMode";
 import WorldNav from "../ui/WorldNav";
 import EscapeHatch from "../ui/EscapeHatch";
 import HeroIntro from "../ui/HeroIntro";
@@ -11,6 +11,8 @@ import EggToast from "../ui/EggToast";
 import SoundToggle from "../ui/SoundToggle";
 import StoryCaption from "../ui/StoryCaption";
 import SurfJourneyStatus from "../ui/SurfJourneyStatus";
+import SurfTouchPad from "../ui/SurfTouchPad";
+import SpeedRush from "../ui/SpeedRush";
 import { readAvatar } from "../ui/avatar-store";
 import type { Checkpoint } from "../world/surf-journey";
 import { COIN_TOTAL, CHECKPOINT_TOTAL } from "../world/surf-journey";
@@ -32,6 +34,10 @@ const AvatarSelect = lazy(() => import("../ui/AvatarSelect"));
 
 export default function WorldExperience() {
   const mode = useExperienceMode();
+  // Small screens get the flat map by default and the ocean on request. Surf was
+  // the one thing on this site nobody on a phone could reach, which is most of
+  // the people a link to it ever reaches.
+  const touchSurf = useTouchSurf();
   const { id } = useParams();
   const navigate = useNavigate();
   const projects = PUBLISHED_PROJECTS;
@@ -45,9 +51,17 @@ export default function WorldExperience() {
   const [flashing, setFlashing] = useState(false);
   const [celebrate, setCelebrate] = useState(false);
   const [surfing, setSurfing] = useState(false);
+  // Which control scheme THIS run uses, captured when it starts rather than read
+  // live. A phone turned on its side is wider than the small-screen breakpoint,
+  // so a live read would swap the controls out from under the thumb steering
+  // with them the moment someone rotated to get a better look at the ocean.
+  const [touchControls, setTouchControls] = useState(false);
   // Journey HUD: coins collected + the checkpoint card currently showing.
   const [coins, setCoins] = useState(0);
   const [checkpoint, setCheckpoint] = useState<Checkpoint | null>(null);
+  // The project whose wave is being ridden. Every break IS one of the five
+  // products, so catching one is the ocean handing over a case study.
+  const [wave, setWave] = useState<Project | null>(null);
   const [visitedCheckpoints, setVisitedCheckpoints] = useState<Set<number>>(() => new Set());
   // Finishing the run (all 42) earns the one real ask of the whole experience.
   // Once per visit: re-entering surf must not re-fire it.
@@ -131,15 +145,20 @@ export default function WorldExperience() {
   }, [mode, entered]);
 
   // Free surf mode: hop on the board and roam the ocean; Esc comes back.
-  const enterSurf = useCallback(() => {
-    track(EVENTS.surfEntered);
-    setSurfing(true);
+  const enterSurf = useCallback(
+    (source: "world" | "flat_map") => {
+      track(EVENTS.surfEntered, { source });
+      setSurfing(true);
+      setTouchControls(touchSurf);
     // Coins are NOT reset here: the run persists for the visit, and the
     // controller reports the resumed count on entry.
-    setCheckpoint(null);
-    setSurfHint(true);
-    sfx.play("enter");
-  }, []);
+      setCheckpoint(null);
+      setWave(null);
+      setSurfHint(true);
+      sfx.play("enter");
+    },
+    [touchSurf]
+  );
 
   // The Canvas parks (frameloop "never") while a panel is open, so no GPU burns
   // behind a full-height drawer. But "Next" moves the active island underneath
@@ -155,6 +174,20 @@ export default function WorldExperience() {
     const t = setTimeout(() => setTravelling(false), 1200);
     return () => clearTimeout(t);
   }, [active, panelOpen]);
+
+  const onSurfWave = useCallback((projectId: string | null) => {
+    const project = projectId ? projectById(projectId) : null;
+    setWave(project ?? null);
+    if (project) track(EVENTS.surfWaveCaught, { project_id: project.id });
+  }, []);
+
+  // The caption rides along and then goes, like the wave. It is not a panel and
+  // it never blocks: the board keeps moving underneath it the whole time.
+  useEffect(() => {
+    if (!wave) return;
+    const timer = setTimeout(() => setWave(null), 7000);
+    return () => clearTimeout(timer);
+  }, [wave]);
 
   const onSurfCheckpoint = useCallback((next: Checkpoint | null) => {
     setCheckpoint(next);
@@ -176,13 +209,23 @@ export default function WorldExperience() {
       const k = e.key.toLowerCase();
       if (["w", "a", "s", "d", "arrowup", "arrowdown", "arrowleft", "arrowright"].includes(k)) setSurfHint(false);
     };
+    // On a phone the first contact with the glass IS the first control input, so
+    // the hint has to clear on it too or it sits over the board being steered.
+    // Touch runs only: on the desktop a pointer press is not a steering input,
+    // and hiding the controls hint on the first stray click would be a bug.
+    const onTouch = () => setSurfHint(false);
     window.addEventListener("keydown", onMove);
+    if (touchControls) window.addEventListener("pointerdown", onTouch);
     return () => {
       clearTimeout(timer);
       window.removeEventListener("keydown", onMove);
+      window.removeEventListener("pointerdown", onTouch);
     };
-  }, [surfing]);
-  const exitSurf = useCallback(() => setSurfing(false), []);
+  }, [surfing, touchControls]);
+  const exitSurf = useCallback(() => {
+    setSurfing(false);
+    setTouchControls(false);
+  }, []);
   useEffect(() => {
     if (!surfing) return;
     const onKey = (e: KeyboardEvent) => {
@@ -260,10 +303,18 @@ export default function WorldExperience() {
   }, [mode, entered, panelOpen]);
 
   const isIndie = active === INDIE_INDEX;
+  // The world mounts on the rail path once you enter, and on the flat path only
+  // while surfing. Exiting surf on a phone unmounts it again and hands the
+  // visitor back to the flat map they came from.
+  const worldMounted = surfing || (mode === "world" && (entered || panelOpen));
   // The hero owns the visible <h1> while it is up. Once it goes, nothing else in
   // the world carries one (the title card is a div, the panel starts at <h2>),
   // so the primary route was left with no top-level heading at all.
-  const heroVisible = mode === "world" && !entered && !panelOpen && !choosingAvatar;
+  // `!surfing` matters on a phone: turning it sideways makes the window wider
+  // than the small-screen breakpoint, so mid-run the mode flips to "world" with
+  // `entered` still false, and without this the landing hero drops on top of a
+  // surf run that is still going underneath it.
+  const heroVisible = mode === "world" && !entered && !panelOpen && !choosingAvatar && !surfing;
 
   const open = useCallback(
     (i: number) => {
@@ -354,7 +405,7 @@ export default function WorldExperience() {
       {/* Kept out of the visual design on purpose: the world says who this is
           through the scene, not a headline. Screen readers and crawlers still
           need the page to declare itself. */}
-      {!heroVisible && mode === "world" && (
+      {!heroVisible && (mode === "world" || surfing) && (
         <h1 className="sr-only">Utku Acikgoz, Senior Technical Product Manager, career world</h1>
       )}
       <EscapeHatch raised={heroVisible} />
@@ -365,24 +416,36 @@ export default function WorldExperience() {
 
       {/* Static-until-enter: the heavy WebGL world (and three.js) mounts only once
           you enter (or deep-link a project). The bare landing stays pure DOM. */}
-      {mode === "world" && (entered || panelOpen) ? (
-        <ErrorBoundary area="world" fallback={<FlatMap projects={projects} onOpen={open} />}>
+      {worldMounted ? (
+        <ErrorBoundary
+          area="world"
+          fallback={<FlatMap projects={projects} onOpen={open} onSurf={touchSurf ? () => enterSurf("flat_map") : undefined} />}
+        >
           <Suspense fallback={<WorldLoading />}>
             <World
               activeIndex={active}
-              entered={entered}
-              dive={diveOnMount}
+              entered={entered || surfing}
+              // A touch run mounts the world already surfing, so there is no
+              // entrance to dive into. Keyed off `touchControls` rather than the
+              // mode so rotating a phone into landscape mid-run cannot flip this
+              // on underneath the run.
+              dive={mode === "world" && diveOnMount && !touchControls}
               surfing={surfing}
               onOpen={open}
               onCoin={setCoins}
               onCheckpoint={onSurfCheckpoint}
+              onWave={onSurfWave}
               onComplete={onRunComplete}
+              // `touchControls` holds this for the whole run, so rotating a
+              // phone into landscape does not hand a phone GPU the full-fat
+              // scene halfway through.
+              lowPower={mode === "flat" || touchControls}
               frameloop={visible && (!panelOpen || travelling) ? "always" : "never"}
             />
           </Suspense>
         </ErrorBoundary>
       ) : mode === "flat" ? (
-        <FlatMap projects={projects} onOpen={open} />
+        <FlatMap projects={projects} onOpen={open} onSurf={touchSurf ? () => enterSurf("flat_map") : undefined} />
       ) : null}
 
       {mode === "world" && choosingAvatar && !entered && (
@@ -485,7 +548,7 @@ export default function WorldExperience() {
 
       {mode === "world" && entered && !panelOpen && !surfing && (
         <button
-          onClick={enterSurf}
+          onClick={() => enterSurf("world")}
           aria-label="Enter free surf mode"
           style={{
             position: "fixed",
@@ -510,8 +573,13 @@ export default function WorldExperience() {
         <IndieOverlay onBack={() => setActive(INDIE_INDEX - 1)} />
       )}
 
-      {mode === "world" && surfing && (
+      {surfing && (
         <>
+          {/* The phone's controls. Mounted with the run, so the frame loop knows
+              to drive the board itself for as long as it is up. */}
+          {touchControls && <SurfTouchPad />}
+          {/* Speed, drawn on the viewer rather than on the world. */}
+          <SpeedRush />
           {surfHint && (
             <div
               style={{
@@ -531,7 +599,9 @@ export default function WorldExperience() {
                 pointerEvents: "none",
               }}
             >
-              🏄 WASD to surf · Space to jump · Double Space for a 360 · Esc to come back
+              {touchControls
+                ? "🏄 Drag to steer · pull down to slow · tap to jump · double tap for a 360"
+                : "🏄 WASD to surf · Space to jump · Double Space for a 360 · Esc to come back"}
             </div>
           )}
           {/* Gone for good once the run is finished, not just while the completion
@@ -539,6 +609,17 @@ export default function WorldExperience() {
               "42 / 42 · 100%", which is a progress bar announcing there is no
               progress left to make. */}
           {!runFinished && <SurfJourneyStatus coins={coins} visited={visitedCheckpoints.size} />}
+          {wave && (
+            <WaveCaption
+              key={wave.id}
+              project={wave}
+              onRead={() => {
+                setWave(null);
+                exitSurf();
+                open(projectIndexById(wave.id));
+              }}
+            />
+          )}
           {checkpoint && <CheckpointCard key={checkpoint.id} cp={checkpoint} />}
           {runComplete && (
             <RunCompleteCard
@@ -604,6 +685,85 @@ function WorldLoading() {
       }}
     >
       BUILDING WORLD…
+    </div>
+  );
+}
+
+/**
+ * Catching a break's wave surfaces the project that break IS: its name, its
+ * headline number, and the one tap that turns a ride into a read.
+ *
+ * Deliberately a caption and not a panel. The board is still moving and still
+ * steering underneath it, so it uses the story-caption scrim rather than a
+ * bordered card, sits clear of the checkpoint card at the bottom of the screen,
+ * and only the button takes pointer events.
+ */
+function WaveCaption({ project, onRead }: { project: Project; onRead: () => void }) {
+  return (
+    <div
+      aria-live="polite"
+      style={{
+        position: "fixed",
+        top: "8%",
+        left: "50%",
+        transform: "translateX(-50%)",
+        zIndex: 45,
+        width: "min(880px, calc(100vw - 24px))",
+        // The padding is not whitespace, it is room for the scrim to finish
+        // fading. The gradient is centred INSIDE the element and transparent
+        // well before any edge, because a wash anchored to the top edge is still
+        // opaque where the element stops and renders as a hard dark rectangle
+        // over the sea, which is what the first version of this did.
+        // Side padding scales: 96px of it on a 390px phone would leave the
+        // headline about 170px to live in.
+        padding: "clamp(32px, 6vh, 56px) clamp(18px, 10vw, 96px) clamp(36px, 7vh, 60px)",
+        textAlign: "center",
+        pointerEvents: "none",
+        background:
+          "radial-gradient(ellipse 58% 64% at 50% 46%, rgba(29,24,22,0.88) 0%, rgba(29,24,22,0.36) 54%, transparent 82%)",
+        animation: "captionIn .5s cubic-bezier(.22,.61,.36,1) both",
+      }}
+    >
+      <div
+        style={{
+          fontSize: TYPE.micro,
+          fontWeight: 800,
+          letterSpacing: 2,
+          color: textAccent(project.accent),
+          marginBottom: 6,
+          textShadow: "0 2px 12px rgba(0,0,0,0.7)",
+        }}
+      >
+        🌊 DROPPED IN ON {project.title.toUpperCase()}
+      </div>
+      <div
+        style={{
+          fontSize: TYPE.lead,
+          fontWeight: 900,
+          lineHeight: 1.4,
+          color: T.text,
+          textShadow: "0 2px 14px rgba(0,0,0,0.75)",
+          marginBottom: 12,
+        }}
+      >
+        {project.tagline}
+      </div>
+      <button
+        onClick={onRead}
+        style={{
+          pointerEvents: "auto",
+          padding: "9px 16px",
+          background: T.scrim,
+          border: `2px solid ${project.accent}`,
+          color: textAccent(project.accent),
+          fontSize: TYPE.small,
+          fontWeight: 800,
+          cursor: "pointer",
+          backdropFilter: "blur(6px)",
+        }}
+      >
+        Read this one →
+      </button>
     </div>
   );
 }

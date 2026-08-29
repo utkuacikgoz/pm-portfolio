@@ -13,7 +13,15 @@ import {
   turnRate,
   courseChase,
   clampSlip,
+  carveRatio,
+  carveWakeScale,
+  carveWakeDuration,
   cameraFov,
+  aspectFov,
+  MAX_FOV,
+  PORTRAIT_ASPECT,
+  MAX_FOV_GAIN,
+  REFERENCE_ASPECT,
   cameraDistance,
   cameraHeight,
   cameraLookHeight,
@@ -160,5 +168,130 @@ describe("wave slope", () => {
         }
       }
     }
+  });
+});
+
+/** Horizontal field of view (degrees) a vertical FOV gives at a window shape. */
+function horizontalFov(fov: number, aspect: number): number {
+  const deg = Math.PI / 180;
+  return (2 * Math.atan(Math.tan((fov / 2) * deg) * aspect)) / deg;
+}
+
+describe("aspect-corrected lens", () => {
+  const PORTRAIT = 390 / 844; // an iPhone held upright
+  const LANDSCAPE = 16 / 9;
+
+  // Not just 16:9: the curves were tuned by eye on a landscape screen, so every
+  // landscape shape has to come back byte-identical. This is a fix for a shape
+  // they were never tuned against, not a re-tune of the ones they were.
+  it("leaves every landscape window exactly as it was tuned", () => {
+    for (const speed of SPEEDS) {
+      const fov = cameraFov(speed, 0);
+      for (const aspect of [1, 1.33, 1.6, LANDSCAPE, 2.4]) {
+        expect(aspectFov(fov, aspect)).toBe(fov);
+      }
+    }
+  });
+
+  // Dragging a desktop window through square must not snap the lens open.
+  it("fades the correction in rather than stepping at square", () => {
+    const fov = cameraFov(0, 0);
+    const full = aspectFov(fov, PORTRAIT_ASPECT);
+    const half = aspectFov(fov, 1 - (1 - PORTRAIT_ASPECT) / 2);
+    // A hair past square is a hair of correction, not a step change.
+    expect(aspectFov(fov, 0.999)).toBeGreaterThan(fov);
+    expect(aspectFov(fov, 0.999)).toBeLessThan(fov + 0.25);
+    expect(half).toBeGreaterThan(fov);
+    expect(half).toBeLessThan(full);
+    expect(aspectFov(fov, 0.4)).toBeCloseTo(full, 6); // saturated past the knee
+  });
+
+  // The reason the correction exists: three's fov is VERTICAL, so portrait crops
+  // the sides. Uncorrected, the surf lens sees a telephoto slit sideways.
+  it("widens a portrait lens well past the uncorrected slit", () => {
+    const fov = cameraFov(0, 0);
+    const uncorrected = horizontalFov(fov, PORTRAIT);
+    const corrected = horizontalFov(aspectFov(fov, PORTRAIT), PORTRAIT);
+    expect(uncorrected).toBeLessThan(25);
+    expect(corrected).toBeGreaterThan(uncorrected * 1.4);
+  });
+
+  // Holding the landscape horizontal FOV at portrait aspect would need about
+  // 117 degrees vertically. Both caps exist to stop well short of that.
+  it("never opens into a fisheye, at any speed or any aspect", () => {
+    for (const speed of SPEEDS) {
+      for (const aspect of [PORTRAIT, 0.5, 0.75, 1, 1.3, LANDSCAPE]) {
+        const fov = cameraFov(speed, 3);
+        const out = aspectFov(fov, aspect);
+        expect(out).toBeLessThanOrEqual(Math.max(fov, MAX_FOV));
+        expect(out).toBeLessThanOrEqual(fov * MAX_FOV_GAIN + 1e-9);
+        expect(out).toBeGreaterThanOrEqual(fov);
+      }
+    }
+  });
+
+  // The gain cap rather than the absolute cap has to be the binding one at the
+  // slow end, or every speed lands on the same clamped value and the
+  // widen-with-pace cue that sells speed disappears on phones.
+  it("keeps the lens widening with pace in portrait", () => {
+    const slow = aspectFov(cameraFov(0, 0), PORTRAIT);
+    const fast = aspectFov(cameraFov(CRUISE_SPEED, 0), PORTRAIT);
+    expect(fast).toBeGreaterThan(slow);
+  });
+
+  it("never corrects a degenerate aspect into a NaN", () => {
+    const fov = cameraFov(10, 0);
+    expect(aspectFov(fov, 0)).toBe(fov);
+    expect(aspectFov(fov, Number.NaN)).toBe(fov);
+    expect(aspectFov(fov, -1)).toBe(fov);
+  });
+
+  it("agrees with the reference aspect at the boundary", () => {
+    const fov = cameraFov(12, 0);
+    expect(aspectFov(fov, REFERENCE_ASPECT)).toBe(fov);
+  });
+});
+
+describe("carve, written on the water", () => {
+  it("reads zero running straight and one at full lock", () => {
+    expect(carveRatio(1.2, 1.2)).toBe(0);
+    expect(carveRatio(1.2, 1.2 - MAX_SLIP)).toBeCloseTo(1, 6);
+    expect(carveRatio(1.2, 1.2 + MAX_SLIP)).toBeCloseTo(1, 6);
+  });
+
+  // `clampSlip` holds the nose inside MAX_SLIP, so the ratio is already bounded;
+  // it must still not exceed 1 if it is ever handed a raw pair.
+  it("stays inside 0..1 across the wrap", () => {
+    for (const heading of [-3.1, -1, 0, 1, 3.1]) {
+      for (const course of [-3.1, -1, 0, 1, 3.1]) {
+        const r = carveRatio(heading, course);
+        expect(r).toBeGreaterThanOrEqual(0);
+        expect(r).toBeLessThanOrEqual(1);
+      }
+    }
+  });
+
+  it("takes the short way round the wrap, not the long one", () => {
+    // Just either side of PI: a hair apart in reality, nearly a full turn if the
+    // difference is taken without wrapping.
+    expect(carveRatio(Math.PI - 0.01, -Math.PI + 0.01)).toBeCloseTo(0.02 / MAX_SLIP, 5);
+  });
+
+  it("leaves a straight-line wake exactly as it was", () => {
+    expect(carveWakeScale(1.3, 0)).toBe(1.3);
+    expect(carveWakeDuration(2.4, 0)).toBe(2.4);
+  });
+
+  it("widens the patch and holds it longer the harder you carve", () => {
+    expect(carveWakeScale(1.3, 1)).toBeGreaterThan(carveWakeScale(1.3, 0.5));
+    expect(carveWakeScale(1.3, 0.5)).toBeGreaterThan(carveWakeScale(1.3, 0));
+    expect(carveWakeDuration(2.4, 1)).toBeGreaterThan(carveWakeDuration(2.4, 0.5));
+    expect(carveWakeDuration(2.4, 0.5)).toBeGreaterThan(carveWakeDuration(2.4, 0));
+  });
+
+  // A foam patch is pooled: it has to die before its slot comes round again, or
+  // a fresh patch pops in on top of an old one that never faded.
+  it("never holds a patch longer than the pool can afford", () => {
+    expect(carveWakeDuration(2.4, 1)).toBeLessThan(2.4 * 2);
   });
 });

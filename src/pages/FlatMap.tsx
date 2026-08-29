@@ -10,6 +10,12 @@ import { T, TYPE, textAccent } from "../theme";
 interface Props {
   projects: Project[];
   onOpen: (index: number) => void;
+  /**
+   * Offered only when the 3D ocean can actually run here (see `useTouchSurf`).
+   * Absent for reduced-motion and no-WebGL visitors, for whom this page is the
+   * whole experience rather than a fallback.
+   */
+  onSurf?: () => void;
 }
 
 /**
@@ -18,7 +24,7 @@ interface Props {
  * leads with positioning, carries the read-stamps + a hidden easter egg, and —
  * unlike before — gives mobile visitors a real contact funnel at the bottom.
  */
-export default function FlatMap({ projects, onOpen }: Props) {
+export default function FlatMap({ projects, onOpen, onSurf }: Props) {
   const { read } = useProgress();
 
   // Hidden easter egg: 5 quick taps on the name (touch-reachable parity with the
@@ -52,6 +58,26 @@ export default function FlatMap({ projects, onOpen }: Props) {
         <p style={{ color: T.textMuted, fontSize: TYPE.small, marginTop: 14 }}>
           Tap a project to read the case study.
         </p>
+        {onSurf && (
+          <button
+            onClick={() => {
+              track(EVENTS.ctaClicked, { cta: "surf", location: "flat_map" });
+              onSurf();
+            }}
+            style={{
+              marginTop: 18,
+              padding: "13px 22px",
+              background: T.scrim,
+              border: `2px solid ${T.blue}`,
+              color: textAccent(T.blue),
+              fontSize: TYPE.body,
+              fontWeight: 800,
+              cursor: "pointer",
+            }}
+          >
+            🏄 Or go surfing instead
+          </button>
+        )}
       </header>
 
       <div
