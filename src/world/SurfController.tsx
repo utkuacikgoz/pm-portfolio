@@ -5,6 +5,7 @@ import { WATER_Y, seaHeight, seaSlopeX, seaSlopeZ } from "./geometry";
 import Surfer from "./Surfer";
 import { nearestTakeoff, SURF_LAUNCH, type SurfSpot } from "./surf-spots";
 import { surfSignal } from "./surf-signal";
+import { surfTouch } from "./surf-touch";
 import { SURF_COLLIDERS, COINS, COIN_TOTAL, CHECKPOINTS, collectedCoins, type Checkpoint } from "./surf-journey";
 import { sfx } from "../audio/sfx";
 import {
@@ -20,6 +21,7 @@ import {
   leanTarget,
   wrapAngle,
   cameraFov,
+  aspectFov,
   cameraDistance,
   cameraHeight,
   cameraLookHeight,
@@ -28,6 +30,9 @@ import {
   chaseDamping,
   wakeInterval,
   wakeScale,
+  carveRatio,
+  carveWakeScale,
+  carveWakeDuration,
   sprayInterval,
 } from "./surf-controls";
 
@@ -88,11 +93,14 @@ export default function SurfController({
   active,
   onCoin,
   onCheckpoint,
+  onWave,
   onComplete,
 }: {
   active: boolean;
   onCoin?: (count: number) => void;
   onCheckpoint?: (cp: Checkpoint | null) => void;
+  /** Registry id of the project whose wave was just caught, or null on kick-out. */
+  onWave?: (projectId: string | null) => void;
   onComplete?: () => void;
 }) {
   const board = useRef<THREE.Group>(null);
@@ -133,6 +141,8 @@ export default function SurfController({
   onCoinRef.current = onCoin;
   const onCheckpointRef = useRef(onCheckpoint);
   onCheckpointRef.current = onCheckpoint;
+  const onWaveRef = useRef(onWave);
+  onWaveRef.current = onWave;
   const coinCount = useRef(0);
   const shownCpId = useRef<number | null>(null);
   const cpRevealUntil = useRef(0);
@@ -157,7 +167,13 @@ export default function SurfController({
   const splashStart = useRef(-Infinity);
   const splashPos = useRef(new THREE.Vector3());
   const wakeMeshes = useRef<(THREE.Mesh | null)[]>([]);
-  const wakeSlots = useRef(Array.from({ length: WAKE_N }, () => ({ born: -99, x: 0, z: 0, heading: 0 })));
+  // `carve` and `scale` are fixed at birth. Width used to be read from the
+  // board's CURRENT speed every frame, so slowing down retroactively shrank a
+  // trail that was already lying on the water: the arc you just drew narrowed
+  // behind you as you came off the throttle.
+  const wakeSlots = useRef(
+    Array.from({ length: WAKE_N }, () => ({ born: -99, x: 0, z: 0, heading: 0, carve: 0, scale: 1 }))
+  );
   const wakeCursor = useRef(0);
   const lastWakeAt = useRef(-99);
   // Wave-slope tilt, low-passed. The raw field is far too lively to drive the
@@ -194,7 +210,11 @@ export default function SurfController({
       keys.current[e.key.toLowerCase()] = false;
     };
     // Move-look: cursor position (normalized) drives the view offset.
+    // Touch is excluded on purpose. A thumb on the glass is STEERING, and if the
+    // same contact also swung the view, every carve would whip the camera the
+    // opposite way from the turn it was asked for.
     const moveLook = (e: PointerEvent) => {
+      if (surfTouch.enabled || e.pointerType === "touch") return;
       cursor.current.x = (e.clientX / window.innerWidth) * 2 - 1;
       cursor.current.y = (e.clientY / window.innerHeight) * 2 - 1;
       regress();
@@ -260,7 +280,9 @@ export default function SurfController({
     if (!active) {
       shownCpId.current = null;
       onCheckpointRef.current?.(null);
+      onWaveRef.current?.(null);
       surfSignal.rideSpotId = null;
+      surfSignal.pace = 0;
       const persp = camera as THREE.PerspectiveCamera;
       if (persp.isPerspectiveCamera && persp.fov !== RAIL_FOV) {
         persp.fov = RAIL_FOV;
@@ -274,8 +296,25 @@ export default function SurfController({
     const d = Math.min(dt, 0.05); // clamp so a stutter can't launch the board
     const t = state.clock.elapsedTime;
     const k = keys.current;
-    const fwd = (k["w"] || k["arrowup"] ? 1 : 0) - (k["s"] || k["arrowdown"] ? 1 : 0);
-    const turn = (k["a"] || k["arrowleft"] ? 1 : 0) - (k["d"] || k["arrowright"] ? 1 : 0);
+    const keyFwd = (k["w"] || k["arrowup"] ? 1 : 0) - (k["s"] || k["arrowdown"] ? 1 : 0);
+    const keyTurn = (k["a"] || k["arrowleft"] ? 1 : 0) - (k["d"] || k["arrowright"] ? 1 : 0);
+    // Touch (phones) and the keyboard describe the same board, so they feed the
+    // same two numbers. A held key always wins: the pad is mounted for the whole
+    // run and rests at full throttle, so without this precedence a visitor on a
+    // touchscreen laptop could never brake with S.
+    const touching = surfTouch.enabled;
+    const fwd = keyFwd !== 0 ? keyFwd : touching ? surfTouch.throttle : 0;
+    const turn = keyTurn !== 0 ? keyTurn : touching ? surfTouch.steer : 0;
+    // One-shot trick requests from the pad, consumed here so a tap fires exactly
+    // one ollie however many frames pass before the loop next runs.
+    if (surfTouch.jump) {
+      surfTouch.jump = false;
+      jumpQueued.current = true;
+    }
+    if (surfTouch.spin) {
+      surfTouch.spin = false;
+      spinQueued.current = true;
+    }
 
     // Carve harder the faster you go, and get a little drive out of a hard turn
     // (a cutback pump) — it's a surfer's world.
@@ -304,7 +343,8 @@ export default function SurfController({
     );
     course.current = clampSlip(heading.current, course.current);
     // Boost / pump: hold Shift for a burst while stamina lasts; recharge otherwise.
-    const boosting = !intro && !!k["shift"] && stamina.current > 0.02 && fwd > 0;
+    const boosting =
+      !intro && (!!k["shift"] || (touching && surfTouch.boost)) && stamina.current > 0.02 && fwd > 0;
     stamina.current = THREE.MathUtils.clamp(stamina.current + (boosting ? -0.5 : 0.28) * d, 0, 1);
     let targetSpeed = fwdIn * (intro ? 9 : 24) * (boosting ? 1.6 : 1); // units / sec
     if (turnIn !== 0 && speed.current > 6) targetSpeed += Math.min(8, speed.current * 0.35);
@@ -338,6 +378,9 @@ export default function SurfController({
       turnVel.current = 0;
       surfSignal.rideSpotId = zone.id; // tell the wave to throw spray
       surfSignal.rideStart = t;
+      // Every break is one of the five products. Catching it is how the ocean
+      // introduces the work: the caption rides along, nothing stops.
+      if (zone.projectId) onWaveRef.current?.(zone.projectId);
     }
     zoneId.current = zid;
 
@@ -380,6 +423,9 @@ export default function SurfController({
       }
     }
 
+    // Pace, for the DOM speed overlay outside the canvas.
+    surfSignal.pace = paceRatio(speed.current);
+
     pos.current.x += Math.sin(course.current) * speed.current * d;
     pos.current.z += Math.cos(course.current) * speed.current * d;
 
@@ -392,6 +438,8 @@ export default function SurfController({
       slot.x = pos.current.x - Math.sin(heading.current) * 1.35;
       slot.z = pos.current.z - Math.cos(heading.current) * 1.35;
       slot.heading = course.current;
+      slot.carve = carveRatio(heading.current, course.current);
+      slot.scale = carveWakeScale(wakeScale(speed.current), slot.carve);
       wakeCursor.current += 1;
       lastWakeAt.current = t;
     }
@@ -400,11 +448,14 @@ export default function SurfController({
       if (!mesh) continue;
       const slot = wakeSlots.current[i];
       const age = t - slot.born;
-      if (age < 0 || age > WAKE_DUR) {
+      // Foam thrown in a carve lives longer, so the arc is still on the water
+      // when you come back round to look at it.
+      const life = carveWakeDuration(WAKE_DUR, slot.carve);
+      if (age < 0 || age > life) {
         mesh.visible = false;
         continue;
       }
-      const p = age / WAKE_DUR;
+      const p = age / life;
       mesh.visible = true;
       // Clearance matters more than it looks: the CPU `seaHeight` mirror and the
       // shader that actually draws the water agree closely but not exactly, which
@@ -413,7 +464,7 @@ export default function SurfController({
       // centimetres under an opaque wave and never appears at all.
       mesh.position.set(slot.x, WATER_Y + seaHeight(slot.x, slot.z, t) + BOARD_CLEARANCE * 0.8, slot.z);
       mesh.rotation.set(-Math.PI / 2, slot.heading, 0);
-      const w = wakeScale(speed.current);
+      const w = slot.scale;
       mesh.scale.set((0.9 + p * 3.4) * w, (0.6 + p * 1.7) * w, 1);
       // Fade late rather than linearly: a trail that holds and then goes is more
       // legible edge-on than one that starts dimming immediately.
@@ -679,7 +730,10 @@ export default function SurfController({
     camera.rotateZ(cameraBank(lean.current, speed.current));
     // Speed widens the lens. Small in degrees, large in how fast it feels.
     const persp = camera as THREE.PerspectiveCamera;
-    const targetFov = cameraFov(speed.current, airY.current);
+    // Corrected for the window's shape: a portrait phone crops the SIDES off
+    // this lens, not the top and bottom, so the same number is a much narrower
+    // view there than it is on a laptop.
+    const targetFov = aspectFov(cameraFov(speed.current, airY.current), persp.aspect);
     if (Math.abs(persp.fov - targetFov) > 0.02) {
       persp.fov += (targetFov - persp.fov) * approach(2.6, d);
       persp.updateProjectionMatrix();
