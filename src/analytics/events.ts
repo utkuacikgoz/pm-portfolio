@@ -23,6 +23,8 @@ export const EVENTS = {
   cvDownloaded: "cv_downloaded",
   ctaClicked: "cta_clicked",
   surfEntered: "surf_entered",
+  /** Caught the wave at a break, which is how the ocean introduces a project. */
+  surfWaveCaught: "surf_wave_caught",
   surfRunCompleted: "surf_run_completed",
   easterEggFound: "easter_egg_found",
   /** A render threw and a fallback was shown. Rare, and worth knowing about. */

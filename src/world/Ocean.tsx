@@ -6,7 +6,7 @@ import { islandPosition, INDIE_INDEX, WATER_Y } from "./geometry";
 import { usePrefersReducedMotion } from "../ui/hooks/useReducedMotion";
 import { T } from "../theme";
 import { DISTANT_PEAKS } from "./distant-mountains";
-import { daylight } from "./daylight";
+import { daylight, SUN_POSITION } from "./daylight";
 
 const WATER_DUSK = new THREE.Color(T.water);
 const WATER_DAY = new THREE.Color(T.dayWater);
@@ -33,10 +33,24 @@ const MOUNTAIN_MATRICES = DISTANT_PEAKS.map((peak) => new THREE.Matrix4().compos
 // to 620 and puts the camera on the surface, where the extra detail shows, so it
 // keeps 180x180 (32.7K). Every vertex runs the wave shader, so this is a direct
 // cut in vertex work on the default path.
+// The key light's compass bearing, in the SEA PLANE's own coordinates, which is
+// the space `waveGrad` differentiates in. The plane is rotated -PI/2 about X,
+// so local x is world x but local y is MINUS world z — the same mapping
+// `seaHeight` spells out as `py = -wz`, and the reason `seaSlopeZ` carries a
+// leading minus. So the key light's world bearing (x, z) becomes (x, -z) here.
+// Get that sign wrong and the sea sparkles away from its own sun, which reads
+// as a rendering fault rather than as water.
+const SUN_AZIMUTH = new THREE.Vector2(SUN_POSITION[0], -SUN_POSITION[2]).normalize();
+
 const SEA_SEGMENTS_RAIL = 96;
 const SEA_SEGMENTS_SURF = 180;
+// Phones surf too. 180x180 is 32.7K vertices each running the wave shader, which
+// a laptop GPU absorbs and a phone spends its whole frame budget on. 128x128 is
+// 16.4K, half the vertex work, and at a phone's screen size the swell still
+// reads: the wavelength is unchanged, only how finely it is sampled.
+const SEA_SEGMENTS_SURF_LOW = 128;
 
-export function Water({ surfing }: { surfing: boolean }) {
+export function Water({ surfing, lowPower = false }: { surfing: boolean; lowPower?: boolean }) {
   const uTime = useRef({ value: 0 });
   // Crest contrast, driven by the same 0..1 daylight level the fog and lights
   // use. It is 0 on the rail (the diorama's sea stays a flat calm slab, exactly
@@ -47,7 +61,7 @@ export function Water({ surfing }: { surfing: boolean }) {
   const uCrest = useRef({ value: 0 });
   const matRef = useRef<THREE.MeshStandardMaterial>(null);
   const reduced = usePrefersReducedMotion();
-  const segments = surfing ? SEA_SEGMENTS_SURF : SEA_SEGMENTS_RAIL;
+  const segments = surfing ? (lowPower ? SEA_SEGMENTS_SURF_LOW : SEA_SEGMENTS_SURF) : SEA_SEGMENTS_RAIL;
   useFrame((s) => {
     if (!reduced) uTime.current.value = s.clock.elapsedTime;
     uCrest.current.value = daylight.v;
@@ -58,6 +72,7 @@ export function Water({ surfing }: { surfing: boolean }) {
   const onBeforeCompile = (shader: THREE.WebGLProgramParametersWithUniforms) => {
     shader.uniforms.uTime = uTime.current;
     shader.uniforms.uCrest = uCrest.current;
+    shader.uniforms.uSunAz = { value: SUN_AZIMUTH };
     shader.vertexShader = shader.vertexShader
       .replace(
         "#include <common>",
@@ -74,6 +89,7 @@ export function Water({ surfing }: { surfing: boolean }) {
         // 180x180 plane evaluated waveH five times: fifteen sines per vertex.
         // Differentiating by hand costs three cosines and is more accurate than
         // the finite difference it replaces, not less.
+        varying vec2 vGrad;
         vec2 waveGrad(vec2 p){
           float c3 = cos((p.x+p.y)*0.05 + uTime*0.5)*0.015; // 0.3 * 0.05
           return vec2(
@@ -86,6 +102,7 @@ export function Water({ surfing }: { surfing: boolean }) {
         "#include <beginnormal_vertex>",
         `#include <beginnormal_vertex>
         vec2 g = waveGrad(position.xy);
+        vGrad = g;
         objectNormal = normalize(vec3(-g.x, -g.y, 1.0));`
       )
       .replace(
@@ -104,14 +121,27 @@ export function Water({ surfing }: { surfing: boolean }) {
         "#include <common>",
         `#include <common>
         uniform float uCrest;
-        varying float vWaveH;`
+        uniform vec2 uSunAz;
+        varying float vWaveH;
+        varying vec2 vGrad;`
       )
       .replace(
         "#include <color_fragment>",
         `#include <color_fragment>
         float crest = clamp(vWaveH / 1.3, -1.0, 1.0);
         diffuseColor.rgb *= 1.0 + crest * 0.26 * uCrest;
-        diffuseColor.rgb += vec3(0.05) * uCrest * smoothstep(0.85, 1.25, vWaveH);`
+        diffuseColor.rgb += vec3(0.05) * uCrest * smoothstep(0.85, 1.25, vWaveH);
+        // Sun glitter. Not a second light and not a specular pass: the vertex
+        // stage already had to compute the wave gradient for the normal, so the
+        // sparkle is that same slope tested against the sun's compass bearing.
+        // Faces tipped toward the sun catch it, flat water does not, and the
+        // result is a scattered glitter path rather than one uniform sheen. It
+        // is what makes the surface read as water rather than as teal plastic,
+        // and it costs a normalize, a dot and a pow on data already in hand.
+        float slope = length(vGrad);
+        float facing = dot(vGrad / max(slope, 1e-5), uSunAz);
+        float glitter = pow(max(facing, 0.0), 34.0) * smoothstep(0.018, 0.052, slope);
+        diffuseColor.rgb += vec3(1.0, 0.94, 0.82) * glitter * uCrest * 0.85;`
       );
   };
 
@@ -124,7 +154,7 @@ export function Water({ surfing }: { surfing: boolean }) {
       {/* Keyed so switching density rebuilds the geometry rather than mutating
           args on the existing one, which r3f would not pick up. */}
       <planeGeometry
-        key={surfing ? "surf" : "rail"}
+        key={segments}
         args={[1400, 1400, segments, segments]}
       />
       {/* Ocean-blue dusk sea, reflective enough to catch the sun. */}

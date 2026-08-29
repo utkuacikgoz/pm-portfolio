@@ -4,6 +4,7 @@ import * as THREE from "three";
 import { WATER_Y, rng } from "./geometry";
 import { usePrefersReducedMotion } from "../ui/hooks/useReducedMotion";
 import { SURF_SPOTS } from "./surf-spots";
+import { CURL, lipHeight, waveFace } from "./wave-face";
 import { surfSignal } from "./surf-signal";
 import { COINS, COIN_Y, collectedCoins, CHECKPOINTS } from "./surf-journey";
 import { T } from "../theme";
@@ -153,63 +154,56 @@ function Rock({
 // A rising wave face, not a hollow cylinder. The old cylinder made every break
 // read like a dark tunnel and let the scripted ride pass through its interior.
 // This open face keeps the crest visible from the chase camera.
+/** Triangulated wave face from the shared profile in `wave-face.ts`. */
+function buildFaceGeometry(width: number, radius: number, curl: number): THREE.BufferGeometry {
+  const { positions, indices } = waveFace(width, radius, curl);
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+  geometry.setIndex(indices);
+  geometry.computeVertexNormals();
+  return geometry;
+}
+
+/** A break's authored curl, by id, so each wave matches its own temperament. */
+function spotCurl(id: string): number {
+  return SURF_SPOTS.find((s) => s.id === id)?.curl ?? CURL.peeling;
+}
+
 function Barrel({
   spotId,
   width,
   radius,
   mat,
+  curl = CURL.peeling,
   phase = 0,
 }: {
   spotId: string;
   width: number;
   radius: number;
   mat: THREE.Material;
+  /** How far past vertical the crest throws. See `wave-face.ts`. */
+  curl?: number;
   phase?: number;
 }) {
   const g = useRef<THREE.Group>(null);
   const spray = useRef<THREE.Group>(null);
   const reduced = usePrefersReducedMotion();
   const baseY = radius * 0.92;
-  const waveFace = useMemo(() => {
-    const across = 36;
-    const rise = 14;
-    const vertices: number[] = [];
-    const indices: number[] = [];
-    for (let xi = 0; xi <= across; xi++) {
-      const xProgress = xi / across;
-      const x = THREE.MathUtils.lerp(-width / 2, width / 2, xProgress);
-      const crestLift = Math.sin(xProgress * Math.PI) * radius * 0.07;
-      for (let yi = 0; yi <= rise; yi++) {
-        const yProgress = yi / rise;
-        vertices.push(
-          x,
-          yProgress * radius + crestLift * yProgress,
-          Math.sin(yProgress * Math.PI) * radius * 0.32
-        );
-      }
-    }
-    for (let xi = 0; xi < across; xi++) {
-      for (let yi = 0; yi < rise; yi++) {
-        const a = xi * (rise + 1) + yi;
-        const b = a + rise + 1;
-        indices.push(a, b, a + 1, b, b + 1, a + 1);
-      }
-    }
-    const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
-    geometry.setIndex(indices);
-    geometry.computeVertexNormals();
-    return geometry;
-  }, [radius, width]);
+  const face = useMemo(() => buildFaceGeometry(width, radius, curl), [width, radius, curl]);
+  // The crest rides ON the lip, so it has to travel forward with it as the wave
+  // throws. Pinned to z = 0, where the lip sat back when the face was a wall, it
+  // left a white tube hanging in the air behind a curling wave.
   const foamCrest = useMemo(() => {
+    const y = lipHeight(radius, curl);
+    const z = radius * (1 - Math.cos(Math.PI / 2 + curl));
     const curve = new THREE.CatmullRomCurve3([
-      new THREE.Vector3(-width * 0.5, radius * 0.98, 0),
-      new THREE.Vector3(-width * 0.16, radius * 1.08, 0),
-      new THREE.Vector3(width * 0.16, radius * 1.08, 0),
-      new THREE.Vector3(width * 0.5, radius * 0.98, 0),
+      new THREE.Vector3(-width * 0.5, y * 0.98, z),
+      new THREE.Vector3(-width * 0.16, y * 1.06, z),
+      new THREE.Vector3(width * 0.16, y * 1.06, z),
+      new THREE.Vector3(width * 0.5, y * 0.98, z),
     ]);
     return new THREE.TubeGeometry(curve, 40, Math.max(0.1, radius * 0.045), 6, false);
-  }, [radius, width]);
+  }, [radius, width, curl]);
   const dirs = useMemo(
     () =>
       Array.from({ length: SPRAY_N }, () => ({
@@ -237,7 +231,7 @@ function Barrel({
         for (let i = 0; i < spray.current.children.length; i++) {
           const m = spray.current.children[i] as THREE.Mesh;
           const dd = dirs[i];
-          m.position.set(dd.x * 4 * p, radius + dd.y * 6 * p - p * p * 3.5, dd.z * p * 3);
+          m.position.set(dd.x * 4 * p, lipHeight(radius, curl) + dd.y * 6 * p - p * p * 3.5, dd.z * p * 3);
           m.scale.setScalar(Math.max(0.001, (1 - p) * dd.r));
         }
       }
@@ -245,7 +239,7 @@ function Barrel({
   });
   return (
     <group ref={g} position={[0, baseY, 0]}>
-      <mesh geometry={waveFace} material={mat} raycast={() => null} />
+      <mesh geometry={face} material={mat} raycast={() => null} />
       {/* A narrow crest keeps the curl readable without turning into a white wall. */}
       <mesh geometry={foamCrest} material={M.foam} raycast={() => null} />
       {/* spray burst on drop-in */}
@@ -379,7 +373,7 @@ function Nazare() {
       </group>
       {/* the giant wave — Nazare is THE big one: one enormous barrel */}
       <group position={[9, 0, 2]} rotation={[0, Math.PI, 0]}>
-        <Barrel spotId="nazare" width={42} radius={18} mat={M.waveBody} phase={0} />
+        <Barrel spotId="nazare" width={42} radius={18} mat={M.waveBody} curl={spotCurl("nazare")} phase={0} />
       </group>
     </group>
   );
@@ -395,7 +389,7 @@ function Pipeline() {
       <Palm pos={[-6.5, 1.4, 9.5]} phase={1.3} />
       {/* the barrel */}
       <group position={[2, 0, -2]} rotation={[0, Math.PI, 0]}>
-        <Barrel spotId="pipeline" width={20} radius={7} mat={M.waveBody} phase={1.4} />
+        <Barrel spotId="pipeline" width={20} radius={7} mat={M.waveBody} curl={spotCurl("pipeline")} phase={1.4} />
       </group>
     </group>
   );
@@ -409,7 +403,7 @@ function Teahupoo() {
       <Rock pos={[10, 1.4, 6]} size={[3, 2.4, 3]} mat={M.rockDark} seed={32} />
       {/* the heavy slab */}
       <group position={[0, 0, -4]}>
-        <Barrel spotId="teahupoo" width={22} radius={6.5} mat={M.waveSlab} phase={0.6} />
+        <Barrel spotId="teahupoo" width={22} radius={6.5} mat={M.waveSlab} curl={spotCurl("teahupoo")} phase={0.6} />
       </group>
     </group>
   );
@@ -425,7 +419,7 @@ function Impossibles() {
       <Palm pos={[-9, 7.5, 1]} phase={0.7} />
       {/* the long peeling wall */}
       <group position={[4, 0, 3]} rotation={[0, -0.6, 0]}>
-        <Barrel spotId="impossibles" width={30} radius={6} mat={M.waveGentle} phase={2.1} />
+        <Barrel spotId="impossibles" width={30} radius={6} mat={M.waveGentle} curl={spotCurl("impossibles")} phase={2.1} />
       </group>
     </group>
   );
@@ -443,7 +437,7 @@ function Bondi() {
       <Cabana pos={[4, 1.2, -6]} color={T.gold} />
       {/* gentle rolling wave */}
       <group position={[0, 0, 3]}>
-        <Barrel spotId="bondi" width={22} radius={4} mat={M.waveGentle} phase={0.9} />
+        <Barrel spotId="bondi" width={22} radius={4} mat={M.waveGentle} curl={spotCurl("bondi")} phase={0.9} />
       </group>
     </group>
   );
