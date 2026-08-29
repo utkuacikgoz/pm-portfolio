@@ -4,7 +4,6 @@ import * as THREE from "three";
 import { Instances, Instance, PerformanceMonitor, Stars } from "@react-three/drei";
 import { usePrefersReducedMotion } from "../ui/hooks/useReducedMotion";
 import { daylight, SUN_POSITION } from "./daylight";
-import { WATER_Y } from "./layout";
 import { PUBLISHED_PROJECTS, INDIE_PROJECTS } from "../projects/projects";
 import { buildWorld, buildIndieIsland } from "./geometry";
 import CameraRig from "./CameraRig";
@@ -220,27 +219,12 @@ function World({ activeIndex, entered, dive, surfing, onOpen, onCoin, onWave, on
         ))}
       </Instances>
 
-      {/* The world upside down in the water. Surf only: see Ocean.tsx. */}
-      {surfing && (
-        <>
-          <MountainReflections />
-          <group position={[0, WATER_Y * 0.7, 0]} scale={[1, -0.3, 1]} renderOrder={3}>
-            <Instances limit={cubes.length} range={cubes.length} frames={3} renderOrder={3}>
-              <boxGeometry args={[1, 1, 1]} />
-              <meshBasicMaterial
-                color={T.ink}
-                transparent
-                opacity={0.18}
-                depthWrite={false}
-                side={THREE.DoubleSide}
-              />
-              {cubes.map((c, i) => (
-                <Instance key={i} position={c.position} scale={c.scale} />
-              ))}
-            </Instances>
-          </group>
-        </>
-      )}
+      {/* The horizon range, upside down in the water. Surf only: see Ocean.tsx.
+          The island cube field was mirrored here too and has been cut: the
+          islands sit far enough from the surf area that their reflection never
+          resolved into anything, so it was an extra draw call and 680 more
+          instance matrices for something invisible. */}
+      {surfing && <MountainReflections />}
       <Water surfing={surfing} lowPower={lowPower} />
         <IslandShadows />
         {!surfing && <Ripples active={activeIndex} />}
