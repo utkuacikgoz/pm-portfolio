@@ -237,6 +237,71 @@ export function SunDisc() {
 // A ring of faint low-poly peaks near the fog's edge, so the horizon reads as
 // distant misty mountains rather than a bare cutoff line. Colored just under the
 // fog haze so they dissolve into it. Static (cheap; reduced-motion friendly).
+/**
+ * The world, upside down under the waterline.
+ *
+ * Not a planar reflection: that renders the whole scene a second time from a
+ * mirrored camera into a render target, which is a full extra scene render
+ * every frame and a non-starter on the phones free surf now runs on. This is
+ * the cheap trick instead. The same instanced geometry is drawn once more,
+ * mirrored about the water plane, dimmed and painted over the sea.
+ *
+ * It has to be painted OVER rather than under. The water is 96% opaque, so
+ * anything genuinely beneath it is invisible; `renderOrder` puts the mirror
+ * after the sea while depth testing stays on, so islands and rocks in front
+ * still occlude it and the illusion does not leak over the board.
+ *
+ * Surf only. The rail diorama is a tight dusk scene with fog far at 130, where
+ * the sea is read at a distance and reflections were never part of the look.
+ */
+// How far a reflection is squashed toward the horizon. A peak 400 units away
+// does not mirror as a full-height inverted cone reaching a third of the way
+// down the screen; it foreshortens into a short smear just under the waterline,
+// and skipping that is what makes a mirrored copy read as underwater geometry
+// instead of as a reflection.
+const REFLECT_SQUASH = 0.3;
+
+const REFLECT_MAT = new THREE.MeshBasicMaterial({
+  color: T.ink,
+  transparent: true,
+  opacity: 0.2,
+  depthWrite: false,
+  // A negative scale flips the winding, so the mirrored copy shows its inside
+  // faces unless both are drawn.
+  side: THREE.DoubleSide,
+});
+
+export function MountainReflections() {
+  const ref = useRef<THREE.InstancedMesh>(null);
+  useEffect(() => {
+    const mesh = ref.current;
+    if (!mesh) return;
+    const mirror = new THREE.Matrix4();
+    DISTANT_PEAKS.forEach((peak, index) => {
+      mirror.compose(
+        new THREE.Vector3(
+          peak.x,
+          WATER_Y - (peak.h / 2 - 2) * REFLECT_SQUASH,
+          peak.z
+        ),
+        new THREE.Quaternion(),
+        new THREE.Vector3(peak.w, -peak.h * REFLECT_SQUASH, peak.w)
+      );
+      mesh.setMatrixAt(index, mirror);
+    });
+    mesh.instanceMatrix.needsUpdate = true;
+    mesh.computeBoundingSphere();
+  }, []);
+  return (
+    <instancedMesh
+      ref={ref}
+      renderOrder={3}
+      args={[MOUNTAIN_GEO, REFLECT_MAT, DISTANT_PEAKS.length]}
+      raycast={() => null}
+    />
+  );
+}
+
 export function DistantMountains() {
   const ref = useRef<THREE.InstancedMesh>(null);
   useEffect(() => {
