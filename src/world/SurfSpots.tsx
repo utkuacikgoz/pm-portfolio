@@ -6,7 +6,7 @@ import { usePrefersReducedMotion } from "../ui/hooks/useReducedMotion";
 import { SURF_SPOTS } from "./surf-spots";
 import { CURL, lipHeight, waveFace } from "./wave-face";
 import { surfSignal } from "./surf-signal";
-import { COINS, COIN_Y, collectedCoins, CHECKPOINTS } from "./surf-journey";
+import { COINS, COIN_Y, collectedCoins } from "./surf-journey";
 import { T } from "../theme";
 
 // Low-poly landmarks for the breaks the free-surf ocean tours. Mounted
@@ -557,34 +557,6 @@ function Coins() {
   );
 }
 
-// Checkpoint gates: two glowing posts + a beam, marking a "how I work" card.
-function Checkpoints() {
-  return (
-    <group>
-      {CHECKPOINTS.map((c) => (
-        <group key={c.id} position={[c.x, WATER_Y, c.z]} rotation={[0, c.angle, 0]}>
-          <mesh position={[-3.6, 4, 0]} raycast={() => null}>
-            <cylinderGeometry args={[0.4, 0.4, 8, 8]} />
-            <meshStandardMaterial color={c.accent} emissive={c.accent} emissiveIntensity={0.7} flatShading />
-          </mesh>
-          <mesh position={[3.6, 4, 0]} raycast={() => null}>
-            <cylinderGeometry args={[0.4, 0.4, 8, 8]} />
-            <meshStandardMaterial color={c.accent} emissive={c.accent} emissiveIntensity={0.7} flatShading />
-          </mesh>
-          <mesh position={[0, 8, 0]} raycast={() => null}>
-            <boxGeometry args={[7.6, 0.5, 0.5]} />
-            <meshStandardMaterial color={c.accent} emissive={c.accent} emissiveIntensity={0.6} flatShading />
-          </mesh>
-          <mesh position={[0, 14, 0]} raycast={() => null}>
-            <cylinderGeometry args={[0.5, 0.5, 28, 6]} />
-            <meshBasicMaterial color={c.accent} transparent opacity={0.09} depthWrite={false} blending={THREE.AdditiveBlending} />
-          </mesh>
-        </group>
-      ))}
-    </group>
-  );
-}
-
 export default function SurfSpots() {
   return (
     <>
@@ -597,7 +569,6 @@ export default function SurfSpots() {
         </group>
       ))}
       <Coins />
-      <Checkpoints />
     </>
   );
 }

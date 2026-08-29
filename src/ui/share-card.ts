@@ -10,8 +10,6 @@
 export interface RunStats {
   coins: number;
   coinTotal: number;
-  principles: number;
-  principleTotal: number;
   /** How many of the five breaks were actually caught. */
   waves: number;
 }
@@ -48,7 +46,6 @@ export function statLine(stats: RunStats): string {
   const parts: string[] = [];
   if (stats.coins > 0) parts.push(`${stats.coins} / ${stats.coinTotal} coins`);
   if (stats.waves > 0) parts.push(`${stats.waves} ${stats.waves === 1 ? "wave" : "waves"} caught`);
-  if (stats.principles > 0) parts.push(`${stats.principles} / ${stats.principleTotal} principles`);
   // Someone who just wanted to look at the ocean still deserves a card worth
   // sending. Leading a share image with "0 / 42 coins" advertises a score
   // nobody set out to beat, and reads as a failure rather than as a place.
@@ -64,7 +61,7 @@ export function statLine(stats: RunStats): string {
  * where a headline that is a quantity was assumed.
  */
 export function shareText(stats: RunStats): string {
-  const scored = stats.coins > 0 || stats.waves > 0 || stats.principles > 0;
+  const scored = stats.coins > 0 || stats.waves > 0;
   return scored
     ? `I went surfing in Utku Acikgoz's portfolio and came back with ${statLine(stats)}.`
     : "I went surfing in Utku Acikgoz's portfolio. There is an ocean in there.";
