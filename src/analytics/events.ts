@@ -26,6 +26,8 @@ export const EVENTS = {
   /** Caught the wave at a break, which is how the ocean introduces a project. */
   surfWaveCaught: "surf_wave_caught",
   surfRunCompleted: "surf_run_completed",
+  /** Made a run card. The only thing on the site that can leave it. */
+  runShared: "run_shared",
   easterEggFound: "easter_egg_found",
   /** A render threw and a fallback was shown. Rare, and worth knowing about. */
   appCrashed: "app_crashed",

@@ -274,10 +274,14 @@ This section is only what is *true now* and what is *left*.
   that the camera crosses to the outside of it. Making it work means staging the
   ride against the wave, camera included, which is a feel-level redesign of the
   drop-in. The lip curl shipped and is the prerequisite.
-- **Nothing shareable leaves the site.** There is no image, no run result and no
-  link carrying state, so a visitor who enjoys the surf run has nothing to send
-  anyone. The obvious build is a run-complete card: composite the last frame with
-  the run stats, Web Share on mobile, download plus copy-link on desktop.
+- ~~Nothing shareable leaves the site.~~ **Shipped 2026-08-29.** The surf HUD
+  carries a share button that composites the live frame with the run's numbers
+  (`src/ui/render-share-card.ts`), hands it to Web Share on a phone and to a
+  download plus a copied link on a desktop, and links back to `/?surf=1` so the
+  recipient lands in the ocean. The pure half (framing maths, copy, filename,
+  which share route a browser can take) is `src/ui/share-card.ts` and is tested;
+  the canvas half is verified in a browser. `ShareRun` is lazy, so the compositor
+  stays out of the entry chunk.
 - Content-Security-Policy still ships as `Content-Security-Policy-Report-Only`
   **with no reporting endpoint**, so it collects nothing and the trial can never
   conclude. A 2026-08-22 audit verified the policy is already compatible with the
@@ -289,9 +293,11 @@ This section is only what is *true now* and what is *left*.
   `content` reference, so the prose lives in the lazy `ProjectPanel` chunk; a
   grep of the built output for a case-study sentence finds it there and nowhere
   else. The critical path is now 272 KB raw / 85 KB gzip. See `docs/performance.md`.
-- `src/router.tsx` drops `search` and `hash` from the pathname. Nothing depends
-  on either today, so it is latent rather than broken; it bites the first time a
-  link carries a query or a fragment.
+- ~~`src/router.tsx` drops `search` and `hash`.~~ **Fixed 2026-08-29**, because
+  the share link bit it exactly as predicted: `navigate` pushed the full URL so
+  the address bar was right, while the router's own state dropped the query on
+  the first client-side move. It now tracks all three, and `src/router.test.tsx`
+  pins it.
 - Business gaps, needing Utku rather than code: thin about/positioning, no social
   proof. Indie products (PassATS, Stats XI) stay hidden until there is content;
   flipping `published` is the whole mechanism.

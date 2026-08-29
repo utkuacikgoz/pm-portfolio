@@ -1,5 +1,5 @@
 import { Suspense, lazy, useCallback, useEffect, useRef, useState } from "react";
-import { Link, useNavigate, useParams } from "../router";
+import { Link, useLocation, useNavigate, useParams } from "../router";
 import { PUBLISHED_PROJECTS, INDIE_PROJECTS, projectIndexById, projectById, type Project } from "../projects/projects";
 import { INDIE_INDEX } from "../world/layout";
 import { useExperienceMode, useTouchSurf } from "../state/useExperienceMode";
@@ -30,6 +30,10 @@ const World = lazy(() => import("../world/World"));
 // entry chunk. ProjectPanel drags the SVG viz layer with it.
 const ProjectPanel = lazy(() => import("../ui/ProjectPanel"));
 const AvatarSelect = lazy(() => import("../ui/AvatarSelect"));
+// Lazy for the same reason: the card compositor and its copy are only ever
+// needed by someone already in the ocean, and the entry chunk is what every
+// visitor pays for before anything renders.
+const ShareRun = lazy(() => import("../ui/ShareRun"));
 
 export default function WorldExperience() {
   const mode = useExperienceMode();
@@ -38,6 +42,7 @@ export default function WorldExperience() {
   // the people a link to it ever reaches.
   const touchSurf = useTouchSurf();
   const { id } = useParams();
+  const { search } = useLocation();
   const navigate = useNavigate();
   const projects = PUBLISHED_PROJECTS;
 
@@ -62,6 +67,18 @@ export default function WorldExperience() {
   // them pulled `world/surf-journey`, and through it the whole island geometry
   // graph, into the entry chunk that every visitor downloads.
   const [totals, setTotals] = useState({ coins: 0, checkpoints: 0 });
+  // Which breaks have been caught this visit. It is the one run statistic the
+  // coin counter cannot express, and the only one that is about the work.
+  const [wavesCaught, setWavesCaught] = useState<Set<string>>(() => new Set());
+  // Handed over by the world so the share card can photograph the live frame.
+  const captureRef = useRef<(() => string | null) | null>(null);
+  const onCapture = useCallback((fn: (() => string | null) | null) => {
+    captureRef.current = fn;
+  }, []);
+  // A stable getter, not `captureRef.current` read during render. The world
+  // hands its capture function over in an effect, which fires no re-render, so
+  // a value read at render time would stay null for the life of the button.
+  const captureFrame = useCallback(() => captureRef.current?.() ?? null, []);
   const onTotals = useCallback(
     (coins: number, checkpoints: number) => setTotals({ coins, checkpoints }),
     []
@@ -151,6 +168,22 @@ export default function WorldExperience() {
     };
   }, [mode, entered]);
 
+  // A shared run card links to `/?surf=1`, so the recipient lands in the ocean
+  // rather than on the hero. Deliberately not automatic on every visit: it only
+  // fires when the URL asks for it, and only once, so pressing Esc leaves surf
+  // rather than being pushed straight back into it.
+  const surfLinkHandled = useRef(false);
+  useEffect(() => {
+    if (surfLinkHandled.current) return;
+    if (!new URLSearchParams(search).has("surf")) return;
+    surfLinkHandled.current = true;
+    if (mode !== "world" && !touchSurf) return; // reduced motion or no WebGL
+    setEntered(true);
+    setSurfing(true);
+    setTouchControls(touchSurf);
+    track(EVENTS.surfEntered, { source: "shared_link" });
+  }, [search, mode, touchSurf]);
+
   // Free surf mode: hop on the board and roam the ocean; Esc comes back.
   const enterSurf = useCallback(
     (source: "world" | "flat_map") => {
@@ -185,7 +218,10 @@ export default function WorldExperience() {
   const onSurfWave = useCallback((projectId: string | null) => {
     const project = projectId ? projectById(projectId) : null;
     setWave(project ?? null);
-    if (project) track(EVENTS.surfWaveCaught, { project_id: project.id });
+    if (project) {
+      track(EVENTS.surfWaveCaught, { project_id: project.id });
+      setWavesCaught((caught) => (caught.has(project.id) ? caught : new Set(caught).add(project.id)));
+    }
   }, []);
 
   // The caption rides along and then goes, like the wave. It is not a panel and
@@ -443,6 +479,7 @@ export default function WorldExperience() {
               onCheckpoint={onSurfCheckpoint}
               onWave={onSurfWave}
               onTotals={onTotals}
+              onCapture={onCapture}
               onComplete={onRunComplete}
               // `touchControls` holds this for the whole run, so rotating a
               // phone into landscape does not hand a phone GPU the full-fat
@@ -647,6 +684,18 @@ export default function WorldExperience() {
               onDismiss={() => setRunComplete(false)}
             />
           )}
+          <Suspense fallback={null}>
+            <ShareRun
+              stats={{
+                coins,
+                coinTotal: totals.coins,
+                principles: visitedCheckpoints.size,
+                principleTotal: totals.checkpoints,
+                waves: wavesCaught.size,
+              }}
+              capture={captureFrame}
+            />
+          </Suspense>
           {/* Bottom right, not bottom center: the run-complete card owns the
               center and used to bury this button underneath it. */}
           <button
