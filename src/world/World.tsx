@@ -4,13 +4,14 @@ import * as THREE from "three";
 import { Instances, Instance, PerformanceMonitor, Stars } from "@react-three/drei";
 import { usePrefersReducedMotion } from "../ui/hooks/useReducedMotion";
 import { daylight, SUN_POSITION } from "./daylight";
+import { WATER_Y } from "./layout";
 import { PUBLISHED_PROJECTS, INDIE_PROJECTS } from "../projects/projects";
 import { buildWorld, buildIndieIsland } from "./geometry";
 import CameraRig from "./CameraRig";
 import Emblems from "./Emblems";
 import SurfController from "./SurfController";
 import SurfSpots from "./SurfSpots";
-import { Water, IslandShadows, Ripples, LightShaft, SunDisc, DistantMountains } from "./Ocean";
+import { Water, IslandShadows, Ripples, LightShaft, SunDisc, DistantMountains, MountainReflections } from "./Ocean";
 import { T } from "../theme";
 
 // Horizon color the fog fades islands into — the logo-derived dusk haze, matching
@@ -219,6 +220,27 @@ function World({ activeIndex, entered, dive, surfing, onOpen, onCoin, onWave, on
         ))}
       </Instances>
 
+      {/* The world upside down in the water. Surf only: see Ocean.tsx. */}
+      {surfing && (
+        <>
+          <MountainReflections />
+          <group position={[0, WATER_Y * 0.7, 0]} scale={[1, -0.3, 1]} renderOrder={3}>
+            <Instances limit={cubes.length} range={cubes.length} frames={3} renderOrder={3}>
+              <boxGeometry args={[1, 1, 1]} />
+              <meshBasicMaterial
+                color={T.ink}
+                transparent
+                opacity={0.18}
+                depthWrite={false}
+                side={THREE.DoubleSide}
+              />
+              {cubes.map((c, i) => (
+                <Instance key={i} position={c.position} scale={c.scale} />
+              ))}
+            </Instances>
+          </group>
+        </>
+      )}
       <Water surfing={surfing} lowPower={lowPower} />
         <IslandShadows />
         {!surfing && <Ripples active={activeIndex} />}
