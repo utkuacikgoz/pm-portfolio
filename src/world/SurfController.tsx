@@ -30,6 +30,9 @@ import {
   chaseDamping,
   wakeInterval,
   wakeScale,
+  carveRatio,
+  carveWakeScale,
+  carveWakeDuration,
   sprayInterval,
 } from "./surf-controls";
 
@@ -90,11 +93,14 @@ export default function SurfController({
   active,
   onCoin,
   onCheckpoint,
+  onWave,
   onComplete,
 }: {
   active: boolean;
   onCoin?: (count: number) => void;
   onCheckpoint?: (cp: Checkpoint | null) => void;
+  /** Registry id of the project whose wave was just caught, or null on kick-out. */
+  onWave?: (projectId: string | null) => void;
   onComplete?: () => void;
 }) {
   const board = useRef<THREE.Group>(null);
@@ -135,6 +141,8 @@ export default function SurfController({
   onCoinRef.current = onCoin;
   const onCheckpointRef = useRef(onCheckpoint);
   onCheckpointRef.current = onCheckpoint;
+  const onWaveRef = useRef(onWave);
+  onWaveRef.current = onWave;
   const coinCount = useRef(0);
   const shownCpId = useRef<number | null>(null);
   const cpRevealUntil = useRef(0);
@@ -159,7 +167,13 @@ export default function SurfController({
   const splashStart = useRef(-Infinity);
   const splashPos = useRef(new THREE.Vector3());
   const wakeMeshes = useRef<(THREE.Mesh | null)[]>([]);
-  const wakeSlots = useRef(Array.from({ length: WAKE_N }, () => ({ born: -99, x: 0, z: 0, heading: 0 })));
+  // `carve` and `scale` are fixed at birth. Width used to be read from the
+  // board's CURRENT speed every frame, so slowing down retroactively shrank a
+  // trail that was already lying on the water: the arc you just drew narrowed
+  // behind you as you came off the throttle.
+  const wakeSlots = useRef(
+    Array.from({ length: WAKE_N }, () => ({ born: -99, x: 0, z: 0, heading: 0, carve: 0, scale: 1 }))
+  );
   const wakeCursor = useRef(0);
   const lastWakeAt = useRef(-99);
   // Wave-slope tilt, low-passed. The raw field is far too lively to drive the
@@ -266,7 +280,9 @@ export default function SurfController({
     if (!active) {
       shownCpId.current = null;
       onCheckpointRef.current?.(null);
+      onWaveRef.current?.(null);
       surfSignal.rideSpotId = null;
+      surfSignal.pace = 0;
       const persp = camera as THREE.PerspectiveCamera;
       if (persp.isPerspectiveCamera && persp.fov !== RAIL_FOV) {
         persp.fov = RAIL_FOV;
@@ -362,6 +378,9 @@ export default function SurfController({
       turnVel.current = 0;
       surfSignal.rideSpotId = zone.id; // tell the wave to throw spray
       surfSignal.rideStart = t;
+      // Every break is one of the five products. Catching it is how the ocean
+      // introduces the work: the caption rides along, nothing stops.
+      if (zone.projectId) onWaveRef.current?.(zone.projectId);
     }
     zoneId.current = zid;
 
@@ -404,6 +423,9 @@ export default function SurfController({
       }
     }
 
+    // Pace, for the DOM speed overlay outside the canvas.
+    surfSignal.pace = paceRatio(speed.current);
+
     pos.current.x += Math.sin(course.current) * speed.current * d;
     pos.current.z += Math.cos(course.current) * speed.current * d;
 
@@ -416,6 +438,8 @@ export default function SurfController({
       slot.x = pos.current.x - Math.sin(heading.current) * 1.35;
       slot.z = pos.current.z - Math.cos(heading.current) * 1.35;
       slot.heading = course.current;
+      slot.carve = carveRatio(heading.current, course.current);
+      slot.scale = carveWakeScale(wakeScale(speed.current), slot.carve);
       wakeCursor.current += 1;
       lastWakeAt.current = t;
     }
@@ -424,11 +448,14 @@ export default function SurfController({
       if (!mesh) continue;
       const slot = wakeSlots.current[i];
       const age = t - slot.born;
-      if (age < 0 || age > WAKE_DUR) {
+      // Foam thrown in a carve lives longer, so the arc is still on the water
+      // when you come back round to look at it.
+      const life = carveWakeDuration(WAKE_DUR, slot.carve);
+      if (age < 0 || age > life) {
         mesh.visible = false;
         continue;
       }
-      const p = age / WAKE_DUR;
+      const p = age / life;
       mesh.visible = true;
       // Clearance matters more than it looks: the CPU `seaHeight` mirror and the
       // shader that actually draws the water agree closely but not exactly, which
@@ -437,7 +464,7 @@ export default function SurfController({
       // centimetres under an opaque wave and never appears at all.
       mesh.position.set(slot.x, WATER_Y + seaHeight(slot.x, slot.z, t) + BOARD_CLEARANCE * 0.8, slot.z);
       mesh.rotation.set(-Math.PI / 2, slot.heading, 0);
-      const w = wakeScale(speed.current);
+      const w = slot.scale;
       mesh.scale.set((0.9 + p * 3.4) * w, (0.6 + p * 1.7) * w, 1);
       // Fade late rather than linearly: a trail that holds and then goes is more
       // legible edge-on than one that starts dimming immediately.

@@ -13,6 +13,9 @@ import {
   turnRate,
   courseChase,
   clampSlip,
+  carveRatio,
+  carveWakeScale,
+  carveWakeDuration,
   cameraFov,
   aspectFov,
   MAX_FOV,
@@ -246,5 +249,49 @@ describe("aspect-corrected lens", () => {
   it("agrees with the reference aspect at the boundary", () => {
     const fov = cameraFov(12, 0);
     expect(aspectFov(fov, REFERENCE_ASPECT)).toBe(fov);
+  });
+});
+
+describe("carve, written on the water", () => {
+  it("reads zero running straight and one at full lock", () => {
+    expect(carveRatio(1.2, 1.2)).toBe(0);
+    expect(carveRatio(1.2, 1.2 - MAX_SLIP)).toBeCloseTo(1, 6);
+    expect(carveRatio(1.2, 1.2 + MAX_SLIP)).toBeCloseTo(1, 6);
+  });
+
+  // `clampSlip` holds the nose inside MAX_SLIP, so the ratio is already bounded;
+  // it must still not exceed 1 if it is ever handed a raw pair.
+  it("stays inside 0..1 across the wrap", () => {
+    for (const heading of [-3.1, -1, 0, 1, 3.1]) {
+      for (const course of [-3.1, -1, 0, 1, 3.1]) {
+        const r = carveRatio(heading, course);
+        expect(r).toBeGreaterThanOrEqual(0);
+        expect(r).toBeLessThanOrEqual(1);
+      }
+    }
+  });
+
+  it("takes the short way round the wrap, not the long one", () => {
+    // Just either side of PI: a hair apart in reality, nearly a full turn if the
+    // difference is taken without wrapping.
+    expect(carveRatio(Math.PI - 0.01, -Math.PI + 0.01)).toBeCloseTo(0.02 / MAX_SLIP, 5);
+  });
+
+  it("leaves a straight-line wake exactly as it was", () => {
+    expect(carveWakeScale(1.3, 0)).toBe(1.3);
+    expect(carveWakeDuration(2.4, 0)).toBe(2.4);
+  });
+
+  it("widens the patch and holds it longer the harder you carve", () => {
+    expect(carveWakeScale(1.3, 1)).toBeGreaterThan(carveWakeScale(1.3, 0.5));
+    expect(carveWakeScale(1.3, 0.5)).toBeGreaterThan(carveWakeScale(1.3, 0));
+    expect(carveWakeDuration(2.4, 1)).toBeGreaterThan(carveWakeDuration(2.4, 0.5));
+    expect(carveWakeDuration(2.4, 0.5)).toBeGreaterThan(carveWakeDuration(2.4, 0));
+  });
+
+  // A foam patch is pooled: it has to die before its slot comes round again, or
+  // a fresh patch pops in on top of an old one that never faded.
+  it("never holds a patch longer than the pool can afford", () => {
+    expect(carveWakeDuration(2.4, 1)).toBeLessThan(2.4 * 2);
   });
 });

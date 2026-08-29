@@ -1,6 +1,6 @@
 import { Suspense, lazy, useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "../router";
-import { PUBLISHED_PROJECTS, INDIE_PROJECTS, projectIndexById, type Project } from "../projects/projects";
+import { PUBLISHED_PROJECTS, INDIE_PROJECTS, projectIndexById, projectById, type Project } from "../projects/projects";
 import { INDIE_INDEX } from "../world/geometry";
 import { useExperienceMode, useTouchSurf } from "../state/useExperienceMode";
 import WorldNav from "../ui/WorldNav";
@@ -12,6 +12,7 @@ import SoundToggle from "../ui/SoundToggle";
 import StoryCaption from "../ui/StoryCaption";
 import SurfJourneyStatus from "../ui/SurfJourneyStatus";
 import SurfTouchPad from "../ui/SurfTouchPad";
+import SpeedRush from "../ui/SpeedRush";
 import { readAvatar } from "../ui/avatar-store";
 import type { Checkpoint } from "../world/surf-journey";
 import { COIN_TOTAL, CHECKPOINT_TOTAL } from "../world/surf-journey";
@@ -58,6 +59,9 @@ export default function WorldExperience() {
   // Journey HUD: coins collected + the checkpoint card currently showing.
   const [coins, setCoins] = useState(0);
   const [checkpoint, setCheckpoint] = useState<Checkpoint | null>(null);
+  // The project whose wave is being ridden. Every break IS one of the five
+  // products, so catching one is the ocean handing over a case study.
+  const [wave, setWave] = useState<Project | null>(null);
   const [visitedCheckpoints, setVisitedCheckpoints] = useState<Set<number>>(() => new Set());
   // Finishing the run (all 42) earns the one real ask of the whole experience.
   // Once per visit: re-entering surf must not re-fire it.
@@ -149,6 +153,7 @@ export default function WorldExperience() {
     // Coins are NOT reset here: the run persists for the visit, and the
     // controller reports the resumed count on entry.
       setCheckpoint(null);
+      setWave(null);
       setSurfHint(true);
       sfx.play("enter");
     },
@@ -169,6 +174,20 @@ export default function WorldExperience() {
     const t = setTimeout(() => setTravelling(false), 1200);
     return () => clearTimeout(t);
   }, [active, panelOpen]);
+
+  const onSurfWave = useCallback((projectId: string | null) => {
+    const project = projectId ? projectById(projectId) : null;
+    setWave(project ?? null);
+    if (project) track(EVENTS.surfWaveCaught, { project_id: project.id });
+  }, []);
+
+  // The caption rides along and then goes, like the wave. It is not a panel and
+  // it never blocks: the board keeps moving underneath it the whole time.
+  useEffect(() => {
+    if (!wave) return;
+    const timer = setTimeout(() => setWave(null), 7000);
+    return () => clearTimeout(timer);
+  }, [wave]);
 
   const onSurfCheckpoint = useCallback((next: Checkpoint | null) => {
     setCheckpoint(next);
@@ -415,6 +434,7 @@ export default function WorldExperience() {
               onOpen={open}
               onCoin={setCoins}
               onCheckpoint={onSurfCheckpoint}
+              onWave={onSurfWave}
               onComplete={onRunComplete}
               // `touchControls` holds this for the whole run, so rotating a
               // phone into landscape does not hand a phone GPU the full-fat
@@ -558,6 +578,8 @@ export default function WorldExperience() {
           {/* The phone's controls. Mounted with the run, so the frame loop knows
               to drive the board itself for as long as it is up. */}
           {touchControls && <SurfTouchPad />}
+          {/* Speed, drawn on the viewer rather than on the world. */}
+          <SpeedRush />
           {surfHint && (
             <div
               style={{
@@ -587,6 +609,17 @@ export default function WorldExperience() {
               "42 / 42 · 100%", which is a progress bar announcing there is no
               progress left to make. */}
           {!runFinished && <SurfJourneyStatus coins={coins} visited={visitedCheckpoints.size} />}
+          {wave && (
+            <WaveCaption
+              key={wave.id}
+              project={wave}
+              onRead={() => {
+                setWave(null);
+                exitSurf();
+                open(projectIndexById(wave.id));
+              }}
+            />
+          )}
           {checkpoint && <CheckpointCard key={checkpoint.id} cp={checkpoint} />}
           {runComplete && (
             <RunCompleteCard
@@ -652,6 +685,85 @@ function WorldLoading() {
       }}
     >
       BUILDING WORLD…
+    </div>
+  );
+}
+
+/**
+ * Catching a break's wave surfaces the project that break IS: its name, its
+ * headline number, and the one tap that turns a ride into a read.
+ *
+ * Deliberately a caption and not a panel. The board is still moving and still
+ * steering underneath it, so it uses the story-caption scrim rather than a
+ * bordered card, sits clear of the checkpoint card at the bottom of the screen,
+ * and only the button takes pointer events.
+ */
+function WaveCaption({ project, onRead }: { project: Project; onRead: () => void }) {
+  return (
+    <div
+      aria-live="polite"
+      style={{
+        position: "fixed",
+        top: "8%",
+        left: "50%",
+        transform: "translateX(-50%)",
+        zIndex: 45,
+        width: "min(880px, calc(100vw - 24px))",
+        // The padding is not whitespace, it is room for the scrim to finish
+        // fading. The gradient is centred INSIDE the element and transparent
+        // well before any edge, because a wash anchored to the top edge is still
+        // opaque where the element stops and renders as a hard dark rectangle
+        // over the sea, which is what the first version of this did.
+        // Side padding scales: 96px of it on a 390px phone would leave the
+        // headline about 170px to live in.
+        padding: "clamp(32px, 6vh, 56px) clamp(18px, 10vw, 96px) clamp(36px, 7vh, 60px)",
+        textAlign: "center",
+        pointerEvents: "none",
+        background:
+          "radial-gradient(ellipse 58% 64% at 50% 46%, rgba(29,24,22,0.88) 0%, rgba(29,24,22,0.36) 54%, transparent 82%)",
+        animation: "captionIn .5s cubic-bezier(.22,.61,.36,1) both",
+      }}
+    >
+      <div
+        style={{
+          fontSize: TYPE.micro,
+          fontWeight: 800,
+          letterSpacing: 2,
+          color: textAccent(project.accent),
+          marginBottom: 6,
+          textShadow: "0 2px 12px rgba(0,0,0,0.7)",
+        }}
+      >
+        🌊 DROPPED IN ON {project.title.toUpperCase()}
+      </div>
+      <div
+        style={{
+          fontSize: TYPE.lead,
+          fontWeight: 900,
+          lineHeight: 1.4,
+          color: T.text,
+          textShadow: "0 2px 14px rgba(0,0,0,0.75)",
+          marginBottom: 12,
+        }}
+      >
+        {project.tagline}
+      </div>
+      <button
+        onClick={onRead}
+        style={{
+          pointerEvents: "auto",
+          padding: "9px 16px",
+          background: T.scrim,
+          border: `2px solid ${project.accent}`,
+          color: textAccent(project.accent),
+          fontSize: TYPE.small,
+          fontWeight: 800,
+          cursor: "pointer",
+          backdropFilter: "blur(6px)",
+        }}
+      >
+        Read this one →
+      </button>
     </div>
   );
 }

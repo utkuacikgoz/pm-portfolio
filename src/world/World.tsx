@@ -3,7 +3,7 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { Instances, Instance, PerformanceMonitor, Stars } from "@react-three/drei";
 import { usePrefersReducedMotion } from "../ui/hooks/useReducedMotion";
-import { daylight } from "./daylight";
+import { daylight, SUN_POSITION } from "./daylight";
 import { PUBLISHED_PROJECTS, INDIE_PROJECTS } from "../projects/projects";
 import { buildWorld, buildIndieIsland } from "./geometry";
 import CameraRig from "./CameraRig";
@@ -67,8 +67,10 @@ function DaylightRig({ surfing }: { surfing: boolean }) {
     <>
       <ambientLight ref={amb} intensity={1.15} />
       <hemisphereLight ref={hemi} args={[T.skyBounce, T.ground, 1.5]} />
-      {/* Warm key light angled in from the sun's end of the rail (+X, low). */}
-      <directionalLight ref={dir} position={[70, 14, -24]} intensity={2.4} color={T.sunLight} />
+      {/* Warm key light angled in from the sun's end of the rail (+X, low).
+          Position is shared with the sea's glitter bearing, which has to point
+          at the same sun. */}
+      <directionalLight ref={dir} position={SUN_POSITION} intensity={2.4} color={T.sunLight} />
     </>
   );
 }
@@ -99,6 +101,7 @@ interface Props {
   onOpen: (i: number) => void;
   onCoin?: (count: number) => void;
   onCheckpoint?: (cp: Checkpoint | null) => void;
+  onWave?: (projectId: string | null) => void;
   onComplete?: () => void;
   /**
    * Phone-grade GPU: trade resolution and sea tessellation for frame rate. The
@@ -116,7 +119,7 @@ interface Props {
  * across every island lives in a single <Instances> (one draw call, per-instance
  * color) — no per-cube draw calls. Lazy-loaded so three.js only ships here.
  */
-function World({ activeIndex, entered, dive, surfing, onOpen, onCoin, onCheckpoint, onComplete, lowPower = false, frameloop = "always" }: Props) {
+function World({ activeIndex, entered, dive, surfing, onOpen, onCoin, onCheckpoint, onWave, onComplete, lowPower = false, frameloop = "always" }: Props) {
   // One list, one InstancedMesh: the indie island's pylons ride in the same
   // field as the rail, so showing it costs no extra draw call.
   const cubes = useMemo(() => [...buildWorld(PUBLISHED_PROJECTS), ...buildIndieIsland(INDIE_PROJECTS)], []);
@@ -189,7 +192,7 @@ function World({ activeIndex, entered, dive, surfing, onOpen, onCoin, onCheckpoi
       <Emblems active={activeIndex} onOpen={onOpen} />
       {/* The breaks only exist while surfing → the rail diorama stays clean. */}
       {surfing && <SurfSpots />}
-      <SurfController active={surfing} onCoin={onCoin} onCheckpoint={onCheckpoint} onComplete={onComplete} />
+      <SurfController active={surfing} onCoin={onCoin} onCheckpoint={onCheckpoint} onWave={onWave} onComplete={onComplete} />
       <CameraRig activeIndex={activeIndex} accent={accent} entered={entered} dive={dive} surfing={surfing} />
     </Canvas>
   );

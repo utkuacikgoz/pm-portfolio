@@ -206,6 +206,32 @@ export function wakeScale(speed: number): number {
   return mix(0.75, 1.6, paceRatio(speed));
 }
 
+/**
+ * How hard the board is carving, 0..1, from how far the nose is out of the
+ * direction of travel. `clampSlip` already holds that angle inside MAX_SLIP, so
+ * the ratio is bounded without another clamp.
+ *
+ * A wake that is the same width whether you are running straight or laying the
+ * board over says nothing about what you just did. This is what lets a hard
+ * turn leave a readable arc on the water instead of the same dotted line.
+ */
+export function carveRatio(heading: number, course: number): number {
+  return clamp01(Math.abs(wrapAngle(heading - course)) / MAX_SLIP);
+}
+
+/** Widens a foam patch thrown while carving: a turn digs a broader trench. */
+export function carveWakeScale(scale: number, carve: number): number {
+  return scale * (1 + carve * 0.85);
+}
+
+/**
+ * ...and holds it on the water longer, so the arc is still there to be seen
+ * when you come back round and look at it.
+ */
+export function carveWakeDuration(base: number, carve: number): number {
+  return base * (1 + carve * 0.7);
+}
+
 /** Below a walking pace the board is not driving enough water to throw any. */
 export const SPRAY_MIN_SPEED = 9;
 

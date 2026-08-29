@@ -183,6 +183,11 @@ export const PUBLISHED_PROJECTS: Project[] = PROJECTS.filter((p) => p.published)
 /** Indie products shown as coming-soon bubbles on the separate ocean island. */
 export const INDIE_PROJECTS: Project[] = PROJECTS.filter((p) => p.kind === "indie" && !!p.glimpse);
 
+/** A published project by registry id, or null. */
+export function projectById(id: string): Project | null {
+  return PUBLISHED_PROJECTS.find((p) => p.id === id) ?? null;
+}
+
 /**
  * One line placing a project in the CV: who you were, where, when. Client
  * engagements say so explicitly, so nothing implies a staff role that the
