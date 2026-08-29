@@ -14,8 +14,6 @@ import {
 const run = (over: Partial<RunStats> = {}): RunStats => ({
   coins: 21,
   coinTotal: 42,
-  principles: 2,
-  principleTotal: 4,
   waves: 3,
   ...over,
 });
@@ -53,24 +51,24 @@ describe("coverRect", () => {
 
 describe("stat line", () => {
   it("reads as a brag, in order", () => {
-    expect(statLine(run())).toBe("21 / 42 coins   ·   3 waves caught   ·   2 / 4 principles");
+    expect(statLine(run())).toBe("21 / 42 coins   ·   3 waves caught");
   });
 
   // A zero is not a brag. A run that caught nothing should not say so on a card
   // whose whole job is to be worth sending someone.
   it("omits what did not happen", () => {
-    expect(statLine(run({ waves: 0, principles: 0 }))).toBe("21 / 42 coins");
+    expect(statLine(run({ waves: 0 }))).toBe("21 / 42 coins");
   });
 
   // The card's whole job is to be worth sending. A share image whose headline
   // is "0 / 42 coins" advertises a score nobody set out to beat.
   it("never leads with a zero", () => {
-    expect(statLine(run({ coins: 0, waves: 0, principles: 0 }))).toBe("Out on the water");
-    expect(statLine(run({ coins: 0, waves: 0, principles: 0 }))).not.toContain("0");
+    expect(statLine(run({ coins: 0, waves: 0 }))).toBe("Out on the water");
+    expect(statLine(run({ coins: 0, waves: 0 }))).not.toContain("0");
   });
 
   it("still reports a run that only caught waves", () => {
-    expect(statLine(run({ coins: 0, principles: 0, waves: 2 }))).toBe("2 waves caught");
+    expect(statLine(run({ coins: 0, waves: 2 }))).toBe("2 waves caught");
   });
 
   it("counts one wave in the singular", () => {
@@ -88,7 +86,7 @@ describe("share copy", () => {
   // Substituting a phrase headline into a sentence built for a quantity gives
   // "came back with Out on the water".
   it("stays grammatical when there is nothing to report", () => {
-    const text = shareText(run({ coins: 0, waves: 0, principles: 0 }));
+    const text = shareText(run({ coins: 0, waves: 0 }));
     expect(text).not.toContain("came back with");
     expect(text).toContain("Utku Acikgoz");
     expect(text).toMatch(/\.$/);

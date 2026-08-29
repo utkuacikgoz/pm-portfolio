@@ -14,7 +14,6 @@ import SurfJourneyStatus from "../ui/SurfJourneyStatus";
 import SurfTouchPad from "../ui/SurfTouchPad";
 import SpeedRush from "../ui/SpeedRush";
 import { readAvatar } from "../ui/avatar-store";
-import type { Checkpoint } from "../world/surf-journey";
 import { CONTACT } from "../content/contact";
 import { T, TYPE, textAccent } from "../theme";
 import { sfx, startSurfMusic, stopSurfMusic } from "../audio/sfx";
@@ -60,13 +59,12 @@ export default function WorldExperience() {
   // so a live read would swap the controls out from under the thumb steering
   // with them the moment someone rotated to get a better look at the ocean.
   const [touchControls, setTouchControls] = useState(false);
-  // Journey HUD: coins collected + the checkpoint card currently showing.
+  // Journey HUD: coins collected.
   const [coins, setCoins] = useState(0);
-  const [checkpoint, setCheckpoint] = useState<Checkpoint | null>(null);
   // Reported by the world when a run starts, rather than imported. Importing
   // them pulled `world/surf-journey`, and through it the whole island geometry
   // graph, into the entry chunk that every visitor downloads.
-  const [totals, setTotals] = useState({ coins: 0, checkpoints: 0 });
+  const [totals, setTotals] = useState({ coins: 0 });
   // Which breaks have been caught this visit. It is the one run statistic the
   // coin counter cannot express, and the only one that is about the work.
   const [wavesCaught, setWavesCaught] = useState<Set<string>>(() => new Set());
@@ -79,14 +77,10 @@ export default function WorldExperience() {
   // hands its capture function over in an effect, which fires no re-render, so
   // a value read at render time would stay null for the life of the button.
   const captureFrame = useCallback(() => captureRef.current?.() ?? null, []);
-  const onTotals = useCallback(
-    (coins: number, checkpoints: number) => setTotals({ coins, checkpoints }),
-    []
-  );
+  const onTotals = useCallback((coins: number) => setTotals({ coins }), []);
   // The project whose wave is being ridden. Every break IS one of the five
   // products, so catching one is the ocean handing over a case study.
   const [wave, setWave] = useState<Project | null>(null);
-  const [visitedCheckpoints, setVisitedCheckpoints] = useState<Set<number>>(() => new Set());
   // Finishing the run (all 42) earns the one real ask of the whole experience.
   // Once per visit: re-entering surf must not re-fire it.
   const [runComplete, setRunComplete] = useState(false);
@@ -192,7 +186,6 @@ export default function WorldExperience() {
       setTouchControls(touchSurf);
     // Coins are NOT reset here: the run persists for the visit, and the
     // controller reports the resumed count on entry.
-      setCheckpoint(null);
       setWave(null);
       setSurfHint(true);
       sfx.play("enter");
@@ -231,18 +224,6 @@ export default function WorldExperience() {
     const timer = setTimeout(() => setWave(null), 7000);
     return () => clearTimeout(timer);
   }, [wave]);
-
-  const onSurfCheckpoint = useCallback((next: Checkpoint | null) => {
-    setCheckpoint(next);
-    if (next) {
-      setVisitedCheckpoints((visited) => {
-        if (visited.has(next.id)) return visited;
-        const updated = new Set(visited);
-        updated.add(next.id);
-        return updated;
-      });
-    }
-  }, []);
 
   // Hide the surf hint after a few seconds, or as soon as the surfer moves.
   useEffect(() => {
@@ -476,7 +457,6 @@ export default function WorldExperience() {
               surfing={surfing}
               onOpen={open}
               onCoin={setCoins}
-              onCheckpoint={onSurfCheckpoint}
               onWave={onSurfWave}
               onTotals={onTotals}
               onCapture={onCapture}
@@ -657,8 +637,6 @@ export default function WorldExperience() {
             <SurfJourneyStatus
               coins={coins}
               coinTotal={totals.coins}
-              visited={visitedCheckpoints.size}
-              checkpointTotal={totals.checkpoints}
             />
           )}
           {wave && (
@@ -672,7 +650,6 @@ export default function WorldExperience() {
               }}
             />
           )}
-          {checkpoint && <CheckpointCard key={checkpoint.id} cp={checkpoint} />}
           {runComplete && (
             <RunCompleteCard
               coinTotal={totals.coins}
@@ -689,8 +666,6 @@ export default function WorldExperience() {
               stats={{
                 coins,
                 coinTotal: totals.coins,
-                principles: visitedCheckpoints.size,
-                principleTotal: totals.checkpoints,
                 waves: wavesCaught.size,
               }}
               capture={captureFrame}
@@ -760,8 +735,7 @@ function WorldLoading() {
  *
  * Deliberately a caption and not a panel. The board is still moving and still
  * steering underneath it, so it uses the story-caption scrim rather than a
- * bordered card, sits clear of the checkpoint card at the bottom of the screen,
- * and only the button takes pointer events.
+ * bordered card, and only the button takes pointer events.
  */
 function WaveCaption({ project, onRead }: { project: Project; onRead: () => void }) {
   return (
@@ -829,38 +803,6 @@ function WaveCaption({ project, onRead }: { project: Project; onRead: () => void
       >
         Read this one →
       </button>
-    </div>
-  );
-}
-
-// A checkpoint you surf through pops a short "how I work" principle.
-// The "n of 4" counter is gone with the import that fed it. It was the weakest
-// thing on the card anyway: a principle does not need a position in a list.
-function CheckpointCard({ cp }: { cp: Checkpoint }) {
-  return (
-    <div
-      style={{
-        position: "fixed",
-        bottom: "calc(92px + env(safe-area-inset-bottom))",
-        left: "50%",
-        transform: "translateX(-50%)",
-        zIndex: 45,
-        width: "min(520px, calc(100vw - 32px))",
-        padding: "16px 22px",
-        background: T.scrimStrong,
-        border: `2px solid ${cp.accent}`,
-        borderRadius: 12,
-        textAlign: "center",
-        backdropFilter: "blur(6px)",
-        pointerEvents: "none",
-        animation: "captionIn .45s ease",
-      }}
-    >
-      <div style={{ fontSize: TYPE.micro, fontWeight: 800, letterSpacing: 2, color: textAccent(cp.accent), marginBottom: 7 }}>
-        🧭 HOW I WORK · {cp.id + 1}
-      </div>
-      <div style={{ fontSize: TYPE.lead, fontWeight: 900, letterSpacing: 0.3, color: T.text, marginBottom: 6 }}>{cp.title}</div>
-      <div style={{ fontSize: TYPE.body, fontWeight: 600, lineHeight: 1.5, color: T.textSoft }}>{cp.text}</div>
     </div>
   );
 }
