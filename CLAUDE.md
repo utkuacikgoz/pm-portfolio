@@ -88,6 +88,14 @@ Single source of truth → single Canvas → one draw path.
   its exact analytic gradient. **All three mirror the Water vertex shader in
   `Ocean.tsx` and must be changed together** (a test compares the slopes against a
   numeric derivative).
+- `src/world/layout.ts` — `EMP_COUNT` / `WATER_Y` / `INDIE_INDEX`, the only
+  layout facts the DOM shell needs. It exists so importing one constant does not
+  drag the procedural builders in `geometry.ts` into the entry chunk, which is
+  exactly what used to happen. **The DOM shell (`src/pages`, `src/ui`) must not
+  take a VALUE import from a world module that builds anything** — type imports
+  are free, and the surf HUD's totals are reported by the world through
+  `onTotals` rather than imported. `docs/performance.md` carries the one-line
+  grep that catches a regression.
 - `src/state/useExperienceMode.ts` — returns `'world' | 'flat'`. Flat when small
   screen / reduced-motion / no-WebGL. `<World>` is lazy so the **flat path never
   downloads the three chunk** — true again as of 2026-08-07, after a `manualChunks`
@@ -206,7 +214,7 @@ chain end-to-end, no per-step hand-holding:
    `docs/performance.md`), but **feel** (motion, camera, pacing) still has to be
    eyeballed by Utku on the resulting prod/preview URL.
 
-## Status & next steps (as of 2026-08-22)
+## Status & next steps (as of 2026-08-29)
 
 The long "Done" log that used to live here described work from June and had gone
 stale enough to mislead: it listed the CV, analytics, the OG image and the fonts
@@ -236,21 +244,51 @@ This section is only what is *true now* and what is *left*.
   domain-level redirects that never touch `vercel.json`, and still answer with a
   bare `max-age=63072000`. Verified with curl 2026-08-22.
 - **Verification has a browser now.** Playwright + Chromium drive the real app; see
-  `docs/performance.md`. Anything touching the 3D scene must run **headed**:
-  headless Chromium renders WebGL through SwiftShader and reports ~7 fps for a
-  scene that runs at 60.
+  `docs/performance.md`, which since 2026-08-29 actually documents it. Anything
+  touching the 3D scene must run **headed**: headless Chromium renders WebGL
+  through SwiftShader and reports ~7 fps for a scene that runs at 60. On a
+  machine with no GPU even a headed run is llvmpipe at ~20 fps, so it verifies
+  correctness and not frame rate, and **feel is not measurable there at all**.
+- **Phones can surf (2026-08-29).** Small screens still get the flat map by
+  default, plus one opt-in button into free surf. One-drag thumb controls live in
+  `src/world/surf-touch.ts`; `aspectFov` in `src/world/surf-controls.ts` widens
+  the lens in portrait, because three's `fov` is VERTICAL and portrait was
+  cropping the sides down to a ~22 degree view. Not offered to reduced-motion or
+  no-WebGL visitors.
+- **Every break is a project (2026-08-29).** The five surf breaks carry the five
+  published projects, coloured by accent, and catching a wave surfaces that
+  project's headline with one tap into its case study. Derived from
+  `PUBLISHED_PROJECTS`, so "add row, flip `published`" still holds.
+- **Ocean visuals (2026-08-29).** Sun glitter from the wave gradient the vertex
+  stage already computes, a CSS speed vignette (`src/ui/SpeedRush.tsx`), a
+  carve-aware wake, and wave lips that throw past vertical
+  (`src/world/wave-face.ts`) instead of standing as walls.
 
 **Open, roughly by value**
+- **A barrel you can ride.** Built 2026-08-29 and cut the same day. The wave came
+  to the rider (keeping station beside a board the player still fully steers,
+  rather than scripting the board onto the wave's line, which this mode
+  deliberately moved away from) and the chase rig tucked in so the tube could be
+  wave-sized. It renders as a wall: the chase camera is spring damped, and
+  against a face seven units away the spring lags far enough through a drop-in
+  that the camera crosses to the outside of it. Making it work means staging the
+  ride against the wave, camera included, which is a feel-level redesign of the
+  drop-in. The lip curl shipped and is the prerequisite.
+- **Nothing shareable leaves the site.** There is no image, no run result and no
+  link carrying state, so a visitor who enjoys the surf run has nothing to send
+  anyone. The obvious build is a run-complete card: composite the last frame with
+  the run stats, Web Share on mobile, download plus copy-link on desktop.
 - Content-Security-Policy still ships as `Content-Security-Policy-Report-Only`
   **with no reporting endpoint**, so it collects nothing and the trial can never
   conclude. A 2026-08-22 audit verified the policy is already compatible with the
   app (zero `eval`/`new Function` in all shipped chunks, every script same-origin,
   fonts self-hosted), so the choice is: wire a collector, or just flip the header
   name. Known casualty of enforcing: PostHog's `?__posthog` debug toolbar.
-- The six case studies are **41.2 KB, 36% of the entry chunk**, because
-  `useSeo` reads `project.content.beats` at runtime. Fixing it means precomputing
-  the SEO summaries at build time, which changes the "add row, flip `published`"
-  extensibility contract. Deliberately not done.
+- ~~The six case studies are 41.2 KB of the entry chunk~~ **Fixed, and this
+  entry was wrong for a while after it was.** The registry no longer carries a
+  `content` reference, so the prose lives in the lazy `ProjectPanel` chunk; a
+  grep of the built output for a case-study sentence finds it there and nowhere
+  else. The critical path is now 272 KB raw / 85 KB gzip. See `docs/performance.md`.
 - `src/router.tsx` drops `search` and `hash` from the pathname. Nothing depends
   on either today, so it is latent rather than broken; it bites the first time a
   link carries a query or a fragment.
