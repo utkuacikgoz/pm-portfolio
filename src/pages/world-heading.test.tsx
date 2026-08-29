@@ -8,7 +8,7 @@ import { BrowserRouter } from "../router";
 // actually get, completely unexercised: the hero owns the only heading, and
 // once you enter it unmounts, so the primary route had no <h1> at all and the
 // case-study panel's <h2> hung off nothing.
-vi.mock("../state/useExperienceMode", () => ({ useExperienceMode: () => "world" }));
+vi.mock("../state/useExperienceMode", () => ({ useExperienceMode: () => "world", useTouchSurf: () => false }));
 vi.mock("../world/World", () => ({ default: () => null }));
 
 let container: HTMLDivElement;

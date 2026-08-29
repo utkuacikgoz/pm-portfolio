@@ -100,6 +100,12 @@ interface Props {
   onCoin?: (count: number) => void;
   onCheckpoint?: (cp: Checkpoint | null) => void;
   onComplete?: () => void;
+  /**
+   * Phone-grade GPU: trade resolution and sea tessellation for frame rate. The
+   * scene is unchanged, only how finely it is sampled, because a phone visitor
+   * who gets 20fps has not been shown the world at all.
+   */
+  lowPower?: boolean;
   // "never" parks the render loop (hidden tab) so a backgrounded world does no
   // GPU/CPU work; "always" runs it while the world is active + visible.
   frameloop?: "always" | "never";
@@ -110,7 +116,7 @@ interface Props {
  * across every island lives in a single <Instances> (one draw call, per-instance
  * color) — no per-cube draw calls. Lazy-loaded so three.js only ships here.
  */
-function World({ activeIndex, entered, dive, surfing, onOpen, onCoin, onCheckpoint, onComplete, frameloop = "always" }: Props) {
+function World({ activeIndex, entered, dive, surfing, onOpen, onCoin, onCheckpoint, onComplete, lowPower = false, frameloop = "always" }: Props) {
   // One list, one InstancedMesh: the indie island's pylons ride in the same
   // field as the rail, so showing it costs no extra draw call.
   const cubes = useMemo(() => [...buildWorld(PUBLISHED_PROJECTS), ...buildIndieIsland(INDIE_PROJECTS)], []);
@@ -122,7 +128,10 @@ function World({ activeIndex, entered, dive, surfing, onOpen, onCoin, onCheckpoi
   // show. Retina is unaffected, it still lands on 1.5.
   // Surf is already the heaviest scene. Keep it crisp while it moves instead of
   // accepting the rail's adaptive low-resolution mode on every input frame.
-  const canvasDpr: [number, number] = surfing ? [1, 1.5] : [1, dpr];
+  // A phone's devicePixelRatio is routinely 3. Rendering the heaviest scene in
+  // the app at 1.5x on top of that is nine times the fragment work of 1x for a
+  // display small enough that the difference is invisible in motion.
+  const canvasDpr: [number, number] = lowPower ? [1, 1.25] : surfing ? [1, 1.5] : [1, dpr];
 
   return (
     <Canvas
@@ -134,7 +143,9 @@ function World({ activeIndex, entered, dive, surfing, onOpen, onCoin, onCheckpoi
       camera={{ position: [0, 7, 16], fov: 45 }}
       // Transparent canvas so the CSS dusk gradient (page wrapper) shows through
       // as the sky — a gradient for free, no GL cost.
-      gl={{ antialias: true, powerPreference: "high-performance", alpha: true }}
+      // Flat-shaded low-poly on a phone screen barely shows its edges; MSAA on a
+      // full-screen ocean there is a real cost for an invisible gain.
+      gl={{ antialias: !lowPower, powerPreference: "high-performance", alpha: true }}
       style={{ position: "fixed", inset: 0 }}
       aria-hidden="true"
     >
@@ -171,7 +182,7 @@ function World({ activeIndex, entered, dive, surfing, onOpen, onCoin, onCheckpoi
         ))}
       </Instances>
 
-      <Water surfing={surfing} />
+      <Water surfing={surfing} lowPower={lowPower} />
         <IslandShadows />
         {!surfing && <Ripples active={activeIndex} />}
         {!surfing && <LightShaft active={activeIndex} />}

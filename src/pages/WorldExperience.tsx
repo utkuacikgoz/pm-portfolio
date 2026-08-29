@@ -2,7 +2,7 @@ import { Suspense, lazy, useCallback, useEffect, useRef, useState } from "react"
 import { Link, useNavigate, useParams } from "../router";
 import { PUBLISHED_PROJECTS, INDIE_PROJECTS, projectIndexById, type Project } from "../projects/projects";
 import { INDIE_INDEX } from "../world/geometry";
-import { useExperienceMode } from "../state/useExperienceMode";
+import { useExperienceMode, useTouchSurf } from "../state/useExperienceMode";
 import WorldNav from "../ui/WorldNav";
 import EscapeHatch from "../ui/EscapeHatch";
 import HeroIntro from "../ui/HeroIntro";
@@ -11,6 +11,7 @@ import EggToast from "../ui/EggToast";
 import SoundToggle from "../ui/SoundToggle";
 import StoryCaption from "../ui/StoryCaption";
 import SurfJourneyStatus from "../ui/SurfJourneyStatus";
+import SurfTouchPad from "../ui/SurfTouchPad";
 import { readAvatar } from "../ui/avatar-store";
 import type { Checkpoint } from "../world/surf-journey";
 import { COIN_TOTAL, CHECKPOINT_TOTAL } from "../world/surf-journey";
@@ -32,6 +33,10 @@ const AvatarSelect = lazy(() => import("../ui/AvatarSelect"));
 
 export default function WorldExperience() {
   const mode = useExperienceMode();
+  // Small screens get the flat map by default and the ocean on request. Surf was
+  // the one thing on this site nobody on a phone could reach, which is most of
+  // the people a link to it ever reaches.
+  const touchSurf = useTouchSurf();
   const { id } = useParams();
   const navigate = useNavigate();
   const projects = PUBLISHED_PROJECTS;
@@ -45,6 +50,11 @@ export default function WorldExperience() {
   const [flashing, setFlashing] = useState(false);
   const [celebrate, setCelebrate] = useState(false);
   const [surfing, setSurfing] = useState(false);
+  // Which control scheme THIS run uses, captured when it starts rather than read
+  // live. A phone turned on its side is wider than the small-screen breakpoint,
+  // so a live read would swap the controls out from under the thumb steering
+  // with them the moment someone rotated to get a better look at the ocean.
+  const [touchControls, setTouchControls] = useState(false);
   // Journey HUD: coins collected + the checkpoint card currently showing.
   const [coins, setCoins] = useState(0);
   const [checkpoint, setCheckpoint] = useState<Checkpoint | null>(null);
@@ -131,15 +141,19 @@ export default function WorldExperience() {
   }, [mode, entered]);
 
   // Free surf mode: hop on the board and roam the ocean; Esc comes back.
-  const enterSurf = useCallback(() => {
-    track(EVENTS.surfEntered);
-    setSurfing(true);
+  const enterSurf = useCallback(
+    (source: "world" | "flat_map") => {
+      track(EVENTS.surfEntered, { source });
+      setSurfing(true);
+      setTouchControls(touchSurf);
     // Coins are NOT reset here: the run persists for the visit, and the
     // controller reports the resumed count on entry.
-    setCheckpoint(null);
-    setSurfHint(true);
-    sfx.play("enter");
-  }, []);
+      setCheckpoint(null);
+      setSurfHint(true);
+      sfx.play("enter");
+    },
+    [touchSurf]
+  );
 
   // The Canvas parks (frameloop "never") while a panel is open, so no GPU burns
   // behind a full-height drawer. But "Next" moves the active island underneath
@@ -176,13 +190,23 @@ export default function WorldExperience() {
       const k = e.key.toLowerCase();
       if (["w", "a", "s", "d", "arrowup", "arrowdown", "arrowleft", "arrowright"].includes(k)) setSurfHint(false);
     };
+    // On a phone the first contact with the glass IS the first control input, so
+    // the hint has to clear on it too or it sits over the board being steered.
+    // Touch runs only: on the desktop a pointer press is not a steering input,
+    // and hiding the controls hint on the first stray click would be a bug.
+    const onTouch = () => setSurfHint(false);
     window.addEventListener("keydown", onMove);
+    if (touchControls) window.addEventListener("pointerdown", onTouch);
     return () => {
       clearTimeout(timer);
       window.removeEventListener("keydown", onMove);
+      window.removeEventListener("pointerdown", onTouch);
     };
-  }, [surfing]);
-  const exitSurf = useCallback(() => setSurfing(false), []);
+  }, [surfing, touchControls]);
+  const exitSurf = useCallback(() => {
+    setSurfing(false);
+    setTouchControls(false);
+  }, []);
   useEffect(() => {
     if (!surfing) return;
     const onKey = (e: KeyboardEvent) => {
@@ -260,10 +284,18 @@ export default function WorldExperience() {
   }, [mode, entered, panelOpen]);
 
   const isIndie = active === INDIE_INDEX;
+  // The world mounts on the rail path once you enter, and on the flat path only
+  // while surfing. Exiting surf on a phone unmounts it again and hands the
+  // visitor back to the flat map they came from.
+  const worldMounted = surfing || (mode === "world" && (entered || panelOpen));
   // The hero owns the visible <h1> while it is up. Once it goes, nothing else in
   // the world carries one (the title card is a div, the panel starts at <h2>),
   // so the primary route was left with no top-level heading at all.
-  const heroVisible = mode === "world" && !entered && !panelOpen && !choosingAvatar;
+  // `!surfing` matters on a phone: turning it sideways makes the window wider
+  // than the small-screen breakpoint, so mid-run the mode flips to "world" with
+  // `entered` still false, and without this the landing hero drops on top of a
+  // surf run that is still going underneath it.
+  const heroVisible = mode === "world" && !entered && !panelOpen && !choosingAvatar && !surfing;
 
   const open = useCallback(
     (i: number) => {
@@ -354,7 +386,7 @@ export default function WorldExperience() {
       {/* Kept out of the visual design on purpose: the world says who this is
           through the scene, not a headline. Screen readers and crawlers still
           need the page to declare itself. */}
-      {!heroVisible && mode === "world" && (
+      {!heroVisible && (mode === "world" || surfing) && (
         <h1 className="sr-only">Utku Acikgoz, Senior Technical Product Manager, career world</h1>
       )}
       <EscapeHatch raised={heroVisible} />
@@ -365,24 +397,35 @@ export default function WorldExperience() {
 
       {/* Static-until-enter: the heavy WebGL world (and three.js) mounts only once
           you enter (or deep-link a project). The bare landing stays pure DOM. */}
-      {mode === "world" && (entered || panelOpen) ? (
-        <ErrorBoundary area="world" fallback={<FlatMap projects={projects} onOpen={open} />}>
+      {worldMounted ? (
+        <ErrorBoundary
+          area="world"
+          fallback={<FlatMap projects={projects} onOpen={open} onSurf={touchSurf ? () => enterSurf("flat_map") : undefined} />}
+        >
           <Suspense fallback={<WorldLoading />}>
             <World
               activeIndex={active}
-              entered={entered}
-              dive={diveOnMount}
+              entered={entered || surfing}
+              // A touch run mounts the world already surfing, so there is no
+              // entrance to dive into. Keyed off `touchControls` rather than the
+              // mode so rotating a phone into landscape mid-run cannot flip this
+              // on underneath the run.
+              dive={mode === "world" && diveOnMount && !touchControls}
               surfing={surfing}
               onOpen={open}
               onCoin={setCoins}
               onCheckpoint={onSurfCheckpoint}
               onComplete={onRunComplete}
+              // `touchControls` holds this for the whole run, so rotating a
+              // phone into landscape does not hand a phone GPU the full-fat
+              // scene halfway through.
+              lowPower={mode === "flat" || touchControls}
               frameloop={visible && (!panelOpen || travelling) ? "always" : "never"}
             />
           </Suspense>
         </ErrorBoundary>
       ) : mode === "flat" ? (
-        <FlatMap projects={projects} onOpen={open} />
+        <FlatMap projects={projects} onOpen={open} onSurf={touchSurf ? () => enterSurf("flat_map") : undefined} />
       ) : null}
 
       {mode === "world" && choosingAvatar && !entered && (
@@ -485,7 +528,7 @@ export default function WorldExperience() {
 
       {mode === "world" && entered && !panelOpen && !surfing && (
         <button
-          onClick={enterSurf}
+          onClick={() => enterSurf("world")}
           aria-label="Enter free surf mode"
           style={{
             position: "fixed",
@@ -510,8 +553,11 @@ export default function WorldExperience() {
         <IndieOverlay onBack={() => setActive(INDIE_INDEX - 1)} />
       )}
 
-      {mode === "world" && surfing && (
+      {surfing && (
         <>
+          {/* The phone's controls. Mounted with the run, so the frame loop knows
+              to drive the board itself for as long as it is up. */}
+          {touchControls && <SurfTouchPad />}
           {surfHint && (
             <div
               style={{
@@ -531,7 +577,9 @@ export default function WorldExperience() {
                 pointerEvents: "none",
               }}
             >
-              🏄 WASD to surf · Space to jump · Double Space for a 360 · Esc to come back
+              {touchControls
+                ? "🏄 Drag to steer · pull down to slow · tap to jump · double tap for a 360"
+                : "🏄 WASD to surf · Space to jump · Double Space for a 360 · Esc to come back"}
             </div>
           )}
           {/* Gone for good once the run is finished, not just while the completion

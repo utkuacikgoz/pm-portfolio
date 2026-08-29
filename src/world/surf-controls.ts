@@ -111,6 +111,46 @@ export function cameraFov(speed: number, airY: number): number {
   return mix(SURF_FOV, SURF_FOV_WIDE, paceRatio(speed)) + Math.min(2.5, airY * 0.4);
 }
 
+/** The window shape every camera curve here was tuned against. */
+export const REFERENCE_ASPECT = 16 / 9;
+/** At or below this the shape correction is at full strength. */
+export const PORTRAIT_ASPECT = 0.85;
+/** Widest the lens may be stretched for a narrow window, as a multiple. */
+export const MAX_FOV_GAIN = 1.45;
+/** ...and in absolute terms, past which the frame reads as a fisheye. */
+export const MAX_FOV = 72;
+
+const DEG = Math.PI / 180;
+
+/**
+ * `cameraFov` corrected for the window's shape.
+ *
+ * three's `fov` is VERTICAL, so a portrait phone does not crop the top and
+ * bottom off the landscape frame, it crops the SIDES. At 390x844 the same 46
+ * degree lens sees about 22 degrees horizontally: a telephoto slit through
+ * which you cannot see the break you are carving toward, on the one device
+ * where you steer by feel rather than by looking around. Opening the vertical
+ * lens buys that horizontal coverage back.
+ *
+ * It is bought back only PARTLY, on purpose. Holding the landscape horizontal
+ * FOV at portrait aspect would need about 117 degrees vertically, which is a
+ * fisheye; both caps exist so the correction ends at a wide lens rather than a
+ * distorted one, and MAX_FOV_GAIN is the one that keeps the widen-with-speed
+ * cue alive instead of pinning every speed to the same clamped value.
+ *
+ * EVERY LANDSCAPE WINDOW IS RETURNED UNTOUCHED, not only 16:9 ones. The curves
+ * above were tuned by eye on a landscape screen and this is a fix for a shape
+ * they were never tuned against, not a re-tune of the ones they were. The
+ * correction fades in between square and `PORTRAIT_ASPECT` so dragging a
+ * desktop window through square does not snap the lens.
+ */
+export function aspectFov(fov: number, aspect: number): number {
+  if (!(aspect > 0) || aspect >= 1) return fov;
+  const ideal = (2 * Math.atan((Math.tan((fov / 2) * DEG) * REFERENCE_ASPECT) / aspect)) / DEG;
+  const capped = Math.min(ideal, fov * MAX_FOV_GAIN, MAX_FOV);
+  return mix(fov, capped, clamp01((1 - aspect) / (1 - PORTRAIT_ASPECT)));
+}
+
 /** Falls further back as you drive. */
 export function cameraDistance(speed: number, riding: boolean): number {
   return mix(10.6, 14.4, paceRatio(speed)) + (riding ? 1.2 : 0);

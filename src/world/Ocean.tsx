@@ -35,8 +35,13 @@ const MOUNTAIN_MATRICES = DISTANT_PEAKS.map((peak) => new THREE.Matrix4().compos
 // cut in vertex work on the default path.
 const SEA_SEGMENTS_RAIL = 96;
 const SEA_SEGMENTS_SURF = 180;
+// Phones surf too. 180x180 is 32.7K vertices each running the wave shader, which
+// a laptop GPU absorbs and a phone spends its whole frame budget on. 128x128 is
+// 16.4K, half the vertex work, and at a phone's screen size the swell still
+// reads: the wavelength is unchanged, only how finely it is sampled.
+const SEA_SEGMENTS_SURF_LOW = 128;
 
-export function Water({ surfing }: { surfing: boolean }) {
+export function Water({ surfing, lowPower = false }: { surfing: boolean; lowPower?: boolean }) {
   const uTime = useRef({ value: 0 });
   // Crest contrast, driven by the same 0..1 daylight level the fog and lights
   // use. It is 0 on the rail (the diorama's sea stays a flat calm slab, exactly
@@ -47,7 +52,7 @@ export function Water({ surfing }: { surfing: boolean }) {
   const uCrest = useRef({ value: 0 });
   const matRef = useRef<THREE.MeshStandardMaterial>(null);
   const reduced = usePrefersReducedMotion();
-  const segments = surfing ? SEA_SEGMENTS_SURF : SEA_SEGMENTS_RAIL;
+  const segments = surfing ? (lowPower ? SEA_SEGMENTS_SURF_LOW : SEA_SEGMENTS_SURF) : SEA_SEGMENTS_RAIL;
   useFrame((s) => {
     if (!reduced) uTime.current.value = s.clock.elapsedTime;
     uCrest.current.value = daylight.v;
@@ -124,7 +129,7 @@ export function Water({ surfing }: { surfing: boolean }) {
       {/* Keyed so switching density rebuilds the geometry rather than mutating
           args on the existing one, which r3f would not pick up. */}
       <planeGeometry
-        key={surfing ? "surf" : "rail"}
+        key={segments}
         args={[1400, 1400, segments, segments]}
       />
       {/* Ocean-blue dusk sea, reflective enough to catch the sun. */}

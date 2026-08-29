@@ -5,6 +5,7 @@ import { WATER_Y, seaHeight, seaSlopeX, seaSlopeZ } from "./geometry";
 import Surfer from "./Surfer";
 import { nearestTakeoff, SURF_LAUNCH, type SurfSpot } from "./surf-spots";
 import { surfSignal } from "./surf-signal";
+import { surfTouch } from "./surf-touch";
 import { SURF_COLLIDERS, COINS, COIN_TOTAL, CHECKPOINTS, collectedCoins, type Checkpoint } from "./surf-journey";
 import { sfx } from "../audio/sfx";
 import {
@@ -20,6 +21,7 @@ import {
   leanTarget,
   wrapAngle,
   cameraFov,
+  aspectFov,
   cameraDistance,
   cameraHeight,
   cameraLookHeight,
@@ -194,7 +196,11 @@ export default function SurfController({
       keys.current[e.key.toLowerCase()] = false;
     };
     // Move-look: cursor position (normalized) drives the view offset.
+    // Touch is excluded on purpose. A thumb on the glass is STEERING, and if the
+    // same contact also swung the view, every carve would whip the camera the
+    // opposite way from the turn it was asked for.
     const moveLook = (e: PointerEvent) => {
+      if (surfTouch.enabled || e.pointerType === "touch") return;
       cursor.current.x = (e.clientX / window.innerWidth) * 2 - 1;
       cursor.current.y = (e.clientY / window.innerHeight) * 2 - 1;
       regress();
@@ -274,8 +280,25 @@ export default function SurfController({
     const d = Math.min(dt, 0.05); // clamp so a stutter can't launch the board
     const t = state.clock.elapsedTime;
     const k = keys.current;
-    const fwd = (k["w"] || k["arrowup"] ? 1 : 0) - (k["s"] || k["arrowdown"] ? 1 : 0);
-    const turn = (k["a"] || k["arrowleft"] ? 1 : 0) - (k["d"] || k["arrowright"] ? 1 : 0);
+    const keyFwd = (k["w"] || k["arrowup"] ? 1 : 0) - (k["s"] || k["arrowdown"] ? 1 : 0);
+    const keyTurn = (k["a"] || k["arrowleft"] ? 1 : 0) - (k["d"] || k["arrowright"] ? 1 : 0);
+    // Touch (phones) and the keyboard describe the same board, so they feed the
+    // same two numbers. A held key always wins: the pad is mounted for the whole
+    // run and rests at full throttle, so without this precedence a visitor on a
+    // touchscreen laptop could never brake with S.
+    const touching = surfTouch.enabled;
+    const fwd = keyFwd !== 0 ? keyFwd : touching ? surfTouch.throttle : 0;
+    const turn = keyTurn !== 0 ? keyTurn : touching ? surfTouch.steer : 0;
+    // One-shot trick requests from the pad, consumed here so a tap fires exactly
+    // one ollie however many frames pass before the loop next runs.
+    if (surfTouch.jump) {
+      surfTouch.jump = false;
+      jumpQueued.current = true;
+    }
+    if (surfTouch.spin) {
+      surfTouch.spin = false;
+      spinQueued.current = true;
+    }
 
     // Carve harder the faster you go, and get a little drive out of a hard turn
     // (a cutback pump) — it's a surfer's world.
@@ -304,7 +327,8 @@ export default function SurfController({
     );
     course.current = clampSlip(heading.current, course.current);
     // Boost / pump: hold Shift for a burst while stamina lasts; recharge otherwise.
-    const boosting = !intro && !!k["shift"] && stamina.current > 0.02 && fwd > 0;
+    const boosting =
+      !intro && (!!k["shift"] || (touching && surfTouch.boost)) && stamina.current > 0.02 && fwd > 0;
     stamina.current = THREE.MathUtils.clamp(stamina.current + (boosting ? -0.5 : 0.28) * d, 0, 1);
     let targetSpeed = fwdIn * (intro ? 9 : 24) * (boosting ? 1.6 : 1); // units / sec
     if (turnIn !== 0 && speed.current > 6) targetSpeed += Math.min(8, speed.current * 0.35);
@@ -679,7 +703,10 @@ export default function SurfController({
     camera.rotateZ(cameraBank(lean.current, speed.current));
     // Speed widens the lens. Small in degrees, large in how fast it feels.
     const persp = camera as THREE.PerspectiveCamera;
-    const targetFov = cameraFov(speed.current, airY.current);
+    // Corrected for the window's shape: a portrait phone crops the SIDES off
+    // this lens, not the top and bottom, so the same number is a much narrower
+    // view there than it is on a laptop.
+    const targetFov = aspectFov(cameraFov(speed.current, airY.current), persp.aspect);
     if (Math.abs(persp.fov - targetFov) > 0.02) {
       persp.fov += (targetFov - persp.fov) * approach(2.6, d);
       persp.updateProjectionMatrix();
