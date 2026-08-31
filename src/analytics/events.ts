@@ -19,6 +19,8 @@ export const EVENTS = {
   caseStudyRead: "case_study_read",
   caseStudyAdvanced: "case_study_advanced",
   indieShelfViewed: "indie_shelf_viewed",
+  /** Clicked through to a live indie product. The indie funnel's first real step. */
+  indieProductOpened: "indie_product_opened",
   resumeOpened: "resume_opened",
   cvDownloaded: "cv_downloaded",
   ctaClicked: "cta_clicked",

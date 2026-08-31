@@ -1,11 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  attributionLine,
-  PROJECTS,
-  PUBLISHED_PROJECTS,
-  INDIE_PROJECTS,
-  projectIndexById,
-} from "./projects";
+import { attributionLine, PROJECTS, PUBLISHED_PROJECTS, INDIE_PROJECTS, projectIndexById, isLive } from "./projects";
 
 describe("project registry invariants", () => {
   it("has unique project ids", () => {
@@ -79,5 +73,42 @@ describe("attribution", () => {
   it("renders a line that names the role, the employer and the years", () => {
     const bilira = PUBLISHED_PROJECTS.find((p) => p.id === "bilira");
     expect(attributionLine(bilira!)).toBe("Senior Product Manager, BiLira, 2025 to present");
+  });
+});
+
+describe("live indie products", () => {
+  // The shelf's whole job is credibility. A product that exists, described as
+  // forthcoming, is worth less than not mentioning it at all, so "live" is
+  // driven by whether there is somewhere to actually send someone.
+  it("marks a product live exactly when it has somewhere to send you", () => {
+    for (const p of INDIE_PROJECTS) {
+      expect(isLive(p)).toBe(Boolean(p.url));
+    }
+  });
+
+  it("has at least one live product, since one is shipped", () => {
+    expect(INDIE_PROJECTS.filter(isLive).length).toBeGreaterThan(0);
+  });
+
+  // A dead or relative link on the shelf is worse than a quiet row: it is a
+  // broken promise a recruiter clicks.
+  it("points every live product at an absolute https URL with no trailing slash", () => {
+    for (const p of INDIE_PROJECTS.filter(isLive)) {
+      expect(p.url, `${p.id} url`).toMatch(/^https:\/\/[a-z0-9.-]+\.[a-z]{2,}(\/\S*)?$/i);
+      expect(p.url).not.toMatch(/\/$/);
+    }
+  });
+
+  it("keeps live products off the career rail, which is employment only", () => {
+    for (const p of INDIE_PROJECTS) {
+      expect(p.published).toBe(false);
+      expect(p.kind).toBe("indie");
+    }
+  });
+
+  it("gives every indie row a glimpse line, live or not", () => {
+    for (const p of INDIE_PROJECTS) {
+      expect(p.glimpse && p.glimpse.length).toBeGreaterThan(10);
+    }
   });
 });

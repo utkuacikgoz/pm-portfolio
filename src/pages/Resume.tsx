@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Link } from "../router";
-import { PUBLISHED_PROJECTS, INDIE_PROJECTS, attributionLine } from "../projects/projects";
+import { PUBLISHED_PROJECTS, INDIE_PROJECTS, attributionLine, isLive } from "../projects/projects";
 import { useProgress } from "../state/progress";
 import { CONTACT } from "../content/contact";
 import { EVENTS, track } from "../analytics/events";
@@ -100,20 +100,11 @@ export default function Resume() {
       </Section>
 
       {INDIE.length > 0 && (
-        <Section title="CURRENTLY BUILDING">
-          {INDIE.map((p) => (
-            <li key={p.id}>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  gap: 16,
-                  padding: "16px 20px",
-                  background: T.inkRaised,
-                  borderLeft: `4px solid ${p.accent}`,
-                }}
-              >
+        <Section title="BUILDING ON MY OWN TIME">
+          {INDIE.map((p) => {
+            const live = isLive(p);
+            const body = (
+              <>
                 <span>
                   <span style={{ display: "block", fontSize: TYPE.lead, fontWeight: 800 }}>{p.title}</span>
                   <span style={{ display: "block", fontSize: TYPE.small, color: T.textMuted, marginTop: 3, lineHeight: 1.5 }}>
@@ -121,11 +112,39 @@ export default function Resume() {
                   </span>
                 </span>
                 <span style={{ color: textAccent(p.accent), fontSize: TYPE.micro, fontWeight: 800, letterSpacing: 0.5, whiteSpace: "nowrap" }}>
-                  COMING SOON
+                  {live ? "LIVE →" : "COMING SOON"}
                 </span>
-              </div>
-            </li>
-          ))}
+              </>
+            );
+            const style = {
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: 16,
+              padding: "16px 20px",
+              background: T.inkRaised,
+              borderLeft: `4px solid ${p.accent}`,
+              textDecoration: "none",
+              color: T.text,
+            };
+            return (
+              <li key={p.id}>
+                {live ? (
+                  <a
+                    href={p.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => track(EVENTS.indieProductOpened, { project_id: p.id })}
+                    style={style}
+                  >
+                    {body}
+                  </a>
+                ) : (
+                  <div style={style}>{body}</div>
+                )}
+              </li>
+            );
+          })}
         </Section>
       )}
     </main>
