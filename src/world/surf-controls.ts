@@ -22,7 +22,7 @@ export const CRUISE_SPEED = 26;
 /** Peak yaw rate (rad/s) at full steering input and a standstill. */
 export const TURN_RATE_MAX = 1.9;
 /** Widest the nose may point out of the direction of travel (radians). */
-export const MAX_SLIP = 0.33;
+export const MAX_SLIP = 0.26;
 
 const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
 const clamp11 = (v: number) => (v < -1 ? -1 : v > 1 ? 1 : v);
@@ -62,7 +62,10 @@ export function boardFloatY(surfaceY: number, smoothedY: number): number {
  * carve reads as committed rather than twitchy.
  */
 export function turnRate(input: number, speed: number): number {
-  return input * TURN_RATE_MAX * (1.15 - paceRatio(speed) * 0.45);
+  // The low-speed multiplier used to be 1.15, so a standstill pivot ran at
+  // 2.19 rad/s: quicker than the board can be aimed, which is most of what
+  // read as twitchy rather than as agile. It now tops out at TURN_RATE_MAX.
+  return input * TURN_RATE_MAX * (1.0 - paceRatio(speed) * 0.4);
 }
 
 /**
@@ -73,7 +76,11 @@ export function turnRate(input: number, speed: number): number {
  * feels like a cursor rather than something with mass on water.
  */
 export function courseChase(speed: number): number {
-  return mix(11, 3.4, paceRatio(speed));
+  // Was mix(11, 3.4). At 3.4 rad/s the line took nearly a second to catch a
+  // committed turn, so the board kept sliding well past where it had been
+  // pointed and steering at pace felt like an argument. The tail still washes
+  // out, it just stops being the dominant thing about driving fast.
+  return mix(12, 6, paceRatio(speed));
 }
 
 /** Hold a course within MAX_SLIP of the heading so the board can never spin out. */
@@ -104,9 +111,16 @@ export function leanTarget(input: number, turnVel: number, speed: number): numbe
 // the frame: the ocean read as a flat teal field with no scale at all.
 
 export const SURF_FOV = 46;
-export const SURF_FOV_WIDE = 58;
+export const SURF_FOV_WIDE = 52;
 
-/** Lens widens with pace (and a touch more in the air) to sell speed. */
+/**
+ * Lens widens with pace (and a touch more in the air) to sell speed.
+ *
+ * The wide end was 58, a twelve degree swing that pumped in and out with every
+ * change of throttle. Speed is sold by four things at once here (lens, chase
+ * distance, camera height, tail slide) and the lens was doing enough of the
+ * shouting to be noticed as an effect rather than felt as pace.
+ */
 export function cameraFov(speed: number, airY: number): number {
   return mix(SURF_FOV, SURF_FOV_WIDE, paceRatio(speed)) + Math.min(2.5, airY * 0.4);
 }
@@ -179,11 +193,21 @@ export function cameraLookHeight(speed: number, riding = false): number {
 
 /** Spring constant of the chase camera: softer at speed, so it trails more. */
 export function chaseStiffness(speed: number): number {
-  return mix(52, 30, paceRatio(speed));
+  // Softer than the 52 to 30 it was. A stiff spring tracks the board, and a
+  // camera that tracks a board being carved reproduces every correction the
+  // rider makes, which is exactly the input they are trying to see past.
+  return mix(38, 24, paceRatio(speed));
 }
 
-/** Just under critical: settles clean, with barely enough overshoot to breathe. */
-export const CHASE_DAMPING_RATIO = 0.9;
+/**
+ * Critically damped: the fastest a spring can settle WITHOUT overshooting.
+ *
+ * It was 0.9, deliberately under critical for "barely enough overshoot to
+ * breathe". On a camera that is already trailing a board which slides, that
+ * overshoot lands as a small recoil at the end of every turn, and a run is
+ * mostly turns. Breathing is what the swell bob and the lens are for.
+ */
+export const CHASE_DAMPING_RATIO = 1.0;
 
 /** Damping coefficient paired with `chaseStiffness` for that ratio. */
 export function chaseDamping(stiffness: number): number {
@@ -192,7 +216,10 @@ export function chaseDamping(stiffness: number): number {
 
 /** A little camera roll into the carve. Subtle: it reads as bank, not as tilt. */
 export function cameraBank(lean: number, speed: number): number {
-  return clamp11(lean / 0.46) * 0.085 * paceRatio(speed);
+  // Halved. Roll reads as bank up to a point and as the horizon tipping past
+  // it, and five degrees on top of a camera that is already yawing and
+  // trailing was past it.
+  return clamp11(lean / 0.46) * 0.045 * paceRatio(speed);
 }
 
 // ── Contact with the water ───────────────────────────────────────────────────

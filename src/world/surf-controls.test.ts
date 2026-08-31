@@ -17,6 +17,7 @@ import {
   carveWakeScale,
   carveWakeDuration,
   cameraFov,
+  cameraBank,
   aspectFov,
   MAX_FOV,
   PORTRAIT_ASPECT,
@@ -140,14 +141,42 @@ describe("chase camera", () => {
     }
   });
 
-  it("stays just under critical damping, so it settles without ringing", () => {
+  // This assertion used to be the opposite: the ratio was deliberately under
+  // critical, for "barely enough overshoot to breathe". That overshoot lands as
+  // a small recoil at the end of every turn, and a surf run is mostly turns, so
+  // the intent changed rather than the number drifting. Breathing is the swell
+  // bob and the lens; the chase rig's job is to settle and stay out of the way.
+  it("is at least critically damped, so the camera never recoils after a turn", () => {
     for (const speed of SPEEDS) {
       const k = chaseStiffness(speed);
       expect(chaseDamping(k)).toBeCloseTo(2 * CHASE_DAMPING_RATIO * Math.sqrt(k));
-      expect(CHASE_DAMPING_RATIO).toBeLessThan(1);
     }
+    expect(CHASE_DAMPING_RATIO).toBeGreaterThanOrEqual(1);
     // Softer at speed: the rig trails more the harder you drive.
     expect(chaseStiffness(CRUISE_SPEED)).toBeLessThan(chaseStiffness(0));
+  });
+
+  // The complaint that produced this pass was "too aggressive and responsive".
+  // Each of these is one of the levers that made it so, pinned at an upper
+  // bound rather than an exact value so they stay tunable without going back
+  // to where they were.
+  it("keeps the camera calm enough to see past", () => {
+    // A spring stiff enough to track the board reproduces every correction the
+    // rider makes, which is the input they are trying to see past.
+    expect(chaseStiffness(0)).toBeLessThanOrEqual(40);
+    // Roll reads as bank up to a point and as the horizon tipping past it.
+    expect(Math.abs(cameraBank(0.46, CRUISE_SPEED))).toBeLessThanOrEqual(0.05);
+    // The lens should breathe with pace, not pump.
+    expect(cameraFov(CRUISE_SPEED, 0) - cameraFov(0, 0)).toBeLessThanOrEqual(7);
+  });
+
+  it("still sells pace, having been calmed down", () => {
+    // Calmer must not mean inert: every cue that carried speed still moves the
+    // same direction, just less far.
+    expect(cameraFov(CRUISE_SPEED, 0)).toBeGreaterThan(cameraFov(0, 0));
+    expect(cameraDistance(CRUISE_SPEED, false)).toBeGreaterThan(cameraDistance(0, false));
+    expect(cameraHeight(CRUISE_SPEED, false)).toBeLessThan(cameraHeight(0, false));
+    expect(Math.abs(cameraBank(0.46, CRUISE_SPEED))).toBeGreaterThan(0);
   });
 });
 
