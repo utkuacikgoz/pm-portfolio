@@ -53,6 +53,16 @@ export interface Project {
   // mobile path that never opens one. Adding a project is unchanged: add a
   // content file keyed by the same id, add a row here, flip `published`.
   glimpse?: string; // teaser line shown on the glimpse panel for indie products
+  /**
+   * Where the thing actually is, for an indie product that has shipped.
+   *
+   * This is what separates a bet from a product. Everything on the indie shelf
+   * used to read "COMING SOON" whether or not it existed, which costs exactly
+   * the credibility the shelf is there to earn: a live product described as
+   * forthcoming is worth less than not mentioning it. A row with a `url` is
+   * live and links out; a row without one is still a bet and still says so.
+   */
+  url?: string;
   story?: string; // one-line narrative caption for the fly-through tour
 }
 
@@ -153,7 +163,8 @@ export const PROJECTS: Project[] = [
     published: false,
     accent: T.mauve,
     structure: "beacon",
-    glimpse: "Helps job seekers get past automated tracking filters.",
+    url: "https://passats.pro",
+    glimpse: "Helps job seekers get past automated tracking filters. Live and open to anyone.",
   },
   {
     id: "cofoundr",
@@ -182,6 +193,11 @@ export const PUBLISHED_PROJECTS: Project[] = PROJECTS.filter((p) => p.published)
 
 /** Indie products shown as coming-soon bubbles on the separate ocean island. */
 export const INDIE_PROJECTS: Project[] = PROJECTS.filter((p) => p.kind === "indie" && !!p.glimpse);
+
+/** Indie products that have actually shipped, so the shelf can say which. */
+export function isLive(project: Project): boolean {
+  return Boolean(project.url);
+}
 
 /** A published project by registry id, or null. */
 export function projectById(id: string): Project | null {

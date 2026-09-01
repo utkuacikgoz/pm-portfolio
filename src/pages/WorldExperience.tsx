@@ -1,6 +1,6 @@
 import { Suspense, lazy, useCallback, useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "../router";
-import { PUBLISHED_PROJECTS, INDIE_PROJECTS, projectIndexById, projectById, type Project } from "../projects/projects";
+import { PUBLISHED_PROJECTS, INDIE_PROJECTS, projectIndexById, projectById, isLive, type Project } from "../projects/projects";
 import { INDIE_INDEX } from "../world/layout";
 import { useExperienceMode, useTouchSurf } from "../state/useExperienceMode";
 import WorldNav from "../ui/WorldNav";
@@ -913,30 +913,61 @@ function IndieOverlay({ onBack }: { onBack: () => void }) {
         🏄 WHAT I'M BUILDING
       </div>
       <p style={{ fontSize: TYPE.small, color: T.textSoft, lineHeight: 1.55, marginBottom: 16 }}>
-        53 countries travelled so far. Here's what I'm building next. No case studies yet, just bets.
+        53 countries travelled so far. Here's what I'm building on my own time. One is live and
+        open to anyone; the rest are still bets.
       </p>
       <div style={{ display: "grid", gap: 8, marginBottom: 16 }}>
-        {INDIE_PROJECTS.map((p) => (
-          <div
-            key={p.id}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-              padding: "10px 14px",
-              border: `1.5px solid ${p.accent}55`,
-              background: T.inkRaised,
-              textAlign: "left",
-            }}
-          >
-            <span style={{ width: 9, height: 9, borderRadius: "50%", background: p.accent, flexShrink: 0 }} />
-            <span style={{ fontWeight: 800, fontSize: TYPE.body }}>{p.title}</span>
-            <span style={{ fontSize: TYPE.small, color: T.textMuted }}>{p.tagline}</span>
-            <span style={{ marginLeft: "auto", fontSize: TYPE.micro, fontWeight: 800, letterSpacing: 0.5, color: textAccent(p.accent) }}>
-              COMING SOON
-            </span>
-          </div>
-        ))}
+        {INDIE_PROJECTS.map((p) => {
+          const live = isLive(p);
+          const row = (
+            <>
+              <span style={{ width: 9, height: 9, borderRadius: "50%", background: p.accent, flexShrink: 0 }} />
+              <span style={{ fontWeight: 800, fontSize: TYPE.body }}>{p.title}</span>
+              <span style={{ fontSize: TYPE.small, color: T.textMuted }}>{p.tagline}</span>
+              <span
+                style={{
+                  marginLeft: "auto",
+                  fontSize: TYPE.micro,
+                  fontWeight: 800,
+                  letterSpacing: 0.5,
+                  color: textAccent(p.accent),
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {live ? "LIVE →" : "COMING SOON"}
+              </span>
+            </>
+          );
+          const style = {
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            padding: "10px 14px",
+            border: `1.5px solid ${p.accent}${live ? "" : "55"}`,
+            background: T.inkRaised,
+            textAlign: "left" as const,
+            textDecoration: "none",
+            color: T.text,
+          };
+          // A live product is a link out; a bet is not, because there is nowhere
+          // to send anyone yet and a dead link costs more than a quiet row.
+          return live ? (
+            <a
+              key={p.id}
+              href={p.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => track(EVENTS.indieProductOpened, { project_id: p.id })}
+              style={style}
+            >
+              {row}
+            </a>
+          ) : (
+            <div key={p.id} style={style}>
+              {row}
+            </div>
+          );
+        })}
       </div>
       <button
         onClick={onBack}
