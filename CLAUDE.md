@@ -162,6 +162,15 @@ them by `kind: "indie"` plus a `glimpse` line, so they still reach the resume
 shelf and the ocean island:
 **Buyback Signal** (trading-signal bot), **PassATS**, **Cofoundr** (co-founder matching).
 
+**PassATS is live at https://passats.pro (2026-08-30).** A `url` on the registry
+row is what makes an indie product live: `isLive()` reads it, the shelf links
+out and says "LIVE", and a row without one still says "COMING SOON". Everything
+on the shelf used to claim to be forthcoming whether or not it existed, which
+costs the exact credibility the shelf is there to earn. `published` stays
+`false`: that flag puts a project on the career rail among the employment case
+studies, which needs a content file and a CV employer, and an indie product has
+neither. Live and published are different questions.
+
 ## Content model
 `src/content/*.ts` (one per project) → typed by `src/content/types.ts` (`CaseStudy`,
 `Beat`, `Metric`, `Decision`, `Initiative`, `Stakeholder`). Beats follow the canonical
@@ -308,7 +317,9 @@ This section is only what is *true now* and what is *left*.
   the first client-side move. It now tracks all three, and `src/router.test.tsx`
   pins it.
 - Business gaps, needing Utku rather than code: thin about/positioning, no social
-  proof. Indie products (PassATS, Stats XI) stay hidden until there is content;
-  flipping `published` is the whole mechanism.
+  proof. Buyback Signal and Cofoundr still say "COMING SOON" because they have
+  nowhere to send anyone; give them a `url` when they ship. A full case study for
+  PassATS (content file plus `published: true`) is a separate, larger call, and
+  would put an indie product on a rail whose other five rows are employment.
 - Lighting and structure tuning is checkable now (Playwright, **headed** for
   anything 3D), but nobody has done a pass. Feel still needs Utku's eyes.
