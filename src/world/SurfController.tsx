@@ -59,8 +59,15 @@ const RIDE_ENTRY_RADIUS = 10; // catches happen close enough to cleanly enter th
 // (SURF_FOV, 46). Surf widens the lens with speed and has to hand back exactly
 // the rail's value on exit, or the diorama keeps a slightly wide angle forever.
 const RAIL_FOV = 45;
-const MAX_YAW = 0.6; // how far the cursor can swing the view (radians)
-const MAX_PITCH = 0.45;
+// How far the cursor can swing the view, in radians. Was 0.6 and 0.45, which
+// let a mouse that had not touched a control rotate the camera 34 degrees and
+// heave it nearly two units. Move-look is meant to be a glance toward where you
+// are going, not a second set of camera controls competing with the board.
+const MAX_YAW = 0.34;
+const MAX_PITCH = 0.26;
+// How fast the view follows the cursor. Slower than the old 5, so the camera
+// drifts toward where you are pointing instead of tracking the pointer.
+const LOOK_FOLLOW = 3.2;
 const SPIN_DUR = 0.48; // a fast but readable 360 after the second Space press
 const LANDING_SPLASH_DUR = 2.4;
 const LANDING_RING_GEO = new THREE.RingGeometry(0.5, 0.68, 24);
@@ -659,8 +666,8 @@ export default function SurfController({
     const dz = 0.08; // deadzone
     const cx = Math.abs(cursor.current.x) < dz ? 0 : cursor.current.x;
     const cy = Math.abs(cursor.current.y) < dz ? 0 : cursor.current.y;
-    lookYaw.current += (cx * MAX_YAW - lookYaw.current) * (1 - Math.exp(-5 * d));
-    lookPitch.current += (-cy * MAX_PITCH - lookPitch.current) * (1 - Math.exp(-5 * d));
+    lookYaw.current += (cx * MAX_YAW - lookYaw.current) * approach(LOOK_FOLLOW, d);
+    lookPitch.current += (-cy * MAX_PITCH - lookPitch.current) * approach(LOOK_FOLLOW, d);
 
     // Chase camera: behind + above the board, pulling in tighter while riding,
     // yawed/pitched by the cursor.
@@ -676,7 +683,7 @@ export default function SurfController({
     // the whole view sideways every time the tail steps out.
     const camYaw = course.current + lookYaw.current + (riding.current ? 0.48 : 0);
     const behind = cameraDistance(speed.current, riding.current);
-    const height = cameraHeight(speed.current, riding.current) + airY.current * 0.4 + lookPitch.current * 4;
+    const height = cameraHeight(speed.current, riding.current) + airY.current * 0.4 + lookPitch.current * 2.5;
     camTarget.current.set(
       pos.current.x - Math.sin(camYaw) * behind,
       bobY + height,
@@ -701,7 +708,7 @@ export default function SurfController({
     const lookAhead = (riding.current ? 4 : 2.5) + paceT * 5;
     lookTarget.current.set(
       pos.current.x + Math.sin(course.current) * lookAhead,
-      bobY + cameraLookHeight(speed.current, riding.current) + airY.current * 0.5 + lookPitch.current * 2,
+      bobY + cameraLookHeight(speed.current, riding.current) + airY.current * 0.5 + lookPitch.current * 1.4,
       pos.current.z + Math.cos(course.current) * lookAhead
     );
     cameraLook.current.lerp(lookTarget.current, approach(10, d));
