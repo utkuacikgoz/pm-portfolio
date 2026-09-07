@@ -127,22 +127,49 @@ describe("portfolio journey", () => {
   });
 
   it("makes the surf run goal and progress legible", () => {
+    const onToggleHelp = vi.fn();
+    const onToggleProjects = vi.fn();
     act(() =>
-      root.render(<SurfJourneyStatus coins={21} coinTotal={42} />)
+      root.render(
+        <SurfJourneyStatus
+          coins={21}
+          coinTotal={42}
+          projectsFound={2}
+          projectTotal={5}
+          onToggleHelp={onToggleHelp}
+          onToggleProjects={onToggleProjects}
+        />
+      )
     );
 
+    expect(container.textContent).toContain("PROJECTS 2 / 5");
     expect(container.textContent).toContain("21 / 42");
-    expect(container.textContent).toContain("50%");
-    expect(container.querySelector<HTMLElement>('[data-testid="surf-progress-bar"]')?.style.width).toBe("50%");
+    expect(container.textContent).toContain("40%");
+    expect(container.querySelector<HTMLElement>('[data-testid="surf-progress-bar"]')?.style.width).toBe("40%");
+
+    act(() => elementByText<HTMLButtonElement>("button", "CONTROLS").click());
+    act(() => elementByText<HTMLButtonElement>("button", "FOUND 2").click());
+    expect(onToggleHelp).toHaveBeenCalledOnce();
+    expect(onToggleProjects).toHaveBeenCalledOnce();
   });
 
   // Totals arrive from the world once a run starts, so the HUD renders for one
   // frame before they do. Dividing by that zero put "NaN%" on screen.
   it("survives the frame before the world has reported its totals", () => {
     act(() =>
-      root.render(<SurfJourneyStatus coins={0} coinTotal={0} />)
+      root.render(
+        <SurfJourneyStatus
+          coins={0}
+          coinTotal={0}
+          projectsFound={0}
+          projectTotal={5}
+          onToggleHelp={vi.fn()}
+          onToggleProjects={vi.fn()}
+        />
+      )
     );
 
+    expect(container.textContent).toContain("PROJECTS 0 / 5");
     expect(container.textContent).toContain("0%");
     expect(container.textContent).not.toContain("NaN");
     expect(container.querySelector<HTMLElement>('[data-testid="surf-progress-bar"]')?.style.width).toBe("0%");
