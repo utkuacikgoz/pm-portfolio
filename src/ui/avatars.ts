@@ -24,9 +24,9 @@ export const AVATARS: Avatar[] = [
   {
     id: "hr",
     portrait: hrPortrait,
-    label: "HR",
+    label: "Recruiter",
     title: "The Culture Keeper",
-    pun: "Here for the culture fit.",
+    pun: "Looking for the right team fit.",
     accent: T.seafoam,
     stats: [
       { label: "Empathy", value: 9 },
@@ -44,7 +44,7 @@ export const AVATARS: Avatar[] = [
     accent: T.gold,
     stats: [
       { label: "Outcomes", value: 10 },
-      { label: "Skepticism", value: 8 },
+      { label: "Judgment", value: 8 },
       { label: "Speed", value: 7 },
       { label: "Budget", value: 5 },
     ],
@@ -52,15 +52,15 @@ export const AVATARS: Avatar[] = [
   {
     id: "stalker",
     portrait: stalkerPortrait,
-    label: "Stalker",
+    label: "Explorer",
     title: "The Deep Diver",
-    pun: "I already read your LinkedIn.",
+    pun: "Here to see what I’ve built.",
     accent: T.blue,
     stats: [
-      { label: "Recon", value: 10 },
+      { label: "Curiosity", value: 10 },
       { label: "Persistence", value: 9 },
       { label: "Snacks", value: 8 },
-      { label: "Boundaries", value: 2 },
+      { label: "Discovery", value: 2 },
     ],
   },
 ];

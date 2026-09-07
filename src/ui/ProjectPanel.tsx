@@ -294,7 +294,7 @@ function Lead({ text }: { text: string }) {
 function InsightCallout({ accent, text }: { accent: string; text: string }) {
   return (
     <div style={{ margin: "30px 0 6px", paddingLeft: 20, borderLeft: `3px solid ${accent}` }}>
-      <div style={{ fontSize: TYPE.micro, fontWeight: 800, letterSpacing: 2, color: textAccent(accent), marginBottom: 8 }}>THE INSIGHT</div>
+      <div style={{ fontSize: TYPE.micro, fontWeight: 800, letterSpacing: 2, color: textAccent(accent), marginBottom: 8 }}>WHAT I LEARNED</div>
       <p style={{ fontSize: TYPE.lead, lineHeight: 1.45, fontWeight: 800, color: T.text, letterSpacing: -0.2 }}>{text}</p>
     </div>
   );
@@ -303,9 +303,9 @@ function InsightCallout({ accent, text }: { accent: string; text: string }) {
 function CTA({ accent, projectId }: { accent: string; projectId: string }) {
   return (
     <div style={{ marginTop: 36, padding: "26px 24px", background: `${accent}12`, border: `1.5px solid ${accent}`, borderRadius: 12 }}>
-      <h3 style={{ fontSize: TYPE.title, fontWeight: 900, marginBottom: 8 }}>Like how I work?</h3>
+      <h3 style={{ fontSize: TYPE.title, fontWeight: 900, marginBottom: 8 }}>Hiring for a senior product role?</h3>
       <p style={{ fontSize: TYPE.body, color: T.textSoft, lineHeight: 1.6, marginBottom: 20 }}>
-        I'm open to senior product roles, and I build my own products on the side. If you want to talk, grab a slot or drop me a line.
+        I’m open to senior product and AI product roles. Let’s talk about your team, the product and what you need to build next.
       </p>
       <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
         <a
@@ -315,7 +315,7 @@ function CTA({ accent, projectId }: { accent: string; projectId: string }) {
           onClick={() => track(EVENTS.ctaClicked, { cta: "book_call", location: "case_study", project_id: projectId })}
           style={{ padding: "12px 22px", background: accent, color: T.ink, fontSize: TYPE.body, fontWeight: 800, letterSpacing: 0.3 }}
         >
-          Book a 20 min call →
+          Book a 60 min call →
         </a>
         <a
           href={`mailto:${CONTACT.email}`}
