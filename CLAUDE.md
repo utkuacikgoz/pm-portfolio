@@ -48,8 +48,8 @@ where each island = a project, with the narrative + metrics in a fast DOM overla
   `#5B4F4B`, with text `#FBFAF9`. The hero stays dark with coral/ocean glow; the world is
   forest → taupe → coral dusk with an amber sun and ocean-blue water. `theme.ts` `T` owns
   the atmosphere and components must use its tokens rather than add ad hoc hex values.
-- **Sound is OFF by default**; it turns on only via the in-world `SoundToggle`. The
-  AudioContext suspends while the tab is hidden. Entering the world no longer starts sound.
+- **No sound controls or synthesized audio.** They were removed to keep the world
+  interface focused on navigation and project discovery.
 - **Entrance flow:** static hero first (no Canvas mounted) → Enter → character-select →
   camera dive. The 3D world (and three.js) mounts only on entering or a deep link.
 - **Character-select gate** (`AvatarSelect`: HR / Hiring Manager / Stalker) is **fun
@@ -290,14 +290,8 @@ This section is only what is *true now* and what is *left*.
   that the camera crosses to the outside of it. Making it work means staging the
   ride against the wave, camera included, which is a feel-level redesign of the
   drop-in. The lip curl shipped and is the prerequisite.
-- ~~Nothing shareable leaves the site.~~ **Shipped 2026-08-29.** The surf HUD
-  carries a share button that composites the live frame with the run's numbers
-  (`src/ui/render-share-card.ts`), hands it to Web Share on a phone and to a
-  download plus a copied link on a desktop, and links back to `/?surf=1` so the
-  recipient lands in the ocean. The pure half (framing maths, copy, filename,
-  which share route a browser can take) is `src/ui/share-card.ts` and is tested;
-  the canvas half is verified in a browser. `ShareRun` is lazy, so the compositor
-  stays out of the entry chunk.
+- **No surf share control.** The generated run card and capture pipeline were
+  removed to keep the surf interface focused on finding and opening projects.
 - ~~Content-Security-Policy still ships as report-only.~~ **This was false.** It
   has been enforced since `security: enforce the CSP instead of reporting it to
   nobody (#77)`; the bullet outlived the fix and was reported as open work twice
