@@ -80,9 +80,13 @@ describe("portfolio journey", () => {
     renderApp();
 
     expect(elementByText("h1", "Utku Acikgoz")).toBeInTheDocument();
-    expect(container.textContent).toContain("35% faster AML review");
-    expect(container.textContent).toContain("CURRENTLY BUILDING");
-    expect(elementByText<HTMLAnchorElement>("a", "Book a 20 min call").href).toBeTruthy();
+    expect(container.textContent).toContain("35% less AML review time");
+    expect(container.textContent).toContain("INDEPENDENT PRODUCTS");
+    expect(elementByText<HTMLAnchorElement>("a", "Book a 60 min call").href).toBe("https://cal.com/utku-acikgoz/60min");
+    const passats = elementByText<HTMLAnchorElement>("a", "PassATS");
+    expect(passats.href).toBe("https://www.passats.pro/");
+    expect(passats.textContent).toContain("LIVE");
+    expect(passats.textContent).not.toContain("IN DEVELOPMENT");
     expect(elementByText<HTMLAnchorElement>("a", "Download CV").getAttribute("href")).toBe("/UtkuAcikgoz-CV.pdf");
   });
 

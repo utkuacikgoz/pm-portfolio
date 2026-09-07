@@ -169,7 +169,7 @@ export default function HeroIntro({ onBegin }: { onBegin: () => void }) {
           ...rise(0.74),
         }}
       >
-        Most PM portfolios are a PDF. Fly through mine instead.
+        I lead teams building complex products, from fintech infrastructure to AI features for marketplaces.
       </p>
 
       <ProofRow reduced={reduced} style={rise(0.82)} />

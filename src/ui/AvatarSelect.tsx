@@ -88,7 +88,7 @@ export default function AvatarSelect({ onPick }: { onPick: (id: string) => void 
             textShadow: PIXEL_SHADOW,
           }}
         >
-          Who&apos;s judging me today?
+          Who’s exploring today?
         </h2>
       </div>
 

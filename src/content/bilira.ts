@@ -8,30 +8,27 @@ export const bilira: CaseStudy = {
     {
       id: "problem",
       body: [
-        "I joined BiLira as the exchange scaled past 100,000 users and 150+ digital assets across five blockchains, doing 1,000+ trades a day. Compliance was the thing holding growth back. Every trade needed a manual AML/KYC check under Turkish and international rules, and a five-person team was reviewing them by hand. That queue was the bottleneck.",
-        "I owned compliance and OTC strategy and led a 25-person engineering team. The trading desk wanted faster execution; compliance couldn't go faster without cutting corners; the CTO didn't want to automate anything that could put our license at risk. Three groups, three different definitions of 'good enough.'",
-        "Doing nothing wasn't neutral. Institutional clients won't sit through a multi-hour review, so we were turning away OTC flow we should have captured. Either we automated compliance, or we capped the business at whatever five reviewers could clear by hand.",
+        "BiLira served more than 100,000 users across 150+ digital assets and five blockchains. A five-person compliance team handled manual reviews, creating a bottleneck as trading activity grew.",
+        "I owned product strategy for compliance and OTC workflows, working with a 25-person engineering team. The trading desk needed faster execution, while the CTO and compliance officer needed confidence that automation would preserve risk controls.",
+        "The challenge was to increase capacity without treating compliance quality as a trade-off for speed.",
       ],
     },
     {
       id: "constraints",
       body: [
-        "Three things boxed in the design. Regulators (FATF, MiCA, and local) could change requirements with little notice. A compliance miss could cost us the license outright. And the compliance team was already at capacity, so 'hire more reviewers' wasn't an answer.",
-        "Automation cut both ways. Too aggressive and we'd flag legitimate traders into churn; too loose and we'd miss something a regulator wouldn't forgive. The CTO's line was fair: automate and miss one bad actor, and we're done. So 'fully automated' was off the table from the start.",
-        "I needed roughly 45% more execution throughput to keep institutional clients, without spending the regulators' trust to get it. Every option carried eight-figure consequences, so we decided on evidence, not opinion.",
+        "Changing regulatory requirements meant the workflow needed to be adaptable and auditable. The compliance team was already at capacity.",
+        "False positives delayed legitimate customers, while missed risks had serious consequences. We needed to distinguish decisions that could be automated from those that required a reviewer.",
       ],
-      insight:
-        "In a regulated market, the constraint is the product. Design for the regulator first and speed becomes something you're allowed to keep.",
+      insight: "Risk controls shaped the workflow from the start.",
     },
     {
       id: "approach",
       body: [
-        "We built a hybrid pipeline. Automated screening handled the clear-cut 90%, wired to Chainalysis for on-chain risk and Notabene for travel-rule data, and routed only the ambiguous cases to human reviewers. Manual review time dropped about 35% and false positives fell 40%, while detection accuracy held at 99.7%.",
-        "I led the 25-person team through it. The CTO and compliance officer started in different risk worlds, so I ran weekly sessions where we walked failure scenarios together until both owned the design instead of tolerating it. We built the engine modular on purpose, knowing the rules would move.",
-        "In parallel I redefined the OTC system, 500+ institutional trades a week, latency down from 500ms to 275ms, throughput up 45% across 15+ pairs, and shipped a Trade API doing 50M+ calls a month for 50+ enterprise clients at 99.9% uptime. We also moved releases from quarterly to bi-weekly without a single regulatory breach.",
+        "We built a hybrid screening pipeline using Chainalysis for onchain risk and Notabene for travel-rule data. Automated screening handled clear-cut cases and routed ambiguous ones to human reviewers.",
+        "I brought the CTO and compliance officer into weekly failure-scenario reviews so they could agree on the workflow and its controls. We kept the engine modular to support changing requirements.",
+        "Alongside compliance, I led product work on OTC execution and a Trade API serving more than 50 enterprise clients. The team moved from quarterly releases to releases every two weeks.",
       ],
-      insight:
-        "Automate the 90% that's obvious; spend your humans on the 10% that's ambiguous. The machine buys the time, the people catch what the machine can't.",
+      insight: "Automate clear decisions and preserve human review for ambiguous cases.",
     },
     {
       id: "defi",
@@ -41,32 +38,29 @@ export const bilira: CaseStudy = {
         "On the DeFi side I opened up liquidity and distribution: DEX liquidity on Curve, institutional liquidity with B2C2, curated yield vaults with Piku Finance and Morini Capital, and onboarding work with Circle (Arc live, StableFX in discussion). Onchain supply sat around $10M with roughly $2M to $3M in monthly onchain volume.",
         "The vaults were the point. Morini curated delta neutral strategies on Turkish Lira exposure: USD/TRY arbitrage, a BIST basis trade, and a leveraged TRY carry trade, running native strategy APYs of 8.71%, 19.30% and 45.31%. Combined TRY vault TVL reached $21.85M ($3.51M, $5.24M and $13.10M across the three) inside a $30.02M Piku platform. It held because the guardrails were real: Fireblocks MPC custody under regulated HSM procedures, independent reserve verification at a 100.14% collateral ratio checked every 15 minutes, and zkTLS NAV proofs via vlayer for vault transparency.",
       ],
-      insight:
-        "A stablecoin is only as useful as the places you can put it to work, so the vaults were the product, not a feature.",
+      insight: "Distribution and usable integrations were central to the stablecoin’s product value.",
     },
     {
       id: "results",
       body: [
-        "Manual review time fell ~35% and false positives 40%, with detection accuracy at 99.7% and zero regulatory breaches across the period. Compliance stopped being the thing that capped growth.",
-        "On the trading side: OTC latency went 500ms → 275ms, throughput rose 45%, and we ran 500+ institutional trades a week across 15+ pairs. The Trade API held 99.9% uptime on 50M+ monthly calls for 50+ enterprise clients.",
-        "Releases went quarterly → bi-weekly. We could absorb a rule change in days instead of a quarter, which, in this market, is most of the advantage.",
+        "Manual review time fell approximately 35%, and false positives fell 40%. Detection accuracy was 99.7%, with zero regulatory breaches reported during the period.",
+        "OTC latency fell from 500ms to 275ms, and throughput increased 45%. The system handled more than 500 institutional trades a week across 15+ pairs.",
+        "The Trade API supported 50M+ monthly calls with 99.9% uptime. A release cycle of two weeks helped the team respond to changing requirements more quickly.",
       ],
       metrics: [
         { label: "OTC Latency", before: 500, after: 275, unit: "ms", color: "#6E86D6" },
         { label: "Release Cadence", before: 90, after: 14, unit: " days", color: "#CB7BC7" },
-        { label: "Detection Accuracy", before: 95, after: 99.7, unit: "%", color: "#E0A45C" },
         { label: "Manual Review Time", before: 100, after: 65, unit: "", color: "#E7684A" },
       ],
     },
     {
       id: "learnings",
       body: [
-        "When two experts (the CTO and the compliance officer) fundamentally disagree, it usually means both are partly right. I didn't go find a third opinion; we co-designed a solution that absorbed both sets of concerns. The hybrid model held because it was built on shared problem-solving, not compromise.",
-        "In regulated fintech, automation accelerates the business, but regulation-friendly automation builds the moat. Competitors could copy our throughput; they couldn't copy the regulators' trust in how we governed it.",
-        "Compliance gets treated as a cost center that slows growth down. Framed as a growth enabler, it's the opposite: it's what let us take on institutional flow the competition couldn't touch.",
-        "Ship modular, not monolithic. Because the engine was pluggable, when the rules moved we updated one module in days instead of the weeks a monolith would have cost us.",
+        "Failure-scenario reviews helped engineering and compliance make decisions together. The hybrid workflow reflected both groups’ requirements.",
+        "Automation was most useful where decisions were clear. Keeping reviewers responsible for ambiguous cases allowed the team to focus its attention where it mattered.",
+        "Modularity gave us a practical way to respond to rule changes without redesigning the entire workflow.",
       ],
-      insight: "Compliance isn't a cost center. Framed right, it's a moat a competitor can't copy.",
+      insight: "Build regulatory change into the product architecture.",
     },
   ],
 };
