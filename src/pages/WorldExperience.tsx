@@ -8,7 +8,6 @@ import EscapeHatch from "../ui/EscapeHatch";
 import HeroIntro from "../ui/HeroIntro";
 import ErrorBoundary from "../ui/ErrorBoundary";
 import EggToast from "../ui/EggToast";
-import SoundToggle from "../ui/SoundToggle";
 import StoryCaption from "../ui/StoryCaption";
 import SurfJourneyStatus from "../ui/SurfJourneyStatus";
 import SurfTouchPad from "../ui/SurfTouchPad";
@@ -16,7 +15,6 @@ import SpeedRush from "../ui/SpeedRush";
 import { readAvatar } from "../ui/avatar-store";
 import { CONTACT } from "../content/contact";
 import { T, TYPE, textAccent } from "../theme";
-import { sfx, startSurfMusic, stopSurfMusic } from "../audio/sfx";
 import { useKeySequence, KONAMI, HIRE } from "../ui/hooks/useKeySequence";
 import { markEggId } from "../state/progress";
 import { EVENTS, track } from "../analytics/events";
@@ -29,10 +27,6 @@ const World = lazy(() => import("../world/World"));
 // entry chunk. ProjectPanel drags the SVG viz layer with it.
 const ProjectPanel = lazy(() => import("../ui/ProjectPanel"));
 const AvatarSelect = lazy(() => import("../ui/AvatarSelect"));
-// Lazy for the same reason: the card compositor and its copy are only ever
-// needed by someone already in the ocean, and the entry chunk is what every
-// visitor pays for before anything renders.
-const ShareRun = lazy(() => import("../ui/ShareRun"));
 
 export default function WorldExperience() {
   const mode = useExperienceMode();
@@ -71,15 +65,6 @@ export default function WorldExperience() {
   // A caught wave remains useful after its short caption leaves. This tray lets
   // the visitor reopen every project found during the current visit.
   const [showSurfProjects, setShowSurfProjects] = useState(false);
-  // Handed over by the world so the share card can photograph the live frame.
-  const captureRef = useRef<(() => string | null) | null>(null);
-  const onCapture = useCallback((fn: (() => string | null) | null) => {
-    captureRef.current = fn;
-  }, []);
-  // A stable getter, not `captureRef.current` read during render. The world
-  // hands its capture function over in an effect, which fires no re-render, so
-  // a value read at render time would stay null for the life of the button.
-  const captureFrame = useCallback(() => captureRef.current?.() ?? null, []);
   const onTotals = useCallback((coins: number) => setTotals({ coins }), []);
   // The project whose wave is being ridden. Every break IS one of the five
   // products, so catching one is the ocean handing over a case study.
@@ -95,7 +80,6 @@ export default function WorldExperience() {
     // that this visitor went all the way, and what they clicked next.
     track(EVENTS.surfRunCompleted);
     setRunComplete(true);
-    sfx.play("egg"); // the existing reward sound
   }, []);
   // The surf controls hint auto-hides (it eats real estate) after a few seconds
   // or the moment you start moving.
@@ -115,11 +99,9 @@ export default function WorldExperience() {
   // straight onto its island, so it must not.
   const diveOnMount = useRef(openIndex < 0).current;
   const opener = useRef<HTMLElement | null>(null);
-  const prevActive = useRef(active);
-  const suppressTravel = useRef(false);
 
   // Easter eggs. Konami → rainbow celebration; typing "hire" → a wink. Both
-  // record the egg, which surfaces its reward toast (+ sound) via EggToast.
+  // record the egg, which surfaces its reward toast via EggToast.
   useKeySequence(
     KONAMI,
     useCallback(() => {
@@ -186,7 +168,6 @@ export default function WorldExperience() {
     // controller reports the resumed count on entry.
       setWave(null);
       setSurfHint(true);
-      sfx.play("enter");
     },
     [touchSurf]
   );
@@ -258,17 +239,8 @@ export default function WorldExperience() {
     return () => window.removeEventListener("keydown", onKey);
   }, [surfing]);
 
-  // The dreamy surf loop plays only in free-surf mode (covers enter, exit via
-  // button/Esc, and unmount). Muting stops it from inside the audio layer.
-  useEffect(() => {
-    if (surfing) startSurfMusic();
-    else stopSurfMusic();
-    return () => stopSurfMusic();
-  }, [surfing]);
-
   // Dive the camera into the world with a quick accent wash.
   const beginJourney = useCallback(() => {
-    sfx.play("enter");
     track(EVENTS.worldEntered);
     setEntered(true);
     setFlashing(true);
@@ -276,7 +248,7 @@ export default function WorldExperience() {
   }, []);
 
   // Enter from the hero. First-time visitors pick a character next; returning
-  // ones dive straight in. Sound stays off (default); the in-world toggle owns it.
+  // ones dive straight in.
   const onEnter = useCallback(() => {
     if (avatar === null) setChoosingAvatar(true);
     else beginJourney();
@@ -292,19 +264,6 @@ export default function WorldExperience() {
     },
     [beginJourney]
   );
-
-  // Whoosh when travelling between islands — but not when a click opened one
-  // (that gets its own "open" sound) and not on the initial mount.
-  useEffect(() => {
-    const changed = prevActive.current !== active;
-    prevActive.current = active;
-    if (!changed) return;
-    if (suppressTravel.current) {
-      suppressTravel.current = false;
-      return;
-    }
-    if (entered && !panelOpen) sfx.play("travel");
-  }, [active, entered, panelOpen]);
 
   useEffect(() => {
     if (openIndex >= 0) {
@@ -343,8 +302,6 @@ export default function WorldExperience() {
     (i: number) => {
       if (i >= projects.length) return; // indie island has no case study
       opener.current = document.activeElement as HTMLElement;
-      suppressTravel.current = true; // this island-change is an open, not a travel
-      sfx.play("open");
       track(EVENTS.caseStudyOpened, { project_id: projects[i].id, position: i + 1 });
       setActive(i); // keep the camera pointed at this island when the panel closes
       navigate(`/p/${projects[i].id}`);
@@ -389,7 +346,6 @@ export default function WorldExperience() {
   }, [panelOpen, goNext, goPrev]);
 
   const close = useCallback(() => {
-    sfx.play("close");
     track(EVENTS.caseStudyClosed, { project_id: projects[openIndex]?.id });
     navigate("/");
     requestAnimationFrame(() => opener.current?.focus?.());
@@ -432,8 +388,6 @@ export default function WorldExperience() {
         <h1 className="sr-only">Utku Acikgoz, Senior Technical Product Manager, career world</h1>
       )}
       <EscapeHatch raised={heroVisible} />
-      {/* Sound only exists inside the world (off by default, chosen at entry). */}
-      {entered && <SoundToggle />}
       <EggToast />
       <WorldNav projects={projects} active={active} onFocus={setActive} onOpen={open} />
 
@@ -458,7 +412,6 @@ export default function WorldExperience() {
               onCoin={setCoins}
               onWave={onSurfWave}
               onTotals={onTotals}
-              onCapture={onCapture}
               onComplete={onRunComplete}
               // `touchControls` holds this for the whole run, so rotating a
               // phone into landscape does not hand a phone GPU the full-fat
@@ -671,16 +624,6 @@ export default function WorldExperience() {
               onDismiss={() => setRunComplete(false)}
             />
           )}
-          <Suspense fallback={null}>
-            <ShareRun
-              stats={{
-                coins,
-                coinTotal: totals.coins,
-                waves: wavesCaught.size,
-              }}
-              capture={captureFrame}
-            />
-          </Suspense>
           {/* Bottom right, not bottom center: the run-complete card owns the
               center and used to bury this button underneath it. */}
           <button

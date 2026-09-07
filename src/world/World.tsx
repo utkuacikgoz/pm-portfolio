@@ -1,4 +1,4 @@
-import { memo, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { Instances, Instance, PerformanceMonitor, Stars } from "@react-three/drei";
@@ -91,36 +91,6 @@ function StarField() {
   );
 }
 
-/**
- * Lets the DOM shell photograph the scene.
- *
- * `toDataURL` on a WebGL canvas reads the drawing buffer, which the browser is
- * free to clear once a frame has been presented. Rather than pay for
- * `preserveDrawingBuffer` on every frame of the heaviest scene in the app, the
- * capture draws its own frame and reads it back in the same synchronous block,
- * before anything can present or clear it.
- */
-function FrameCapture({ onCapture }: { onCapture?: (fn: (() => string | null) | null) => void }) {
-  const gl = useThree((s) => s.gl);
-  const scene = useThree((s) => s.scene);
-  const camera = useThree((s) => s.camera);
-  useEffect(() => {
-    if (!onCapture) return;
-    onCapture(() => {
-      try {
-        gl.render(scene, camera);
-        return gl.domElement.toDataURL("image/png");
-      } catch {
-        // A tainted or lost context is a reason to have no card, not to throw
-        // inside a click handler.
-        return null;
-      }
-    });
-    return () => onCapture(null);
-  }, [gl, scene, camera, onCapture]);
-  return null;
-}
-
 interface Props {
   activeIndex: number;
   entered: boolean;
@@ -131,11 +101,6 @@ interface Props {
   onCoin?: (count: number) => void;
   onWave?: (projectId: string | null) => void;
   onTotals?: (coins: number) => void;
-  /**
-   * Hands the shell a function that returns the current frame as a PNG data
-   * URL, and null when the canvas goes away.
-   */
-  onCapture?: (capture: (() => string | null) | null) => void;
   onComplete?: () => void;
   /**
    * Phone-grade GPU: trade resolution and sea tessellation for frame rate. The
@@ -153,7 +118,7 @@ interface Props {
  * across every island lives in a single <Instances> (one draw call, per-instance
  * color) — no per-cube draw calls. Lazy-loaded so three.js only ships here.
  */
-function World({ activeIndex, entered, dive, surfing, onOpen, onCoin, onWave, onTotals, onCapture, onComplete, lowPower = false, frameloop = "always" }: Props) {
+function World({ activeIndex, entered, dive, surfing, onOpen, onCoin, onWave, onTotals, onComplete, lowPower = false, frameloop = "always" }: Props) {
   // One list, one InstancedMesh: the indie island's pylons ride in the same
   // field as the rail, so showing it costs no extra draw call.
   const cubes = useMemo(() => [...buildWorld(PUBLISHED_PROJECTS), ...buildIndieIsland(INDIE_PROJECTS)], []);
@@ -233,7 +198,6 @@ function World({ activeIndex, entered, dive, surfing, onOpen, onCoin, onWave, on
       {/* The breaks only exist while surfing → the rail diorama stays clean. */}
       {surfing && <SurfSpots />}
       <SurfController active={surfing} onCoin={onCoin} onWave={onWave} onTotals={onTotals} onComplete={onComplete} />
-      <FrameCapture onCapture={onCapture} />
       <CameraRig activeIndex={activeIndex} accent={accent} entered={entered} dive={dive} surfing={surfing} />
     </Canvas>
   );

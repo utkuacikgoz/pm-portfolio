@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useProgress } from "../state/progress";
 import { CONTACT } from "../content/contact";
-import { sfx } from "../audio/sfx";
 import { T, TYPE } from "../theme";
 
 function EggLink({ children }: { children: ReactNode }) {
@@ -51,7 +50,7 @@ const EGG_MESSAGES: Record<string, { tag: string; body: ReactNode }> = {
 /**
  * Reward toast for finding an easter egg. Shows once per egg, only for eggs
  * discovered during THIS session (returning visitors who already found one
- * aren't re-toasted). Plays the reward sound on reveal (if sound is on).
+ * aren't re-toasted).
  */
 export default function EggToast() {
   const { eggs } = useProgress();
@@ -63,7 +62,6 @@ export default function EggToast() {
       if (!seen.current.has(id) && EGG_MESSAGES[id]) {
         seen.current.add(id);
         setCurrent(id);
-        sfx.play("egg");
         break;
       }
     }
