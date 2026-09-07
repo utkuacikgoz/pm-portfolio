@@ -68,6 +68,9 @@ export default function WorldExperience() {
   // Which breaks have been caught this visit. It is the one run statistic the
   // coin counter cannot express, and the only one that is about the work.
   const [wavesCaught, setWavesCaught] = useState<Set<string>>(() => new Set());
+  // A caught wave remains useful after its short caption leaves. This tray lets
+  // the visitor reopen every project found during the current visit.
+  const [showSurfProjects, setShowSurfProjects] = useState(false);
   // Handed over by the world so the share card can photograph the live frame.
   const captureRef = useRef<(() => string | null) | null>(null);
   const onCapture = useCallback((fn: (() => string | null) | null) => {
@@ -84,10 +87,6 @@ export default function WorldExperience() {
   // Finishing the run (all 42) earns the one real ask of the whole experience.
   // Once per visit: re-entering surf must not re-fire it.
   const [runComplete, setRunComplete] = useState(false);
-  // Separate from `runComplete`, which the completion card clears when dismissed.
-  // Finishing is permanent for the visit: a progress meter reading "42 / 42, 100%"
-  // is just clutter reporting there is nothing left to do.
-  const [runFinished, setRunFinished] = useState(false);
   const completedOnce = useRef(false);
   const onRunComplete = useCallback(() => {
     if (completedOnce.current) return;
@@ -96,7 +95,6 @@ export default function WorldExperience() {
     // that this visitor went all the way, and what they clicked next.
     track(EVENTS.surfRunCompleted);
     setRunComplete(true);
-    setRunFinished(true);
     sfx.play("egg"); // the existing reward sound
   }, []);
   // The surf controls hint auto-hides (it eats real estate) after a few seconds
@@ -249,6 +247,7 @@ export default function WorldExperience() {
   const exitSurf = useCallback(() => {
     setSurfing(false);
     setTouchControls(false);
+    setShowSurfProjects(false);
   }, []);
   useEffect(() => {
     if (!surfing) return;
@@ -609,9 +608,8 @@ export default function WorldExperience() {
             <div
               style={{
                 position: "fixed",
-                top: 76,
-                left: "50%",
-                transform: "translateX(-50%)",
+                top: 150,
+                left: 24,
                 zIndex: 45,
                 padding: "8px 16px",
                 background: T.scrimSoft,
@@ -620,23 +618,35 @@ export default function WorldExperience() {
                 fontSize: TYPE.small,
                 fontWeight: 600,
                 color: T.textSoft,
-                whiteSpace: "nowrap",
+                maxWidth: "min(440px, calc(100vw - 48px))",
                 pointerEvents: "none",
               }}
             >
               {touchControls
-                ? "🏄 Drag to steer · pull down to slow · tap to jump · double tap for a 360"
-                : "🏄 WASD to surf · Space to jump · Double Space for a 360 · Esc to come back"}
+                ? "🏄 Drag up to paddle and steer · pull down to slow · tap to jump · double tap for a 360"
+                : "🏄 WASD or arrows to surf · Shift to boost · Space to jump · double Space for a 360"}
             </div>
           )}
-          {/* Gone for good once the run is finished, not just while the completion
-              card is up: dismissing that card used to bring the meter back reading
-              "42 / 42 · 100%", which is a progress bar announcing there is no
-              progress left to make. */}
-          {!runFinished && (
-            <SurfJourneyStatus
-              coins={coins}
-              coinTotal={totals.coins}
+          {/* The project tray and controls remain useful after the coin loop is
+              complete, so this panel stays available for the whole surf run. */}
+          <SurfJourneyStatus
+            coins={coins}
+            coinTotal={totals.coins}
+            projectsFound={wavesCaught.size}
+            projectTotal={projects.length}
+            onToggleHelp={() => setSurfHint((visible) => !visible)}
+            onToggleProjects={() => setShowSurfProjects((visible) => !visible)}
+          />
+          {showSurfProjects && wavesCaught.size > 0 && (
+            <SurfProjectTray
+              projects={projects.filter((project) => wavesCaught.has(project.id))}
+              onClose={() => setShowSurfProjects(false)}
+              onRead={(project) => {
+                setShowSurfProjects(false);
+                setWave(null);
+                exitSurf();
+                open(projectIndexById(project.id));
+              }}
             />
           )}
           {wave && (
@@ -709,6 +719,71 @@ export default function WorldExperience() {
   );
 }
 
+function SurfProjectTray({
+  projects,
+  onRead,
+  onClose,
+}: {
+  projects: Project[];
+  onRead: (project: Project) => void;
+  onClose: () => void;
+}) {
+  return (
+    <div
+      aria-label="Projects found while surfing"
+      style={{
+        position: "fixed",
+        left: 24,
+        bottom: "calc(88px + env(safe-area-inset-bottom))",
+        zIndex: 46,
+        width: "min(360px, calc(100vw - 48px))",
+        padding: 16,
+        background: T.scrimStrong,
+        border: `2px solid ${T.seafoam}`,
+        backdropFilter: "blur(8px)",
+      }}
+    >
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, marginBottom: 10 }}>
+        <strong style={{ fontSize: TYPE.small, letterSpacing: 1, color: T.seafoam }}>PROJECTS FOUND</strong>
+        <button
+          onClick={onClose}
+          aria-label="Close projects found"
+          style={{ width: 36, height: 36, border: `1px solid ${T.border}`, background: T.inkRaised, color: T.text, cursor: "pointer" }}
+        >
+          ✕
+        </button>
+      </div>
+      <div style={{ display: "grid", gap: 8 }}>
+        {projects.map((project) => (
+          <button
+            key={project.id}
+            onClick={() => onRead(project)}
+            style={{
+              minHeight: 48,
+              padding: "10px 12px",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: 12,
+              textAlign: "left",
+              border: `1px solid ${project.accent}`,
+              background: T.inkRaised,
+              color: T.text,
+              cursor: "pointer",
+            }}
+          >
+            <span>
+              <strong style={{ display: "block", fontSize: TYPE.body }}>{project.title}</strong>
+              <span style={{ display: "block", marginTop: 2, color: T.textMuted, fontSize: TYPE.micro }}>{project.tagline}</span>
+            </span>
+            <span aria-hidden style={{ color: textAccent(project.accent), fontWeight: 900 }}>→</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function WorldLoading() {
   return (
     <div
@@ -743,7 +818,9 @@ function WaveCaption({ project, onRead }: { project: Project; onRead: () => void
       aria-live="polite"
       style={{
         position: "fixed",
-        top: "8%",
+        // Clear the expanded surf HUD at phone sizes. The old 8% position put
+        // the project result behind its controls during the first drop-in.
+        top: "clamp(138px, 18vh, 180px)",
         left: "50%",
         transform: "translateX(-50%)",
         zIndex: 45,
