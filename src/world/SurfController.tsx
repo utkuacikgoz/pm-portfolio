@@ -7,7 +7,6 @@ import { nearestTakeoff, SURF_LAUNCH, type SurfSpot } from "./surf-spots";
 import { surfSignal } from "./surf-signal";
 import { surfTouch } from "./surf-touch";
 import { SURF_COLLIDERS, COINS, COIN_TOTAL, collectedCoins } from "./surf-journey";
-import { sfx } from "../audio/sfx";
 import {
   BOARD_CLEARANCE,
   SURF_BOUNDS,
@@ -424,10 +423,7 @@ export default function SurfController({
         // downward velocity as compression so the board settles rather than
         // stopping dead against the water.
         vy.current = 0;
-        if (spinning.current) {
-          spinning.current = false;
-          sfx.play("open"); // a soft snap when you stomp the landing
-        }
+        if (spinning.current) spinning.current = false;
       }
     }
 
@@ -532,7 +528,6 @@ export default function SurfController({
         collectedCoins.add(coin.id);
         coinCount.current += 1;
         onCoinRef.current?.(coinCount.current);
-        sfx.play("coin");
         // Last coin of the run: hand the moment to the page so it can offer a
         // reason to stop surfing and start talking.
         if (coinCount.current >= COIN_TOTAL) onCompleteRef.current?.();

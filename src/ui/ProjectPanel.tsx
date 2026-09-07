@@ -6,7 +6,6 @@ import type { Beat } from "../content/types";
 import { Metrics, Decisions, Initiatives, Stakeholders } from "./viz";
 import { CONTACT } from "../content/contact";
 import { markRead } from "../state/progress";
-import { sfx } from "../audio/sfx";
 import { EVENTS, track } from "../analytics/events";
 import { T, TYPE, textAccent } from "../theme";
 
@@ -95,14 +94,13 @@ export default function ProjectPanel({ project, onClose, onNext, nextTitle }: Pr
     };
   }, [content, project.id]);
 
-  // Reaching the final section counts the study as read → ✓ stamp + chime.
+  // Reaching the final section counts the study as read → ✓ stamp.
   useEffect(() => {
     if (!content) return;
     if (active === content.beats.length - 1 && !readFired.current) {
       readFired.current = true;
       markRead(project.id);
       track(EVENTS.caseStudyRead, { project_id: project.id });
-      sfx.play("read");
     }
   }, [active, content, project.id]);
 
