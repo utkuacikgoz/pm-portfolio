@@ -801,7 +801,7 @@ function WaveCaption({ project, onRead }: { project: Project; onRead: () => void
           backdropFilter: "blur(6px)",
         }}
       >
-        Read this one →
+        Read the case study →
       </button>
     </div>
   );
@@ -836,8 +836,8 @@ function RunCompleteCard({ coinTotal, onCases, onDismiss }: { coinTotal: number;
         🏄 RUN COMPLETE · {coinTotal} / {coinTotal}
       </div>
       <div style={{ fontSize: TYPE.body, fontWeight: 700, lineHeight: 1.55, color: T.text, marginBottom: 16 }}>
-        You surfed the whole loop and picked up every last coin. That is the same stubbornness I
-        bring to shipping product. Want the real version?
+        You collected every coin. Take a closer look at the projects behind the islands,
+        or keep exploring the ocean.
       </div>
       <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
         <a
@@ -855,7 +855,7 @@ function RunCompleteCard({ coinTotal, onCases, onDismiss }: { coinTotal: number;
             textDecoration: "none",
           }}
         >
-          Book a 20 min call →
+          Book a 60 min call →
         </a>
         <button
           onClick={onCases}
@@ -913,8 +913,8 @@ function IndieOverlay({ onBack }: { onBack: () => void }) {
         🏄 WHAT I'M BUILDING
       </div>
       <p style={{ fontSize: TYPE.small, color: T.textSoft, lineHeight: 1.55, marginBottom: 16 }}>
-        53 countries travelled so far. Here's what I'm building on my own time. One is live and
-        open to anyone; the rest are still bets.
+        Products I’m building independently. Try PassATS, my live resume checker,
+        or see what’s in development.
       </p>
       <div style={{ display: "grid", gap: 8, marginBottom: 16 }}>
         {INDIE_PROJECTS.map((p) => {
@@ -934,7 +934,7 @@ function IndieOverlay({ onBack }: { onBack: () => void }) {
                   whiteSpace: "nowrap",
                 }}
               >
-                {live ? "LIVE →" : "COMING SOON"}
+                {live ? "LIVE →" : "IN DEVELOPMENT"}
               </span>
             </>
           );
