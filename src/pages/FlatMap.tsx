@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import { Link } from "../router";
 import type { Project } from "../projects/projects";
-import { INDIE_PROJECTS, attributionLine } from "../projects/projects";
+import { INDIE_PROJECTS, attributionLine, isLive } from "../projects/projects";
 import { useProgress, markEgg } from "../state/progress";
 import { CONTACT } from "../content/contact";
 import { EVENTS, track } from "../analytics/events";
@@ -52,8 +52,8 @@ export default function FlatMap({ projects, onOpen, onSurf }: Props) {
           Senior Technical Product Manager
         </p>
         <p style={{ color: T.textSoft, fontSize: TYPE.body, marginTop: 12, lineHeight: 1.7, maxWidth: 560, marginInline: "auto" }}>
-          8+ years and 11+ products shipped across fintech, blockchain, HRtech & SaaS. I lead distributed
-          teams and lean hard on analytics and AI to ship.
+          8+ years and 11+ products shipped. I lead distributed teams building fintech infrastructure,
+          marketplace products and AI features that support customer retention.
         </p>
         <p style={{ color: T.textMuted, fontSize: TYPE.small, marginTop: 14 }}>
           Tap a project to read the case study.
@@ -75,7 +75,7 @@ export default function FlatMap({ projects, onOpen, onSurf }: Props) {
               cursor: "pointer",
             }}
           >
-            🏄 Or go surfing instead
+            🏄 Surf my work
           </button>
         )}
       </header>
@@ -144,38 +144,49 @@ export default function FlatMap({ projects, onOpen, onSurf }: Props) {
       {INDIE_PROJECTS.length > 0 && (
         <>
           <h2 style={{ fontSize: TYPE.body, fontWeight: 900, letterSpacing: 1.5, color: T.textMuted, margin: "40px 0 14px" }}>
-            CURRENTLY BUILDING
+            INDEPENDENT PRODUCTS
           </h2>
           <div style={{ display: "grid", gap: 10 }}>
-            {INDIE_PROJECTS.map((p) => (
-              <div
-                key={p.id}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 12,
-                  padding: "14px 18px",
-                  background: T.inkRaised,
-                  borderLeft: `4px solid ${p.accent}`,
-                }}
-              >
-                <span style={{ width: 9, height: 9, borderRadius: "50%", background: p.accent, flexShrink: 0 }} />
-                <span style={{ fontWeight: 800, fontSize: TYPE.body }}>{p.title}</span>
-                <span style={{ fontSize: TYPE.small, color: T.textMuted }}>{p.glimpse ?? p.tagline}</span>
-                <span
+            {INDIE_PROJECTS.map((p) => {
+              const live = isLive(p);
+              const Row = live ? "a" : "div";
+              return (
+                <Row
+                  key={p.id}
+                  href={live ? p.url : undefined}
+                  target={live ? "_blank" : undefined}
+                  rel={live ? "noopener noreferrer" : undefined}
+                  onClick={live ? () => track(EVENTS.indieProductOpened, { project_id: p.id }) : undefined}
                   style={{
-                    marginLeft: "auto",
-                    fontSize: TYPE.micro,
-                    fontWeight: 800,
-                    letterSpacing: 0.5,
-                    color: textAccent(p.accent),
-                    whiteSpace: "nowrap",
+                    display: "flex",
+                    flexWrap: "wrap",
+                    color: T.text,
+                    textDecoration: "none",
+                    alignItems: "center",
+                    gap: 12,
+                    padding: "14px 18px",
+                    background: T.inkRaised,
+                    borderLeft: `4px solid ${p.accent}`,
                   }}
                 >
-                  COMING SOON
-                </span>
-              </div>
-            ))}
+                  <span style={{ width: 9, height: 9, borderRadius: "50%", background: p.accent, flexShrink: 0 }} />
+                  <span style={{ fontWeight: 800, fontSize: TYPE.body }}>{p.title}</span>
+                  <span style={{ fontSize: TYPE.small, color: T.textMuted }}>{p.glimpse ?? p.tagline}</span>
+                  <span
+                    style={{
+                      marginLeft: "auto",
+                      fontSize: TYPE.micro,
+                      fontWeight: 800,
+                      letterSpacing: 0.5,
+                      color: textAccent(p.accent),
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {live ? "LIVE →" : "IN DEVELOPMENT"}
+                  </span>
+                </Row>
+              );
+            })}
           </div>
         </>
       )}
@@ -191,9 +202,9 @@ export default function FlatMap({ projects, onOpen, onSurf }: Props) {
           textAlign: "center",
         }}
       >
-        <h2 style={{ fontSize: TYPE.title, fontWeight: 900, marginBottom: 8 }}>Like how I work?</h2>
+        <h2 style={{ fontSize: TYPE.title, fontWeight: 900, marginBottom: 8 }}>Hiring for a senior product role?</h2>
         <p style={{ fontSize: TYPE.body, color: T.textSoft, lineHeight: 1.6, marginBottom: 20 }}>
-          Open to senior product roles, and building my own products on the side. Grab a slot or take the CV.
+          I’m open to senior product and AI product roles. Let’s talk about your team, the product and what you need to build next.
         </p>
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap", justifyContent: "center" }}>
           <a
@@ -203,7 +214,7 @@ export default function FlatMap({ projects, onOpen, onSurf }: Props) {
             onClick={() => track(EVENTS.ctaClicked, { cta: "book_call", location: "flat_map" })}
             style={{ padding: "12px 22px", background: T.blue, color: T.text, fontSize: TYPE.body, fontWeight: 800 }}
           >
-            Book a 20 min call →
+            Book a 60 min call →
           </a>
           <a
             href="/UtkuAcikgoz-CV.pdf"

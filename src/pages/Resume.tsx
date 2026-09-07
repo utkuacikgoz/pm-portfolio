@@ -52,13 +52,13 @@ export default function Resume() {
         <img src="/utku-logo.svg" alt="" width={48} height={48} style={{ marginBottom: 14 }} />
         <h1 style={{ fontSize: "clamp(34px, 8vw, 48px)", fontWeight: 900 }}>Utku Acikgoz</h1>
         <p style={{ color: textAccent(T.blue), fontSize: TYPE.lead, fontWeight: 700, marginTop: 6 }}>
-          Senior Product Manager
+          Senior Technical Product Manager
         </p>
         <p style={{ color: T.textSoft, fontSize: TYPE.body, marginTop: 12, lineHeight: 1.75 }}>
-          8+ years and 11+ products shipped across fintech, blockchain, ecommerce, food delivery and
-          marketplaces. I lead distributed teams, up to 25 people across Turkey, the UAE, KSA and the
-          US, and lean hard on analytics and AI to ship. Certified Scrum Master (PSM I) and Product
-          Owner (PSPO I).
+          8+ years and 11+ products shipped across fintech, ecommerce and marketplaces. I’ve led product
+          work with distributed teams of up to 25 people and built a five-person product and design
+          function. My work spans compliance automation, AI retention features and platform growth.
+          Certified Scrum Master (PSM I) and Product Owner (PSPO I).
         </p>
         <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginTop: 20, alignItems: "center" }}>
           <a
@@ -112,7 +112,7 @@ export default function Resume() {
                   </span>
                 </span>
                 <span style={{ color: textAccent(p.accent), fontSize: TYPE.micro, fontWeight: 800, letterSpacing: 0.5, whiteSpace: "nowrap" }}>
-                  {live ? "LIVE →" : "COMING SOON"}
+                  {live ? "LIVE →" : "IN DEVELOPMENT"}
                 </span>
               </>
             );

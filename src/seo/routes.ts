@@ -119,7 +119,7 @@ const HOME: SeoRoute = {
   path: "/",
   title: `${AUTHOR}, ${JOB_TITLE}`,
   description:
-    "Senior product manager, 8+ years across fintech, blockchain, HRtech and SaaS, 11+ products shipped. Explore the work as an interactive world, or skip to the resume.",
+    "Senior technical product manager. 8+ years building fintech platforms, marketplace products and AI retention features. Explore the work and product decisions.",
   summary: [
     `${AUTHOR}, ${JOB_TITLE}.`,
     "8+ years across fintech, blockchain, HRtech and SaaS. 11+ products shipped.",
@@ -163,7 +163,7 @@ const RESUME: SeoRoute = {
     "Resume of Utku Acikgoz, senior product manager. 11+ products shipped across fintech, blockchain, ecommerce and marketplaces, teams up to 25 across four countries.",
   summary: [
     `Resume of ${AUTHOR}, ${JOB_TITLE}.`,
-    "8+ years and 11+ products shipped across fintech, blockchain, ecommerce, food delivery and marketplaces. Leads distributed teams of up to 25 people across Turkey, the UAE, KSA and the US. Certified Scrum Master (PSM I) and Product Owner (PSPO I).",
+    "8+ years and 11+ products shipped across fintech, ecommerce and marketplaces. Led product work with distributed teams of up to 25 people and built a five-person product and design function. Work spans compliance automation, AI retention features and platform growth. Certified Scrum Master (PSM I) and Product Owner (PSPO I).",
     ...PUBLISHED_PROJECTS.map((p) => `${p.title}: ${prose(p.tagline)}.`),
     `Contact: ${EMAIL}`,
   ],
