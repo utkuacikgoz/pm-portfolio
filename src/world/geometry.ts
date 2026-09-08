@@ -323,11 +323,11 @@ export function buildIndieIsland(projects: Project[]): Cube[] {
 }
 
 /** All cubes for all islands, flattened into one list → one InstancedMesh. */
-export function buildWorld(projects: Project[]): Cube[] {
+export function buildWorld(projects: Project[], illustratedIds: readonly string[] = []): Cube[] {
   const cubes: Cube[] = [];
   projects.forEach((p, i) => {
     const [ox, , oz] = islandPosition(i);
-    const local = [...buildTerrain(p.accent, i * 7919 + 13), ...buildStructure(p.structure, p.accent)];
+    const local = illustratedIds.includes(p.id) ? [] : [...buildTerrain(p.accent, i * 7919 + 13), ...buildStructure(p.structure, p.accent)];
     for (const c of local) {
       cubes.push({
         position: [c.position[0] + ox, c.position[1], c.position[2] + oz],
