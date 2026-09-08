@@ -5,7 +5,7 @@ import * as THREE from "three";
 import { T, TYPE } from "../theme";
 
 type Point = [number, number, number];
-interface Props { kind: "mestores" | "upshift"; active: boolean; onOpen: () => void }
+interface Props { kind: "mestores" | "upshift" | "apollo" | "la3eb"; active: boolean; onOpen: () => void }
 // Illustrative routes only: packet counts and timing do not encode measured data.
 const SHOP: Point[] = [[-7, .6, -1], [-3, .6, -1], [-1, .6, 1], [3, .6, 1], [7, .6, 1]];
 const RETURN: Point[] = [[-3, .6, -1], [-3, .6, 3.5], [0, .6, 3.5], [3, .6, 1]];
@@ -133,11 +133,97 @@ function ShiftNetwork({ active }: { active: boolean }) {
   </>;
 }
 
+const CARE: Point[][] = [
+  [[-6, .65, 0], [0, .65, 0], [6, .65, 0]],
+  [[6, .65, 0], [6, .65, 3], [0, .65, 3], [-6, .65, 3], [-6, .65, 0]],
+];
+const COMMUNITY: Point[][] = [
+  [[-6, .65, 0], [0, .65, 0], [6, .65, 0]],
+  [[6, .65, 0], [6, .65, 3.7], [-6, .65, 3.7], [-6, .65, 0]],
+];
+
+function Cross({ p }: { p: Point }) {
+  return <group position={p}>
+    <Block p={[0, 0, 0]} s={[1.1, .3, .12]} color={T.coral} />
+    <Block p={[0, 0, .01]} s={[.3, 1.1, .12]} color={T.coral} />
+  </group>;
+}
+
+function CareNetwork({ active }: { active: boolean }) {
+  return <>
+    {/* Clinical request, pharmacy lookup and stock visibility form one service. */}
+    <group position={[-6, 0, -1]}>
+      <Block p={[0, 1.5, 0]} s={[3, 3, 2]} color={T.textSoft} />
+      <Block p={[0, 3.1, 0]} s={[3.4, .25, 2.4]} color={T.coral} />
+      <Cross p={[0, 2.2, 1.08]} />
+      <Block p={[0, .7, 1.04]} s={[.8, 1.4, .1]} color={T.skyBlue} />
+      <Person p={[-1.3, 0, 1.7]} color={T.textSoft} />
+    </group>
+    {active && <Label p={[-6, 4.1, -1]}>HOSPITAL</Label>}
+    <group position={[0, 0, -.5]}>
+      <Block p={[0, .8, 0]} s={[3, 1.5, 1]} color={T.coral} />
+      <Block p={[0, 1.65, 0]} s={[3.4, .2, 1.4]} color={T.textSoft} />
+      <Person p={[-.65, .3, -.9]} color={T.textSoft} />
+      <Block p={[.65, 2.1, -.1]} s={[1.2, .85, .15]} color={T.inkRaised} />
+      <Block p={[.65, 2.1, 0]} s={[.8, .18, .08]} color={T.seafoam} />
+      <Cross p={[-.65, .9, .56]} />
+    </group>
+    {active && <Label p={[0, 3.2, -.5]}>PHARMACY LOCATOR</Label>}
+    <group position={[6, 0, -1]}>
+      {[-1.4, 1.4].map(x => <Block key={x} p={[x, 1.7, 0]} s={[.2, 3.4, 1.7]} color={T.textSoft} />)}
+      {[.3, 1.4, 2.5].map((y, row) => <group key={y}>
+        <Block p={[0, y, 0]} s={[3, .15, 1.7]} color={T.coral} />
+        {[-.9, 0, .9].map((x, col) => <Block key={x} p={[x, y + .4, .2]} s={[.6, .65, .8]} color={(row + col) % 2 ? T.seafoam : T.textSoft} />)}
+      </group>)}
+    </group>
+    {active && <Label p={[6, 4.1, -1]}>LIVE INVENTORY</Label>}
+    {CARE.map((path, i) => <Line key={i} points={path} color={i ? T.seafoam : T.coral} lineWidth={2} />)}
+    {active && <Parcels paths={CARE} active={active} color={T.seafoam} />}
+  </>;
+}
+
+function GamingCommunity({ active }: { active: boolean }) {
+  return <>
+    {/* The three shipped community features, linked by participation. */}
+    <Screen p={[-6, 0, -1]} color={T.mauve}>
+      <Block p={[0, 2.6, .27]} s={[2, .8, .1]} color={T.blue} />
+      <mesh position={[0, 2.6, .36]} rotation={[0, 0, -Math.PI / 2]}><circleGeometry args={[.25, 3]} /><meshStandardMaterial color={T.textSoft} side={THREE.DoubleSide} /></mesh>
+      <Block p={[-.25, 1.85, .27]} s={[1.5, .12, .1]} color={T.mauve} />
+      <Block p={[-.5, 1.5, .27]} s={[1, .12, .1]} color={T.textSoft} />
+    </Screen>
+    {active && <Label p={[-6, 4, -1]}>COMMUNITY FEED</Label>}
+    <Person p={[-1.3, .1, 1]} color={T.blue} />
+    <Person p={[1.2, .1, 1]} color={T.mauve} />
+    <group position={[-.6, 2.5, 0]}>
+      <Block p={[0, 0, 0]} s={[1.6, .95, .3]} color={T.mauve} />
+      <Block p={[-.5, -.55, 0]} s={[.3, .3, .3]} color={T.mauve} />
+      {[-.45, 0, .45].map(x => <Block key={x} p={[x, 0, .2]} s={[.15, .15, .08]} color={T.ink} />)}
+    </group>
+    <group position={[.7, 3.25, -.6]}>
+      <Block p={[0, 0, 0]} s={[1.4, .8, .3]} color={T.skyBlue} />
+      <Block p={[.45, -.45, 0]} s={[.25, .3, .3]} color={T.skyBlue} />
+    </group>
+    {active && <Label p={[0, 4.3, 0]}>FIND YOUR SQUAD</Label>}
+    <group position={[6, 0, 0]}>
+      <mesh position={[0, .15, 0]}><cylinderGeometry args={[2.3, 2.3, .3, 12]} /><meshStandardMaterial color={T.violet} /></mesh>
+      <Block p={[0, 1.6, -1]} s={[.6, 2.8, .9]} color={T.ink} />
+      <group rotation={[0, 0, -.08]}><Block p={[-.45, 1.6, -1]} s={[.25, 3, 1.05]} color={T.textSoft} /></group>
+      <group rotation={[0, 0, .08]}><Block p={[.45, 1.6, -1]} s={[.25, 3, 1.05]} color={T.textSoft} /></group>
+      <Person p={[-1.2, .3, .4]} color={T.mauve} />
+      <Person p={[1.2, .3, .4]} color={T.seafoam} />
+      <Person p={[0, .3, 1.4]} color={T.gold} />
+    </group>
+    {active && <Label p={[6, 4, -1]}>PS5 LAUNCH LOBBY</Label>}
+    {COMMUNITY.map((path, i) => <Line key={i} points={path} color={i ? T.skyBlue : T.mauve} lineWidth={2} />)}
+    {active && <Parcels paths={COMMUNITY} active={active} color={T.mauve} />}
+  </>;
+}
+
 export default function MarketplaceIslands({ kind, active, onOpen }: Props) {
   return <group scale={.72} onClick={event => { event.stopPropagation(); onOpen(); }}>
     <mesh position={[0, -1.65, 0]} scale={[12, 2.4, 7]}><cylinderGeometry args={[1, .76, 1, 9]} /><meshStandardMaterial color={T.border} flatShading /></mesh>
     <mesh position={[0, -.3, 0]} scale={[11.5, .5, 6.6]}><cylinderGeometry args={[1, 1, 1, 9]} /><meshStandardMaterial color={T.inkRaised} flatShading /></mesh>
     <Block p={[0, .08, 0]} s={[15, .16, 1.25]} />
-    {kind === "mestores" ? <Shop active={active} /> : <ShiftNetwork active={active} />}
+    {kind === "mestores" ? <Shop active={active} /> : kind === "upshift" ? <ShiftNetwork active={active} /> : kind === "apollo" ? <CareNetwork active={active} /> : <GamingCommunity active={active} />}
   </group>;
 }
