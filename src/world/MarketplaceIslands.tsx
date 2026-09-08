@@ -7,12 +7,10 @@ import { T, TYPE } from "../theme";
 type Point = [number, number, number];
 interface Props { kind: "mestores" | "upshift"; active: boolean; onOpen: () => void }
 // Illustrative routes only: packet counts and timing do not encode measured data.
-const SHOP: Point[] = [[-6, .6, 0], [-3, .6, 0], [0, .6, 1], [3, .6, 1], [6, .6, 1]];
-const RETURN: Point[] = [[6, .6, 1], [6, .6, 4], [-6, .6, 4], [-6, .6, 0]];
-const MATCH: Point[][] = [
-  [[-6, .65, -2], [-3, .65, -2], [0, .65, 0], [3, .65, -2], [6, .65, -2]],
-  [[-6, .65, 2], [-3, .65, 2], [0, .65, 0], [3, .65, 2], [6, .65, 2]],
-];
+const SHOP: Point[] = [[-7, .6, -1], [-3, .6, -1], [-1, .6, 1], [3, .6, 1], [7, .6, 1]];
+const RETURN: Point[] = [[-3, .6, -1], [-3, .6, 3.5], [0, .6, 3.5], [3, .6, 1]];
+const MATCH: Point[][] = [-2.6, 0, 2.6].map(z => [[-6, .65, z], [-3, .65, z], [0, .65, 0], [3, .65, 0], [6, .65, 0]]);
+const RETAIN: Point[] = [[6, .65, 0], [7, .65, 3.6], [2, .65, 3.6], [0, .65, 0]];
 
 function Block({ p, s, color = T.surface }: { p: Point; s: Point; color?: string }) {
   return <mesh position={p} scale={s}><boxGeometry /><meshStandardMaterial color={color} roughness={.65} metalness={.12} /></mesh>;
@@ -59,59 +57,79 @@ function Parcels({ paths, active, color }: { paths: Point[][]; active: boolean; 
   return <instancedMesh ref={mesh} args={[undefined, undefined, 12]}><boxGeometry /><meshStandardMaterial color={color} emissive={color} emissiveIntensity={.2} /></instancedMesh>;
 }
 
+function Screen({ p, color, children }: { p: Point; color: string; children: React.ReactNode }) {
+  return <group position={p}>
+    <Block p={[0, .45, 0]} s={[1.7, .2, .9]} />
+    <Block p={[0, 1, 0]} s={[.25, 1, .25]} color={color} />
+    <Block p={[0, 2.2, 0]} s={[3, 2.4, .3]} color={color} />
+    <Block p={[0, 2.2, .18]} s={[2.7, 2.1, .08]} color={T.inkRaised} />
+    {children}
+  </group>;
+}
+
+function Cart({ p, color }: { p: Point; color: string }) {
+  return <group position={p}>
+    <Block p={[0, .65, 0]} s={[1.1, .2, .8]} color={color} />
+    <Block p={[0, 1, -.4]} s={[1.1, .7, .1]} color={color} />
+    <Block p={[0, 1, .4]} s={[1.1, .7, .1]} color={color} />
+    <Block p={[-.55, 1, 0]} s={[.1, .7, .8]} color={color} />
+    <Block p={[.6, 1.2, 0]} s={[.12, 1, .12]} color={T.textSoft} />
+    <Block p={[0, .9, 0]} s={[.55, .4, .5]} color={T.gold} />
+    {[-.35, .35].map(x => <mesh key={x} position={[x, .35, .35]}><sphereGeometry args={[.19, 8, 6]} /><meshStandardMaterial color={T.ink} /></mesh>)}
+  </group>;
+}
+
 function Shop({ active }: { active: boolean }) {
   return <>
-    {/* A familiar storefront, two checkout steps, and a dispatch van. */}
-    <Block p={[-6, .3, -1]} s={[4, .6, 3]} />
-    <Block p={[-6, 1.8, -2]} s={[3.5, 2.6, .4]} color={T.brick} />
-    <Block p={[-7.6, 1.5, -.5]} s={[.18, 2.4, .18]} color={T.gold} />
-    <Block p={[-4.4, 1.5, -.5]} s={[.18, 2.4, .18]} color={T.gold} />
-    {Array.from({ length: 6 }, (_, i) => <Block key={i} p={[-7.5 + i * .6, 2.85, -1.1]} s={[.6, .2, 2.2]} color={i % 2 ? T.textSoft : T.gold} />)}
-    <Block p={[-6, 1, -.5]} s={[3.1, .6, .65]} color={T.gold} />
-    {[-7, -6, -5].map((x, i) => <Block key={x} p={[x, 1.5, -.6]} s={[.5, .4 + i * .15, .45]} color={[T.coral, T.mauve, T.seafoam][i]} />)}
-    <Person p={[-6, .6, -1.3]} color={T.seafoam} />
-    {active && <Label p={[-6, 3.65, -1]}>DISCOVER</Label>}
-    {[-1.2, 1.2].map((x, i) => <group key={x} position={[x, 0, 1]}>
+    {/* Funnel visibility first; recovered carts rejoin the shortened checkout. */}
+    <Screen p={[-6, 0, -1.5]} color={T.gold}>
+      {[1.9, 1.4, .8].map((width, i) => <Block key={width} p={[0, 2.85 - i * .62, .27]} s={[width, .35, .12]} color={i === 2 ? T.coral : T.gold} />)}
+    </Screen>
+    {active && <Label p={[-6, 4, -1.5]}>FUNNEL TRACKING</Label>}
+    <Cart p={[-2.7, 0, 1]} color={T.coral} />
+    <Cart p={[-1.8, 0, 2.8]} color={T.coral} />
+    <group position={[.1, 1.3, 3.5]}>
+      <Block p={[0, 0, 0]} s={[1.6, 1.05, .15]} color={T.seafoam} />
+      <Line points={[[-.75, .46, .1], [0, -.05, .1], [.75, .46, .1]]} color={T.ink} lineWidth={2} />
+    </group>
+    {active && <Label p={[-.5, 2.8, 4]}>CART RECOVERY</Label>}
+    {[3.5, 6].map((x, i) => <group key={x} position={[x, 0, 1]}>
       <Block p={[0, .15, 0]} s={[1.5, .3, 2]} color={T.border} />
       <Block p={[0, 1.15, -.8]} s={[.22, 2, .22]} color={T.gold} />
       <Block p={[0, 1.15, .8]} s={[.22, 2, .22]} color={T.gold} />
       <Block p={[0, 2.2, 0]} s={[.3, .22, 2]} color={i ? T.seafoam : T.gold} />
     </group>)}
-    {active && <Label p={[0, 3, 1]}>TWO STEP CHECKOUT</Label>}
-    <group position={[6, .35, 0]}>
-      <Block p={[0, .6, 0]} s={[3.3, .3, 1.6]} color={T.ink} />
-      <Block p={[-.5, 1.35, 0]} s={[2, 1.4, 1.65]} color={T.gold} />
-      <Block p={[1, 1.15, 0]} s={[1, 1.1, 1.6]} color={T.textSoft} />
-      <Block p={[1.1, 1.45, .82]} s={[.6, .45, .04]} color={T.skyBlue} />
-      {[-1, 1].flatMap(x => [-.85, .85].map(z => <mesh key={`${x}:${z}`} position={[x, .5, z]} rotation={[Math.PI / 2, 0, 0]}><cylinderGeometry args={[.4, .4, .22, 12]} /><meshStandardMaterial color={T.ink} /></mesh>))}
-    </group>
-    {active && <Label p={[6, 3.25, 0]}>FULFILLMENT</Label>}
+    {active && <Label p={[5, 3.2, .5]}>CHECKOUT: 5 STEPS TO 2</Label>}
     <Line points={SHOP} color={T.gold} lineWidth={2} />
-    <Line points={RETURN} color={T.seafoam} lineWidth={1.5} dashed dashSize={.3} gapSize={.2} />
-    {active && <Parcels paths={[SHOP]} active={active} color={T.gold} />}
+    <Line points={RETURN} color={T.seafoam} lineWidth={2} />
+    {active && <><Parcels paths={[SHOP]} active={active} color={T.gold} /><Parcels paths={[RETURN]} active={active} color={T.seafoam} /></>}
   </>;
 }
 
 function ShiftNetwork({ active }: { active: boolean }) {
   return <>
-    <Block p={[-6, .15, 0]} s={[4, .3, 6]} />
-    {[-2, 0, 2].map((z, i) => <Person key={z} p={[-6, .3, z]} color={[T.seafoam, T.mauve, T.blue][i]} />)}
-    {active && <Label p={[-7, 2.8, 3]}>WORKERS</Label>}
-    <Block p={[0, .2, 0]} s={[3.1, .4, 3.4]} color={T.border} />
-    <Block p={[0, 2, -.55]} s={[2.7, 3.3, .45]} color={T.seafoam} />
-    <Block p={[0, 2, -.3]} s={[2.35, 2.55, .08]} color={T.inkRaised} />
-    {[-.7, 0, .7].flatMap((x, col) => [1.2, 1.95, 2.7].map((y, row) => <Block key={`${x}:${y}`} p={[x, y, -.22]} s={[.44, .44, .12]} color={(col + row) % 3 === 0 ? T.gold : T.seafoam} />))}
-    {active && <Label p={[0, 4.35, -.5]}>SHIFT RECOMMENDATIONS</Label>}
-    {[-2, 2].map((z, i) => <group key={z} position={[6, 0, z]}>
-      <Block p={[0, .2, 0]} s={[3.5, .4, 2.5]} />
-      <Block p={[0, 1.65, -.3]} s={[2.5, 2.6, 1.7]} color={i ? T.blue : T.seafoam} />
-      <Block p={[0, 3, -.3]} s={[2.9, .2, 2]} color={T.textSoft} />
-      <Block p={[0, 1, .6]} s={[.7, 1.25, .06]} color={T.ink} />
-      {[-.8, .8].map(x => <Block key={x} p={[x, 2.1, .6]} s={[.4, .5, .07]} color={T.gold} />)}
+    {/* Three competing inputs feed one product process, then retention work. */}
+    {[-2.6, 0, 2.6].map((z, i) => <group key={z} position={[-6, 0, z]}>
+      <Block p={[0, .1, 0]} s={[2.6, .2, 2]} />
+      <Block p={[.4, .95, 0]} s={[1.3, .15, 1.2]} color={[T.blue, T.gold, T.mauve][i]} />
+      <Person p={[-.5, .2, -.1]} color={[T.blue, T.gold, T.mauve][i]} />
     </group>)}
-    {active && <Label p={[6, 4, 0]}>BUSINESSES</Label>}
-    {MATCH.map((path, i) => <Line key={i} points={path} color={i ? T.gold : T.seafoam} lineWidth={2} />)}
-    {active && <Parcels paths={MATCH} active={active} color={T.seafoam} />}
+    {active && <Label p={[-7, 2.7, 3.8]}>SALES · OPS · ENGINEERING</Label>}
+    <mesh position={[0, 1, 0]}><cylinderGeometry args={[1.5, 1.5, .25, 12]} /><meshStandardMaterial color={T.seafoam} /></mesh>
+    <Block p={[0, .45, 0]} s={[.6, .9, .6]} color={T.border} />
+    {[0, 1, 2, 3, 4].map(i => <group key={i} position={[Math.cos(i * Math.PI * 2 / 5) * 2, .15, Math.sin(i * Math.PI * 2 / 5) * 2]} rotation={[0, -i * Math.PI * 2 / 5, 0]}><Person p={[0, 0, 0]} color={i % 2 ? T.seafoam : T.blue} /></group>)}
+    <Block p={[0, 1.3, 0]} s={[.7, .3, .6]} color={T.gold} />
+    {active && <Label p={[0, 3.2, -.5]}>PRODUCT & DESIGN TEAM</Label>}
+    <Screen p={[6, 0, -1]} color={T.seafoam}>
+      {[0, 1, 2].map(i => <group key={i}>
+        <Block p={[-.85, 2.85 - i * .6, .27]} s={[.25, .25, .12]} color={T.gold} />
+        <Block p={[.25, 2.85 - i * .6, .27]} s={[1.5, .16, .12]} color={T.seafoam} />
+      </group>)}
+    </Screen>
+    {active && <Label p={[6, 4, -1]}>RETENTION PRIORITIES</Label>}
+    {MATCH.map((path, i) => <Line key={i} points={path} color={[T.blue, T.gold, T.mauve][i]} lineWidth={2} />)}
+    <Line points={RETAIN} color={T.seafoam} lineWidth={2} />
+    {active && <><Parcels paths={MATCH} active={active} color={T.gold} /><Parcels paths={[RETAIN]} active={active} color={T.seafoam} /></>}
   </>;
 }
 
