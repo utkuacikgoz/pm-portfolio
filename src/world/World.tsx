@@ -5,7 +5,8 @@ import { Instances, Instance, PerformanceMonitor, Stars } from "@react-three/dre
 import { usePrefersReducedMotion } from "../ui/hooks/useReducedMotion";
 import { daylight, SUN_POSITION } from "./daylight";
 import { PUBLISHED_PROJECTS, INDIE_PROJECTS } from "../projects/projects";
-import { buildWorld, buildIndieIsland } from "./geometry";
+import { buildWorld, buildIndieIsland, islandPosition } from "./geometry";
+import ProductHarbor from "./ProductHarbor";
 import CameraRig from "./CameraRig";
 import Emblems from "./Emblems";
 import SurfController from "./SurfController";
@@ -121,7 +122,8 @@ interface Props {
 function World({ activeIndex, entered, dive, surfing, onOpen, onCoin, onWave, onTotals, onComplete, lowPower = false, frameloop = "always" }: Props) {
   // One list, one InstancedMesh: the indie island's pylons ride in the same
   // field as the rail, so showing it costs no extra draw call.
-  const cubes = useMemo(() => [...buildWorld(PUBLISHED_PROJECTS), ...buildIndieIsland(INDIE_PROJECTS)], []);
+  const cubes = useMemo(() => [...buildWorld(PUBLISHED_PROJECTS, ["bilira"]), ...buildIndieIsland(INDIE_PROJECTS)], []);
+  const biliraIndex = PUBLISHED_PROJECTS.findIndex(project => project.id === "bilira");
   const accent = PUBLISHED_PROJECTS[activeIndex]?.accent ?? T.blue;
   const [dpr, setDpr] = useState(1.5);
   // Range form, not a scalar: r3f only clamps DPR to the actual devicePixelRatio
@@ -183,6 +185,9 @@ function World({ activeIndex, entered, dive, surfing, onOpen, onCoin, onWave, on
           <Instance key={i} position={c.position} scale={c.scale} color={c.color} />
         ))}
       </Instances>
+      {biliraIndex >= 0 && <group position={islandPosition(biliraIndex)}>
+        <ProductHarbor active={!surfing && activeIndex === biliraIndex} onOpen={() => onOpen(biliraIndex)} />
+      </group>}
 
       {/* The horizon range, upside down in the water. Surf only: see Ocean.tsx.
           The island cube field was mirrored here too and has been cut: the

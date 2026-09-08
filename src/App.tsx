@@ -5,12 +5,11 @@ import WorldExperience from "./pages/WorldExperience";
 // The resume is a separate route nobody sees on first paint, so it ships as its
 // own chunk rather than riding in the entry bundle.
 const Resume = lazy(() => import("./pages/Resume"));
-const ProductJourney = lazy(() => import("./pages/ProductJourney"));
 import { projectIndexById } from "./projects/projects";
 import { useSeo } from "./seo/useSeo";
 
 export default function App() {
-  const { pathname, search } = useLocation();
+  const { pathname } = useLocation();
   const navigate = useNavigate();
   // Head follows the URL: the build prerenders each route, this keeps it right
   // once the SPA is driving.
@@ -63,9 +62,6 @@ export default function App() {
   }, [page]);
 
   // World + deep-linkable panels share one element (URL = source of truth).
-  if (isWorldRoute && isKnownProject && new URLSearchParams(search).get("experience") === "3") {
-    return <Suspense fallback={null}><ProductJourney /></Suspense>;
-  }
   if (isWorldRoute && isKnownProject) return <WorldExperience />;
   // Persistent escape hatch: fast, plain résumé.
   if (pathname === "/resume") {

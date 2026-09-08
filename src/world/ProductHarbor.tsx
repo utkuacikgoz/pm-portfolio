@@ -1,11 +1,10 @@
-import { useEffect, useMemo, useRef } from "react";
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { useMemo, useRef } from "react";
+import { useFrame } from "@react-three/fiber";
 import { Float, Html, Line } from "@react-three/drei";
 import * as THREE from "three";
-import { T } from "../theme";
+import { T, TYPE } from "../theme";
 
-type Stage = "harbor" | "before" | "after";
-interface Props { stage: Stage; avatar: string; paused: boolean }
+interface Props { active: boolean; onOpen: () => void }
 const CLEAR: [number, number, number][] = [[-7, 0.5, 1], [-3, 0.5, 1], [0, 0.5, 1], [3, 0.5, -2], [7, 0.5, -2]];
 const REVIEW: [number, number, number][] = [[-7, 0.5, 1], [-3, 0.5, 1], [0, 0.5, 1], [2, 0.5, 4], [6, 0.5, 4]];
 
@@ -15,7 +14,7 @@ function Stone({ position, scale, color = T.surface }: { position: [number, numb
 
 function Tower({ x, z, human = false }: { x: number; z: number; human?: boolean }) {
   return <group position={[x, 0, z]}>
-    <Html position={[0, human ? 3.8 : 5.25, 0]} center style={{ pointerEvents: "none", whiteSpace: "nowrap" }}><div className="harbor-label">{human ? "HUMAN REVIEW" : "CLEAR CASES"}</div></Html>
+    <Html zIndexRange={[30, 0]} position={[0, human ? 3.8 : 5.25, 0]} center style={{ pointerEvents: "none", whiteSpace: "nowrap" }}><div style={{ padding: "6px 9px", border: `1px solid ${T.border}`, background: T.scrim, color: T.textSoft, borderRadius: 3, fontSize: TYPE.micro, letterSpacing: 1 }}>{human ? "HUMAN REVIEW" : "CLEAR CASES"}</div></Html>
     <Stone position={[0, -0.1, 0]} scale={[3.8, 0.3, 3.2]} color={T.inkRaised} />
     {[0, 1, 2].map(i => <Stone key={i} position={[0, 0.2 + i * 0.25, 0]} scale={[2.8 - i * 0.3, 0.25, 2.2 - i * 0.2]} color={T.border} />)}
     {human ? <>
@@ -39,24 +38,6 @@ function Figure({ color, position }: { color: string; position: [number, number,
     <Stone position={[0, 0.83, 0]} scale={[0.62, 0.6, 0.35]} color={color} />
     <mesh position={[0, 1.35, 0]} castShadow><icosahedronGeometry args={[0.28, 1]} /><meshStandardMaterial color={T.textSoft} flatShading /></mesh>
   </group>;
-}
-
-function Camera({ stage }: { stage: Stage }) {
-  const { camera, size } = useThree();
-  const look = useRef(new THREE.Vector3(0, 0, 0));
-  const target = useMemo(() => new THREE.Vector3(), []);
-  const eye = useMemo(() => new THREE.Vector3(), []);
-  useFrame((_, delta) => {
-    const mobile = size.width < 760;
-    const harbor = stage === "harbor";
-    // Leftward aim reserves a calm column for the DOM story on desktop.
-    target.set(mobile ? 0 : -5.8, mobile ? 0.4 : 0.3, 0.4);
-    eye.set(harbor ? 19 : 15, harbor ? 15 : 13, mobile ? 31 : harbor ? 24 : 21);
-    camera.position.lerp(eye, 1 - Math.exp(-1.8 * Math.min(delta, 0.05)));
-    look.current.lerp(target, 1 - Math.exp(-2 * Math.min(delta, 0.05)));
-    camera.lookAt(look.current);
-  });
-  return null;
 }
 
 function Traffic({ separated }: { separated: boolean }) {
@@ -92,25 +73,8 @@ function Traffic({ separated }: { separated: boolean }) {
   return <instancedMesh ref={ref} args={[undefined, undefined, 28]}><boxGeometry /><meshStandardMaterial roughness={0.3} metalness={0.4} /></instancedMesh>;
 }
 
-function Sea() {
-  const material = useMemo(() => new THREE.ShaderMaterial({
-    uniforms: { time: { value: 0 }, deep: { value: new THREE.Color(T.forest) }, light: { value: new THREE.Color(T.ocean) } },
-    vertexShader: `varying vec3 world; uniform float time; void main(){ vec3 p=position; p.z+=sin(p.x*.35+time*.5)*.13+cos(p.y*.28+time*.4)*.12; world=p; gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.); }`,
-    fragmentShader: `varying vec3 world; uniform float time; uniform vec3 deep; uniform vec3 light; void main(){ float a=sin(world.x*1.7+world.y*.8+time*.5); float b=sin(world.y*2.3-world.x*.7+time*.3); float sparkle=pow(max(0.,a*b),18.)*.06; vec3 c=mix(deep,light,.42+sin(world.x*.09+world.y*.08)*.1)+sparkle; gl_FragColor=vec4(c,1.); }`,
-  }), []);
-  useEffect(() => () => material.dispose(), [material]);
-  useFrame((_, delta) => { material.uniforms.time.value += Math.min(delta, 0.05); });
-  return <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.65, 0]}><planeGeometry args={[220, 220, 100, 100]} /><primitive object={material} attach="material" /></mesh>;
-}
-
-export default function ProductHarbor({ stage, avatar, paused }: Props) {
-  return <Canvas shadows dpr={[1, 1.5]} frameloop={paused ? "never" : "always"} camera={{ position: [30, 23, 34], fov: 42 }} gl={{ antialias: true, alpha: true }}>
-    <fog attach="fog" args={[T.fog, 55, 135]} />
-    <ambientLight intensity={1.4} />
-    <hemisphereLight args={[T.skyBlue, T.ink, 2]} />
-    <directionalLight castShadow position={[8, 20, 6]} intensity={3.5} color={T.sunLight} shadow-mapSize={[1024, 1024]} shadow-camera-left={-18} shadow-camera-right={18} shadow-camera-top={18} shadow-camera-bottom={-18} shadow-normalBias={0.04} />
-    <directionalLight position={[-10, 10, -8]} intensity={2} color={T.seafoam} />
-    <Sea />
+export default function ProductHarbor({ active, onOpen }: Props) {
+  return <group scale={0.72} onClick={event => { event.stopPropagation(); onOpen(); }}>
     {/* Faceted coast, stepped decks and two distinct destinations make the route readable. */}
     <mesh position={[0, -1.65, 0]} scale={[12, 2.4, 7]} receiveShadow><cylinderGeometry args={[1, 0.76, 1, 9]} /><meshStandardMaterial color={T.border} flatShading /></mesh>
     <mesh position={[0, -0.3, 0]} scale={[11.5, 0.5, 6.6]} receiveShadow><cylinderGeometry args={[1, 1, 1, 9]} /><meshStandardMaterial color={T.inkRaised} flatShading /></mesh>
@@ -121,13 +85,11 @@ export default function ProductHarbor({ stage, avatar, paused }: Props) {
     <Stone position={[-1, 1.45, 1]} scale={[0.28, 3, 0.28]} color={T.blue} />
     <Stone position={[1, 1.45, 1]} scale={[0.28, 3, 0.28]} color={T.blue} />
     <Stone position={[0, 3, 1]} scale={[2.7, 0.3, 0.4]} color={T.seafoam} />
-    <Line points={CLEAR} color={stage === "after" ? T.seafoam : T.border} lineWidth={2} />
+    <Line points={CLEAR} color={T.seafoam} lineWidth={2} />
     <Line points={REVIEW} color={T.amber} lineWidth={2} />
-    <Traffic separated={stage === "after"} />
+    {active && <Traffic separated />}
     <Stone position={[-7, -0.1, 5]} scale={[4, 0.25, 3]} color={T.surface} />
-    <Figure position={[-7, 0.1, 5]} color={avatar === "hr" ? T.seafoam : avatar === "manager" ? T.gold : T.blue} />
+    <Figure position={[-7, 0.1, 5]} color={T.seafoam} />
     {[-8, -4, 0, 4, 8].map(x => <group key={x} position={[x, 0, -4]}><Stone position={[0, 0.4, 0]} scale={[0.15, 1.3, 0.15]} color={T.gold} /><mesh position={[0, 1.1, 0]}><sphereGeometry args={[0.15, 8, 6]} /><meshStandardMaterial color={T.gold} emissive={T.gold} emissiveIntensity={2} /></mesh></group>)}
-    {[-1, 1].map((side) => <mesh key={side} position={[side * 26, -0.6, -28]} scale={[10, 5, 8]}><coneGeometry args={[1, 1, 5]} /><meshStandardMaterial color={T.forest} flatShading /></mesh>)}
-    <Camera stage={stage} />
-  </Canvas>;
+  </group>;
 }
