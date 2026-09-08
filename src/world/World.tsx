@@ -7,6 +7,7 @@ import { daylight, SUN_POSITION } from "./daylight";
 import { PUBLISHED_PROJECTS, INDIE_PROJECTS } from "../projects/projects";
 import { buildWorld, buildIndieIsland, islandPosition } from "./geometry";
 import ProductHarbor from "./ProductHarbor";
+import MarketplaceIslands from "./MarketplaceIslands";
 import CameraRig from "./CameraRig";
 import Emblems from "./Emblems";
 import SurfController from "./SurfController";
@@ -122,7 +123,7 @@ interface Props {
 function World({ activeIndex, entered, dive, surfing, onOpen, onCoin, onWave, onTotals, onComplete, lowPower = false, frameloop = "always" }: Props) {
   // One list, one InstancedMesh: the indie island's pylons ride in the same
   // field as the rail, so showing it costs no extra draw call.
-  const cubes = useMemo(() => [...buildWorld(PUBLISHED_PROJECTS, ["bilira"]), ...buildIndieIsland(INDIE_PROJECTS)], []);
+  const cubes = useMemo(() => [...buildWorld(PUBLISHED_PROJECTS, ["bilira", "mestores", "upshift"]), ...buildIndieIsland(INDIE_PROJECTS)], []);
   const biliraIndex = PUBLISHED_PROJECTS.findIndex(project => project.id === "bilira");
   const accent = PUBLISHED_PROJECTS[activeIndex]?.accent ?? T.blue;
   const [dpr, setDpr] = useState(1.5);
@@ -188,6 +189,11 @@ function World({ activeIndex, entered, dive, surfing, onOpen, onCoin, onWave, on
       {biliraIndex >= 0 && <group position={islandPosition(biliraIndex)}>
         <ProductHarbor active={!surfing && activeIndex === biliraIndex} onOpen={() => onOpen(biliraIndex)} />
       </group>}
+      {PUBLISHED_PROJECTS.map((project, i) => (project.id === "mestores" || project.id === "upshift") && (
+        <group key={project.id} position={islandPosition(i)}>
+          <MarketplaceIslands kind={project.id} active={!surfing && activeIndex === i} onOpen={() => onOpen(i)} />
+        </group>
+      ))}
 
       {/* The horizon range, upside down in the water. Surf only: see Ocean.tsx.
           The island cube field was mirrored here too and has been cut: the
