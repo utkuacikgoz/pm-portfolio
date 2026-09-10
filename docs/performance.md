@@ -1,5 +1,21 @@
 # Performance
 
+## Illustration batching (2026-09-10)
+
+The five case-specific illustrations use one static block instance batch per
+island, sharing a box geometry and the original standard material settings.
+`frames={3}` settles nested transforms and then stops matrix/color uploads.
+Keep moving parcels and floating emblems as separate meshes: they must not be
+added to the static batch. Per-island batching retains separate culling bounds.
+
+Floating HTML labels were removed at the product owner's request, also removing
+their per-frame screen projection work. Shapes, lighting, ocean tessellation,
+pixel ratio and animation timing are unchanged. The production build's combined
+world and three chunks fell from 988.15 KB to 979.08 KB raw (270.54 KB to
+267.36 KB gzip). These are bundle measurements, not a measured FPS improvement.
+Browser QA verified the illustrations, island navigation and opening a case by
+clicking an instanced checkout structure.
+
 Audited 2026-08-07 against the built output and live headers, re-measured
 2026-08-29. This file records what was wrong, what is now guarded, and what is
 still open.
