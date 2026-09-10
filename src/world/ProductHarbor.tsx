@@ -1,20 +1,19 @@
 import { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
-import { Float, Html, Line } from "@react-three/drei";
+import { Float, Instance, Instances, Line } from "@react-three/drei";
 import * as THREE from "three";
-import { T, TYPE } from "../theme";
+import { T } from "../theme";
 
 interface Props { active: boolean; onOpen: () => void }
 const CLEAR: [number, number, number][] = [[-7, 0.5, 1], [-3, 0.5, 1], [0, 0.5, 1], [3, 0.5, -2], [7, 0.5, -2]];
 const REVIEW: [number, number, number][] = [[-7, 0.5, 1], [-3, 0.5, 1], [0, 0.5, 1], [2, 0.5, 4], [6, 0.5, 4]];
 
 function Stone({ position, scale, color = T.surface }: { position: [number, number, number]; scale: [number, number, number]; color?: string }) {
-  return <mesh position={position} scale={scale} castShadow receiveShadow><boxGeometry /><meshStandardMaterial color={color} roughness={0.65} metalness={0.12} /></mesh>;
+  return <Instance position={position} scale={scale} color={color} />;
 }
 
-function Tower({ x, z, human = false, active }: { x: number; z: number; human?: boolean; active: boolean }) {
+function Tower({ x, z, human = false }: { x: number; z: number; human?: boolean }) {
   return <group position={[x, 0, z]}>
-    {active && <Html zIndexRange={[30, 0]} position={[0, human ? 3.8 : 5.25, 0]} center style={{ pointerEvents: "none", whiteSpace: "nowrap" }}><div style={{ padding: "6px 9px", border: `1px solid ${T.border}`, background: T.scrim, color: T.textSoft, borderRadius: 3, fontSize: TYPE.micro, letterSpacing: 1 }}>{human ? "HUMAN REVIEW" : "CLEAR CASES"}</div></Html>}
     <Stone position={[0, -0.1, 0]} scale={[3.8, 0.3, 3.2]} color={T.inkRaised} />
     {[0, 1, 2].map(i => <Stone key={i} position={[0, 0.2 + i * 0.25, 0]} scale={[2.8 - i * 0.3, 0.25, 2.2 - i * 0.2]} color={T.border} />)}
     {human ? <>
@@ -78,18 +77,23 @@ export default function ProductHarbor({ active, onOpen }: Props) {
     {/* Faceted coast, stepped decks and two distinct destinations make the route readable. */}
     <mesh position={[0, -1.65, 0]} scale={[12, 2.4, 7]} receiveShadow><cylinderGeometry args={[1, 0.76, 1, 9]} /><meshStandardMaterial color={T.border} flatShading /></mesh>
     <mesh position={[0, -0.3, 0]} scale={[11.5, 0.5, 6.6]} receiveShadow><cylinderGeometry args={[1, 1, 1, 9]} /><meshStandardMaterial color={T.inkRaised} flatShading /></mesh>
+    {/* Static blocks share geometry/material; stop matrix uploads after settling. */}
+    <Instances limit={128} frames={3}>
+      <boxGeometry />
+      <meshStandardMaterial roughness={0.65} metalness={0.12} />
     <Stone position={[0, -0.13, 1]} scale={[16, 0.22, 1.3]} color={T.surface} />
-    <Stone position={[3.5, -0.1, 0.1]} scale={[1.5, 0.25, 7.5]} color={T.surface} />
-    <Tower x={6} z={-2} active={active} />
-    <Tower x={6} z={4} human active={active} />
-    <Stone position={[-1, 1.45, 1]} scale={[0.28, 3, 0.28]} color={T.blue} />
-    <Stone position={[1, 1.45, 1]} scale={[0.28, 3, 0.28]} color={T.blue} />
-    <Stone position={[0, 3, 1]} scale={[2.7, 0.3, 0.4]} color={T.seafoam} />
-    <Line points={CLEAR} color={T.seafoam} lineWidth={2} />
-    <Line points={REVIEW} color={T.amber} lineWidth={2} />
-    {active && <Traffic separated />}
-    <Stone position={[-7, -0.1, 5]} scale={[4, 0.25, 3]} color={T.surface} />
-    <Figure position={[-7, 0.1, 5]} color={T.seafoam} />
-    {[-8, -4, 0, 4, 8].map(x => <group key={x} position={[x, 0, -4]}><Stone position={[0, 0.4, 0]} scale={[0.15, 1.3, 0.15]} color={T.gold} /><mesh position={[0, 1.1, 0]}><sphereGeometry args={[0.15, 8, 6]} /><meshStandardMaterial color={T.gold} emissive={T.gold} emissiveIntensity={2} /></mesh></group>)}
+      <Stone position={[3.5, -0.1, 0.1]} scale={[1.5, 0.25, 7.5]} color={T.surface} />
+      <Tower x={6} z={-2} />
+      <Tower x={6} z={4} human />
+      <Stone position={[-1, 1.45, 1]} scale={[0.28, 3, 0.28]} color={T.blue} />
+      <Stone position={[1, 1.45, 1]} scale={[0.28, 3, 0.28]} color={T.blue} />
+      <Stone position={[0, 3, 1]} scale={[2.7, 0.3, 0.4]} color={T.seafoam} />
+      <Line points={CLEAR} color={T.seafoam} lineWidth={2} />
+      <Line points={REVIEW} color={T.amber} lineWidth={2} />
+      {active && <Traffic separated />}
+      <Stone position={[-7, -0.1, 5]} scale={[4, 0.25, 3]} color={T.surface} />
+      <Figure position={[-7, 0.1, 5]} color={T.seafoam} />
+      {[-8, -4, 0, 4, 8].map(x => <group key={x} position={[x, 0, -4]}><Stone position={[0, 0.4, 0]} scale={[0.15, 1.3, 0.15]} color={T.gold} /><mesh position={[0, 1.1, 0]}><sphereGeometry args={[0.15, 8, 6]} /><meshStandardMaterial color={T.gold} emissive={T.gold} emissiveIntensity={2} /></mesh></group>)}
+    </Instances>
   </group>;
 }
