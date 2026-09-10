@@ -8,6 +8,7 @@ import { PUBLISHED_PROJECTS, INDIE_PROJECTS } from "../projects/projects";
 import { buildWorld, buildIndieIsland, islandPosition } from "./geometry";
 import ProductHarbor from "./ProductHarbor";
 import MarketplaceIslands from "./MarketplaceIslands";
+import WorldProfile from "./WorldProfile";
 import CameraRig from "./CameraRig";
 import Emblems from "./Emblems";
 import SurfController from "./SurfController";
@@ -126,6 +127,7 @@ function World({ activeIndex, entered, dive, surfing, onOpen, onCoin, onWave, on
   const cubes = useMemo(() => [...buildWorld(PUBLISHED_PROJECTS, ["bilira", "mestores", "upshift", "apollo", "la3eb"]), ...buildIndieIsland(INDIE_PROJECTS)], []);
   const biliraIndex = PUBLISHED_PROJECTS.findIndex(project => project.id === "bilira");
   const accent = PUBLISHED_PROJECTS[activeIndex]?.accent ?? T.blue;
+  const [profiling] = useState(() => import.meta.env.DEV && new URLSearchParams(location.search).has("perf"));
   const [dpr, setDpr] = useState(1.5);
   // Range form, not a scalar: r3f only clamps DPR to the actual devicePixelRatio
   // when given [min, max]. A bare 1.5 was taken verbatim, so 1x displays (external
@@ -164,6 +166,7 @@ function World({ activeIndex, entered, dive, surfing, onOpen, onCoin, onWave, on
       {/* Tropical-dusk lighting: teal sky bounce + a warm low sun. PBR intensities
           (r3f v9 / three r155+) — ambient + hemisphere carry base visibility. */}
       <DaylightRig surfing={surfing} />
+      {import.meta.env.DEV && profiling && <WorldProfile key={`${surfing}-${activeIndex}`} mode={surfing ? "surf" : `island-${activeIndex}`} />}
 
       {/* A few faint stars in the upper dusk sky. */}
       <StarField />
