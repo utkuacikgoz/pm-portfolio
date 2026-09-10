@@ -12,9 +12,9 @@ function Stone({ position, scale, color = T.surface }: { position: [number, numb
   return <mesh position={position} scale={scale} castShadow receiveShadow><boxGeometry /><meshStandardMaterial color={color} roughness={0.65} metalness={0.12} /></mesh>;
 }
 
-function Tower({ x, z, human = false }: { x: number; z: number; human?: boolean }) {
+function Tower({ x, z, human = false, active }: { x: number; z: number; human?: boolean; active: boolean }) {
   return <group position={[x, 0, z]}>
-    <Html zIndexRange={[30, 0]} position={[0, human ? 3.8 : 5.25, 0]} center style={{ pointerEvents: "none", whiteSpace: "nowrap" }}><div style={{ padding: "6px 9px", border: `1px solid ${T.border}`, background: T.scrim, color: T.textSoft, borderRadius: 3, fontSize: TYPE.micro, letterSpacing: 1 }}>{human ? "HUMAN REVIEW" : "CLEAR CASES"}</div></Html>
+    {active && <Html zIndexRange={[30, 0]} position={[0, human ? 3.8 : 5.25, 0]} center style={{ pointerEvents: "none", whiteSpace: "nowrap" }}><div style={{ padding: "6px 9px", border: `1px solid ${T.border}`, background: T.scrim, color: T.textSoft, borderRadius: 3, fontSize: TYPE.micro, letterSpacing: 1 }}>{human ? "HUMAN REVIEW" : "CLEAR CASES"}</div></Html>}
     <Stone position={[0, -0.1, 0]} scale={[3.8, 0.3, 3.2]} color={T.inkRaised} />
     {[0, 1, 2].map(i => <Stone key={i} position={[0, 0.2 + i * 0.25, 0]} scale={[2.8 - i * 0.3, 0.25, 2.2 - i * 0.2]} color={T.border} />)}
     {human ? <>
@@ -80,8 +80,8 @@ export default function ProductHarbor({ active, onOpen }: Props) {
     <mesh position={[0, -0.3, 0]} scale={[11.5, 0.5, 6.6]} receiveShadow><cylinderGeometry args={[1, 1, 1, 9]} /><meshStandardMaterial color={T.inkRaised} flatShading /></mesh>
     <Stone position={[0, -0.13, 1]} scale={[16, 0.22, 1.3]} color={T.surface} />
     <Stone position={[3.5, -0.1, 0.1]} scale={[1.5, 0.25, 7.5]} color={T.surface} />
-    <Tower x={6} z={-2} />
-    <Tower x={6} z={4} human />
+    <Tower x={6} z={-2} active={active} />
+    <Tower x={6} z={4} human active={active} />
     <Stone position={[-1, 1.45, 1]} scale={[0.28, 3, 0.28]} color={T.blue} />
     <Stone position={[1, 1.45, 1]} scale={[0.28, 3, 0.28]} color={T.blue} />
     <Stone position={[0, 3, 1]} scale={[2.7, 0.3, 0.4]} color={T.seafoam} />
