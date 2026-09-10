@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
 import * as THREE from "three";
 import { PUBLISHED_PROJECTS, type Project } from "../projects/projects";
@@ -121,24 +121,28 @@ function DomainMark({ project }: { project: Project }) {
   }
 }
 
-function Emblem({ project, index, active, reduced }: { project: Project; index: number; active: boolean; reduced: boolean }) {
+function Emblem({ project, index, active, reduced, hovered }: { project: Project; index: number; active: boolean; reduced: boolean; hovered: boolean }) {
   const ref = useRef<THREE.Group>(null);
   const [px, , pz] = islandPosition(index);
   const hoverY = EMBLEM_HOVER[project.structure];
   const scale = 0.72;
+  const emphasis = useRef(0);
+  const ring = useRef<THREE.MeshBasicMaterial>(null);
 
-  useFrame((state) => {
+  useFrame((state, dt) => {
     if (!ref.current) return;
     const t = state.clock.elapsedTime;
+    emphasis.current = reduced ? Number(hovered) : THREE.MathUtils.damp(emphasis.current, Number(hovered), 12, Math.min(dt, .05));
+    if (ring.current) ring.current.opacity = (active ? .68 : .32) + emphasis.current * (active ? .24 : .5);
     ref.current.position.y = hoverY + (reduced ? 0 : Math.sin(t * 1.1 + index) * 0.3);
-    ref.current.scale.setScalar(scale * (active && !reduced ? 1 + Math.sin(t * 2.4) * 0.06 : 1));
+    ref.current.scale.setScalar(scale * (1 + (reduced ? 0 : emphasis.current * .12)) * (active && !reduced ? 1 + Math.sin(t * 2.4) * 0.06 : 1));
   });
 
   return (
     <group ref={ref} position={[px, hoverY, pz]} scale={scale}>
       <mesh rotation={[-Math.PI / 2, 0, 0]} raycast={() => null}>
         <ringGeometry args={[1.8, 1.92, 8]} />
-        <meshBasicMaterial color={project.accent} transparent opacity={active ? 0.68 : 0.32} depthWrite={false} blending={THREE.AdditiveBlending} />
+        <meshBasicMaterial ref={ring} color={project.accent} transparent opacity={active ? 0.68 : 0.32} depthWrite={false} blending={THREE.AdditiveBlending} />
       </mesh>
       <DomainMark project={project} />
     </group>
@@ -148,7 +152,7 @@ function Emblem({ project, index, active, reduced }: { project: Project; index: 
 // Invisible, generously-sized click target covering each island + its icon.
 // Raycast stays ON (unlike Ocean's visual-only meshes) so the structure opens its
 // case study. A drag guard suppresses opens that were really camera-orbit drags.
-function Hitbox({ index, onOpen }: { index: number; onOpen: (i: number) => void }) {
+function Hitbox({ index, onOpen, onHover }: { index: number; onOpen: (i: number) => void; onHover: (index: number | null) => void }) {
   const [px, , pz] = islandPosition(index);
   const hoverY = EMBLEM_HOVER[PUBLISHED_PROJECTS[index].structure];
   const gl = useThree((s) => s.gl);
@@ -158,11 +162,14 @@ function Hitbox({ index, onOpen }: { index: number; onOpen: (i: number) => void 
     <mesh
       position={[px, (hoverY - 2) / 2, pz]}
       onPointerOver={(e) => {
+        if (e.nativeEvent.pointerType === "touch") return;
         e.stopPropagation();
         gl.domElement.style.cursor = "pointer";
+        onHover(index);
       }}
       onPointerOut={() => {
         gl.domElement.style.cursor = "default";
+        onHover(null);
       }}
       onPointerDown={(e: ThreeEvent<PointerEvent>) => {
         down.current = { x: e.nativeEvent.clientX, y: e.nativeEvent.clientY };
@@ -176,7 +183,7 @@ function Hitbox({ index, onOpen }: { index: number; onOpen: (i: number) => void 
         onOpen(index);
       }}
     >
-      <boxGeometry args={[10, hoverY + 6, 10]} />
+      <boxGeometry args={[18, hoverY + 6, 12]} />
       <meshBasicMaterial transparent opacity={0} depthWrite={false} />
     </mesh>
   );
@@ -184,13 +191,17 @@ function Hitbox({ index, onOpen }: { index: number; onOpen: (i: number) => void 
 
 export default function Emblems({ active, onOpen }: { active: number; onOpen: (i: number) => void }) {
   const reduced = usePrefersReducedMotion();
+  const [hover, setHover] = useState<{ index: number | null; active: number } | null>(null);
+  const hovered = hover?.active === active ? hover.index : null;
+  const gl = useThree(s => s.gl);
+  useEffect(() => () => { gl.domElement.style.cursor = "default"; }, [gl, active]);
   return (
     <>
       {PUBLISHED_PROJECTS.map((p, i) => (
-        <Emblem key={p.id} project={p} index={i} active={i === active} reduced={reduced} />
+        <Emblem key={p.id} project={p} index={i} active={i === active} reduced={reduced} hovered={hovered === i} />
       ))}
       {PUBLISHED_PROJECTS.map((p, i) => (
-        <Hitbox key={`hit-${p.id}`} index={i} onOpen={onOpen} />
+        <Hitbox key={`hit-${p.id}`} index={i} onOpen={onOpen} onHover={index => setHover({ index, active })} />
       ))}
     </>
   );
