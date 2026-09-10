@@ -1,5 +1,32 @@
 # Performance
 
+## Local frame samples and hover feedback (2026-09-10)
+
+Opt into development diagnostics with `?perf=1` on a project URL. The canvas
+exposes `data-world-profile` (latest 180 frames) and `data-world-profile-start`
+(first 180 frames after an island/mode change). These report frame intervals,
+previous-frame renderer counters and actual backing resolution. The diagnostic
+component is excluded from production; it adds no visible UI or telemetry.
+
+Samples in the visible Codex browser on this Mac, Vite development server, DPR 1:
+
+| Scenario | Viewport | Average FPS | p95 interval | Draw calls | Triangles |
+| --- | --- | --- | --- | --- | --- |
+| Mestores initial sample | 1280x720 | 56.1 | 17.7 ms | 53 | 24,302 |
+| Mestores to Apollo, first 180 frames | 1280x720 | 59.4 | 17.7 ms | 65 | 24,815 |
+| Apollo settled | 1280x720 | 60.0 | 18.9 ms | 65 | 24,815 |
+| Surf, stationary | 1280x720 | 60.0 | 17.7 ms | 58 | 76,168 |
+| Surf, narrow viewport, stationary | 390x844 | 60.0 | 16.9 ms | 58 | 44,136 |
+
+These short samples are a baseline, not a before/after speedup, GPU timing,
+sustained surf-input test or physical-phone benchmark. Narrow viewport testing
+uses the same Mac GPU. Keep real-phone and longer surfing measurements open.
+
+Hover feedback reuses the existing emblem ring and animation callback: a 12%
+scale emphasis and brighter ring, with no additional mesh or draw call. Reduced
+motion uses an immediate brightness change only. Touch pointers skip hover.
+Hit targets now cover the wider illustrations and retain the drag guard.
+
 ## Illustration batching (2026-09-10)
 
 The five case-specific illustrations use one static block instance batch per
