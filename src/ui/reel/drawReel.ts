@@ -45,6 +45,15 @@ export const REEL_COPY: readonly string[] = [
   "8%",
 ];
 
+/**
+ * Warms the memos (glyph metrics, background bitmap) so the first animated frame
+ * does not pay for them. Call once, after the fonts have loaded.
+ */
+export function prepareReel(ctx: CanvasRenderingContext2D): void {
+  getBackground(ctx.canvas.width, ctx.canvas.height);
+  getMetrics(ctx);
+}
+
 /** Section 2.1: contain the 1920 x 1080 stage, never upscaled past 1x. */
 export function stageTransform(width: number, height: number): { s: number; ox: number; oy: number } {
   const s = Math.min(1, width / 1280, height / 720);
@@ -98,6 +107,25 @@ function endClip(fr: Frame) {
   fr.font = fr.ctx.font;
   fr.fill = fr.ctx.fillStyle as string;
 }
+
+/**
+ * M_ABOVE: from the mask top down to y1, except the RESUME corner, where the
+ * top drops to resumeY1. Pair with endClip.
+ */
+function clipAbove(fr: Frame, y1: number) {
+  const c = fr.ctx;
+  c.save();
+  c.beginPath();
+  c.rect(fr.vx0, L.aboveY0, L.resumeX0 - fr.vx0, y1 - L.aboveY0);
+  c.rect(L.resumeX0, L.resumeY1, fr.vx1 - L.resumeX0, y1 - L.resumeY1);
+  c.clip();
+}
+
+/**
+ * Bottom of the rising-copy clip for a glyph dy px below rest: the datum while it
+ * rises, opening to the descender allowance over its last 4 px of travel.
+ */
+const aboveFloor = (dy: number) => DATUM_Y + L.descender * clamp(1 - dy / 4, 0, 1);
 
 /** Carried text: drawn from a cached reference size under a scale about (x, baseline). */
 function scaledText(fr: Frame, s: string, x: number, y: number, k: number) {
@@ -195,7 +223,7 @@ function drawLogo(fr: Frame) {
   } else if (tt > TL.logoHome[0]) {
     const e = inOutQuint(seg(tt, TL.logoHome[0], TL.logoHome[1]));
     x = lerp(M.x, H.x, e);
-    y = lerp(M.y, H.y, e);
+    y = lerp(M.y, H.y, e) + L.logoHomeArc * Math.sin(Math.PI * e);
     size = logLerp(M.size, H.size, e);
   }
   const paths = getLogo();
@@ -353,11 +381,9 @@ function drawCounterNumerals(fr: Frame) {
     setFont(fr, FONT.counter);
     setFill(fr, T.mauve);
     drawOdometer(fr.ctx, o, L.counterX[i], DATUM_Y + dy, value, bounce);
-    const s0 = at + TL.counterSuffixDelay;
-    if (tt >= s0) {
-      const sdy = rise(L.riseD, seg(tt, s0, s0 + TL.counterSuffixDur)) + out;
-      drawStatics(fr.ctx, o, L.counterX[i], DATUM_Y + sdy);
-    }
+    // The suffix is a static glyph of the final string, so it rides with the
+    // numerals and each counter reads whole the moment it lands.
+    drawStatics(fr.ctx, o, L.counterX[i], DATUM_Y + dy);
   }
 }
 
@@ -424,13 +450,17 @@ function drawProductAbove(fr: Frame, k: number) {
   const c = fr.ctx;
   if (u >= TL.nameInU[0] && u <= ux + TL.rollOut) {
     const dy = rise(L.riseD, seg(u, TL.nameInU[0], TL.nameInU[1])) + rollOut(seg(u, ux, ux + TL.rollOut));
+    clipAbove(fr, aboveFloor(dy));
     setFont(fr, FONT.product);
     setFill(fr, T.text);
     c.fillText(p.title, L.productNameX, DATUM_Y + dy);
+    endClip(fr);
   }
   const fx = ux + TL.figureOutDelay;
-  if (u >= TL.figureInU[0] && u <= fx + TL.rollOut) {
-    const dy = rise(L.riseD, seg(u, TL.figureInU[0], TL.figureInU[1])) + rollOut(seg(u, fx, fx + TL.rollOut));
+  const fin = p.from === 0 ? TL.figureInZeroU : TL.figureInU;
+  if (u >= fin[0] && u <= fx + TL.rollOut) {
+    const dy = rise(L.riseD, seg(u, fin[0], fin[1])) + rollOut(seg(u, fx, fx + TL.rollOut));
+    clipAbove(fr, aboveFloor(dy));
     setFont(fr, FONT.figure);
     setFill(fr, p.ink);
     drawOdometer(c, p.figure, p.figureX, DATUM_Y + dy, figureValue(p, u), 0);
@@ -439,6 +469,7 @@ function drawProductAbove(fr: Frame, k: number) {
       setFont(fr, FONT.figureSmall);
       c.fillText(p.small, p.smallX, DATUM_Y + dy);
     }
+    endClip(fr);
   }
 }
 
@@ -461,16 +492,35 @@ function drawProductBelow(fr: Frame, k: number) {
   }
 }
 
-/** FILE: the phrase carries into its ledger row (unclipped). */
+/**
+ * FILE: the phrase carries into its ledger row. It shrinks and shifts early and
+ * descends late, so it is row sized and clear of the CTA before it reaches the
+ * ledger, and it passes behind the rows already filed rather than over them.
+ */
 function drawPhraseFile(fr: Frame, k: number) {
   const u = fr.t - productStart(k);
   const ux = exitU(k);
   if (u <= ux || u >= ux + TL.fileDur) return;
   const p = fr.m.products[k];
-  const e = inOutCubic(seg(u, ux, ux + TL.fileDur));
+  const q = seg(u, ux, ux + TL.fileDur);
+  const ex = outCubic(q);
+  const ey = inOutCubic(q);
+  const c = fr.ctx;
+  const occlude = k > 0;
+  if (occlude) {
+    // Everything except the band of filed rows (even-odd: the band is a hole).
+    const y0 = ledgerBaseline(0) - L.ledgerPitch + L.rowMaskPad;
+    const y1 = ledgerBaseline(k - 1) + L.rowMaskPad;
+    c.save();
+    c.beginPath();
+    c.rect(fr.vx0, fr.vy0, fr.vx1 - fr.vx0, fr.vy1 - fr.vy0);
+    c.rect(fr.vx0, y0, fr.vx1 - fr.vx0, y1 - y0);
+    c.clip("evenodd");
+  }
   setFont(fr, FONT.phrase);
   setFill(fr, p.ink);
-  scaledText(fr, p.phrase, lerp(L.productNameX, p.phraseX, e), lerp(L.phraseBaseline, p.ledgerY, e), logLerp(SIZE.phrase, SIZE.ledger, e) / SIZE.phrase);
+  scaledText(fr, p.phrase, lerp(L.productNameX, p.phraseX, ex), lerp(L.phraseBaseline, p.ledgerY, ey), logLerp(SIZE.phrase, SIZE.ledger, ex) / SIZE.phrase);
+  if (occlude) endClip(fr);
 }
 
 function strokeInside(fr: Frame, x0: number, y0: number, x1: number, y1: number, color: string) {
@@ -761,13 +811,14 @@ export function drawReel(ctx: CanvasRenderingContext2D, t: number, width: number
   // Charts stand on the line inside M_CHART.
   for (let k = 0; k < PRODUCTS.length; k++) drawChart(fr, k);
 
-  // M_ABOVE: copy that rises out of the datum.
+  // M_ABOVE: copy that rises out of the datum. The name and the counters have
+  // no descenders and are cut at the line; products clip per element.
   if (tt < productStart(PRODUCTS.length - 1) + exitU(PRODUCTS.length - 1) + 0.3) {
-    clipBox(fr, fr.vx0, L.aboveY0, fr.vx1, L.aboveY1);
+    clipAbove(fr, DATUM_Y);
     drawNameRise(fr);
     drawCounterNumerals(fr);
-    for (let k = 0; k < PRODUCTS.length; k++) drawProductAbove(fr, k);
     endClip(fr);
+    for (let k = 0; k < PRODUCTS.length; k++) drawProductAbove(fr, k);
 
     // M_BELOW: copy that hangs from the datum.
     clipBox(fr, fr.vx0, L.belowY0, fr.vx1, L.belowY1);

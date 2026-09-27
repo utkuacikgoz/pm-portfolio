@@ -27,10 +27,12 @@ export function drawOdometer(ctx: CanvasRenderingContext2D, o: Odo, x0: number, 
   const moving = bounce !== 0 || v !== rv;
   const size = o.size;
   if (moving) {
-    // Cap band only: vertical clip, never horizontal.
+    // Cap band only: vertical clip, never horizontal. It ends 2 px under the
+    // baseline (the datum's thickness), so an incoming digit never shows as a
+    // bar below the line.
     ctx.save();
     ctx.beginPath();
-    ctx.rect(-1e5, baseline - 0.86 * size, 2e5, 0.98 * size);
+    ctx.rect(-1e5, baseline - 0.86 * size, 2e5, 0.86 * size + 2);
     ctx.clip();
   }
   const places = o.digits.length;

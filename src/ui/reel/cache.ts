@@ -98,7 +98,7 @@ const TAGLINE_SEP = " · ";
  * Only rows with a choreographed figure are taken, so publishing a sixth project
  * cannot crash the hero; the registry test is what fails loudly instead.
  */
-export const PRODUCTS = PUBLISHED_PROJECTS.filter((p) => p.id in FIGURES).map((p) => {
+export const PRODUCTS = PUBLISHED_PROJECTS.filter((p) => Object.hasOwn(FIGURES, p.id)).map((p) => {
   const cut = p.tagline.indexOf(TAGLINE_SEP);
   return {
     id: p.id,
@@ -201,9 +201,27 @@ export interface Metrics {
 
 let metricsMemo: Metrics | null = null;
 
-/** Built once, on the first drawReel call (fonts are loaded by then). */
+/**
+ * True once the face the reel measures is usable. Metrics measured against the
+ * fallback font would be kept for the session, so they are only memoized after.
+ */
+function fontsReady(): boolean {
+  if (typeof document === "undefined" || !document.fonts) return true;
+  return document.fonts.check(`800 100px "Plus Jakarta Sans"`) && document.fonts.check(`400 22px "Plus Jakarta Sans"`);
+}
+
+/**
+ * Built once, after the fonts load. The caller is expected to gate on the fonts
+ * (and warm this with prepareReel); an early call measures but does not memoize.
+ */
 export function getMetrics(ctx: CanvasRenderingContext2D): Metrics {
   if (metricsMemo) return metricsMemo;
+  const metrics = measureAll(ctx);
+  if (fontsReady()) metricsMemo = metrics;
+  return metrics;
+}
+
+function measureAll(ctx: CanvasRenderingContext2D): Metrics {
   const savedFont = ctx.font;
   const L = LAYOUT;
 
@@ -268,7 +286,7 @@ export function getMetrics(ctx: CanvasRenderingContext2D): Metrics {
   });
 
   ctx.font = savedFont;
-  metricsMemo = {
+  return {
     nameRun,
     nameFitX,
     mastX,
@@ -285,7 +303,6 @@ export function getMetrics(ctx: CanvasRenderingContext2D): Metrics {
     chipTarget,
     products,
   };
-  return metricsMemo;
 }
 
 // ---------------------------------------------------------------------------

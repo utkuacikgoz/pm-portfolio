@@ -35,13 +35,11 @@ export const TIMELINE = {
   titleDock2: [3.04, 3.39] as Span,
   counterRise: [3.25, 3.3, 3.35] as const,
   counterRiseDur: 0.3,
-  counterLand: [3.75, 3.875, 4.0] as const,
-  counterSuffixDelay: 0.05,
-  counterSuffixDur: 0.25,
+  counterLand: [3.6, 3.66, 3.72] as const,
   landDur: 0.18,
   tickDur: 0.12,
   labelDur: 0.3,
-  counterExit: [4.4, 4.44, 4.48] as const,
+  counterExit: [4.28, 4.31, 4.34] as const, // clear of M_CHART before BiLira enters at u 0.04
 
   // Shared motion primitive durations
   rollOut: 0.18,
@@ -54,9 +52,14 @@ export const TIMELINE = {
   knifeU: [-0.3, 0] as Span,
   nameInU: [0, 0.32] as Span,
   figureInU: [0.04, 0.36] as Span,
+  // A figure that starts at zero waits for its chart to move, so no frame reads "$0M".
+  figureInZeroU: [0.2, 0.52] as Span,
   chartInU: [0.04, 0.36] as Span,
-  categoryInU: [0.06, 0.34] as Span,
-  phraseInU: [0.1, 0.38] as Span,
+  // The phrase hangs first and the category follows it: both drop the same
+  // distance, so the lower line leading keeps them from sharing a band, and both
+  // wait until the name is within a few px of the datum.
+  categoryInU: [0.18, 0.46] as Span,
+  phraseInU: [0.16, 0.44] as Span,
   figureOutDelay: 0.04,
   chartOutDelay: 0.02,
   fileDur: 0.38,
@@ -68,7 +71,7 @@ export const TIMELINE = {
 
   // Per-product chart choreography (u)
   biliraScanU: [0.25, 0.5] as Span,
-  biliraCutU: [0.5, 0.5 + 1 / 60] as Span, // exactly one 60 fps frame
+  biliraCutU: [0.5, 0.5 + 0.5 / 60] as Span, // exactly one 60 fps frame (half a frame keeps rounding out)
   biliraSliceU: [0.5, 0.68] as Span,
   mestoresGrowU: [0.5, 0.85] as Span,
   apolloBlock1U: [0.25, 0.5] as Span,
@@ -84,8 +87,10 @@ export const TIMELINE = {
   ledgerFoldDur: 0.2,
   logoHome: [12.75, 13.25] as Span,
   eyebrowHome: [12.77, 13.27] as Span,
-  h1Home1: [12.79, 13.29] as Span,
-  h1Home2: [12.81, 13.31] as Span,
+  // Line 2 leaves first so its baseline has dropped away before line 1 grows
+  // into the space it held on the masthead's single line.
+  h1Home1: [12.88, 13.38] as Span,
+  h1Home2: [12.7, 13.2] as Span,
   datumContract: [12.75, 13.25] as Span,
 
   // Shot 11: proof lands, datum hands off
@@ -113,7 +118,12 @@ export const LAYOUT = {
 
   // Masks (section 2.2)
   aboveY0: 240,
-  aboveY1: 567,
+  // Moving copy is cut at the datum; descenders unfold below it only as a
+  // glyph settles (up to 26 px).
+  descender: 26,
+  // M_ABOVE never reaches into the RESUME link's corner.
+  resumeX0: 1340,
+  resumeY1: 300,
   chartX0: 820,
   chartX1: 1100,
   chartY0: 240,
@@ -124,6 +134,7 @@ export const LAYOUT = {
   // Logo slots (top left and size, virtual px)
   logoHero: { x: 932, y: 265.1, size: 56 },
   logoMast: { x: 320, y: 188, size: 36 },
+  logoHomeArc: -80, // the flight home arcs over the masthead text
 
   // Shot 1 name
   nameX: 320,
@@ -139,9 +150,9 @@ export const LAYOUT = {
 
   // Title (shot 2)
   titleX: 320,
-  title1Baseline: 384,
+  title1Baseline: 414, // cap tops stay below the RESUME keep-out (y 300)
   title2Baseline: 541,
-  title1Bands: [270, 308, 346, 392] as const,
+  title1Bands: [300, 338, 376, 422] as const,
   title2Bands: [427, 465, 503, 580] as const,
   bandOffset: 240,
 
@@ -157,8 +168,8 @@ export const LAYOUT = {
   productNameX: 320,
   figureRight: 1600,
   figureSmallGap: 8,
-  categoryBaseline: 587,
-  phraseBaseline: 633,
+  categoryBaseline: 593,
+  phraseBaseline: 639,
   knifeW: 200,
   knifeY: 540,
   knifeH: 4,
@@ -196,7 +207,7 @@ export const LAYOUT = {
   proofSuffixRise: 28,
 
   // Shot 11 datum hand-off
-  dropY: 730,
+  dropY: 728, // the 2 px line's bottom lands on the CTA keep-out's top edge
   ctaLineY: 756,
   ctaX0: 831,
   ctaX1: 1089,
