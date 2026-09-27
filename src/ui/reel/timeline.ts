@@ -198,10 +198,10 @@ export const LAYOUT = {
   heroLineCenter: 960,
   heroLineBaselines: [604.3, 640.6] as const,
   proofBaseline: 711.9,
-  proofX: [652.5, 874, 1118.5] as const,
+  proofX: [661, 876.1, 1113.8] as const, // DOM span lefts, re-measured 2026-09-27
   proofTracking: 0.5,
-  proofLabelX: [704, 971.5, 1161.5] as const,
-  proofDotX: [847, 1091.5] as const,
+  proofLabelX: [711.1, 972.5, 1158.2] as const,
+  proofDotX: [849, 1086.6] as const,
   proofDotBaseline: 708.1,
   proofSuffixClipY: 716.9,
   proofSuffixRise: 28,

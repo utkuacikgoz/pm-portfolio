@@ -277,6 +277,21 @@ rectangle, and a barrel that rendered as a wall.
    `published`" as the extensibility contract, and making unpublished content
    lazy is a change to that contract, not a cleanup.
 
+## Entry reel (2026-09-27)
+
+The rocket entrance measured below is gone. The hero now plays a Canvas2D reel
+(`src/ui/reel/`) once per session. Its budget, measured over all 900 frames at
+1920x1080: p95 **0.2 ms** of JS per frame, max 4.3 ms, no per-frame allocation
+of gradients, paths or font strings (the background bitmap and glyph metrics
+are memoized once the fonts load; `prepareReel` warms them before frame one).
+Once it reaches t = 15 the rAF loop stops and the canvas holds its last paint,
+so the resting hero costs nothing. The module is a lazy chunk (24.6 KB raw /
+9.4 KB gzip) that imports only the entry chunk: `grep -c 'three-'` on it must
+stay 0 like everything else on this path.
+
+The CSS invariant below still governs the one loop left on the hero, the CTA's
+`ctaGlow` overlay.
+
 ## Hero animation invariant (measured 2026-08-22)
 
 **No infinite animation on the hero may touch `text-shadow`, `box-shadow`,

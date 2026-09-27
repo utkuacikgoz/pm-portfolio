@@ -14,13 +14,14 @@ import type { Metrics, ProductMetrics } from "./cache";
 import { clamp, inCubic, inOutCubic, inOutQuint, land, lerp, logLerp, outBack, outCubic, outExpo, outQuart, seg } from "./ease";
 import { drawOdometer, drawStatics } from "./odometer";
 import { CHART, DATUM_Y, LAYOUT as L, TIMELINE as TL, ledgerBaseline, productStart } from "./timeline";
+import { stageTransform } from "./stage";
 
 export { TIMELINE, LAYOUT } from "./timeline";
+export { CTA_STAGE, stageTransform } from "./stage";
 
 export const REEL_DURATION = TL.duration;
 export const REEL_REST = TL.rest;
 export const SKIP_TARGET = TL.skip;
-export const CTA_STAGE = { cx: 960, cy: 787.4, w: 258, h: 55 } as const;
 
 /** Every visible string the reel paints (section 8), for the house-style test. */
 export const REEL_COPY: readonly string[] = [
@@ -54,11 +55,6 @@ export function prepareReel(ctx: CanvasRenderingContext2D): void {
   getMetrics(ctx);
 }
 
-/** Section 2.1: contain the 1920 x 1080 stage, never upscaled past 1x. */
-export function stageTransform(width: number, height: number): { s: number; ox: number; oy: number } {
-  const s = Math.min(1, width / 1280, height / 720);
-  return { s, ox: width / 2 - 960 * s, oy: height / 2 - 540 * s };
-}
 
 // ---------------------------------------------------------------------------
 // Frame plumbing

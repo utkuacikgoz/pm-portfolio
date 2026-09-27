@@ -1,75 +1,213 @@
-import { Fragment, useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePrefersReducedMotion } from "./hooks/useReducedMotion";
-import Rocket from "./Rocket";
+import { CTA_STAGE, stageTransform } from "./reel/stage";
 import { T, TYPE } from "../theme";
 
-// The headline, one array per rendered line. Split into words so each one can be
-// blown out of the nozzle on its own beat instead of the line arriving as a slab.
-const HEADLINE = ["Senior Technical", "Product Manager"].map((line) => line.split(" "));
-const HEADLINE_START = 0.48;
-const WORD_STAGGER = 0.06;
-// The looping heat pulse runs on its own clock, shared by every word, so the
-// wave stays coherent instead of inheriting the reading-order entry stagger.
-const HEAT_START = 1.3;
-const HEAT_STAGGER = 0.15;
+type Reel = typeof import("./reel/drawReel");
 
-/** Launch order: the rocket arrives, the exhaust paints, the words land in it. */
-const wordDelay = (lineIndex: number, wordIndex: number) => {
-  const before = HEADLINE.slice(0, lineIndex).reduce((n, words) => n + words.length, 0);
-  return HEADLINE_START + (before + wordIndex) * WORD_STAGGER;
+/**
+ * "static": the plain DOM hero (a return visit this session, reduced motion,
+ * or the fonts/reel did not arrive in time). "loading": the reel is on its way
+ * and the canvas holds the background. "playing": the canvas owns the frame,
+ * through the 15 s reel and then as the resting hero.
+ */
+type Phase = "static" | "loading" | "playing";
+
+const SEEN_KEY = "reel:seen";
+const FONT_TIMEOUT_MS = 1500;
+const REEL_FONTS = ["400 22px", "600 28px", "700 20px", "800 100px"];
+const MAX_STEP_MS = 50;
+const SKIP_SPEED = 2;
+
+// One attempt per page load even if sessionStorage is unavailable.
+let attempted = false;
+
+function seenThisSession(): boolean {
+  try {
+    return sessionStorage.getItem(SEEN_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function markSeen() {
+  try {
+    sessionStorage.setItem(SEEN_KEY, "1");
+  } catch {
+    // Storage blocked: `attempted` still keeps it to once per load.
+  }
+}
+
+/** The reel needs the Font Loading API and a 2D canvas (jsdom has neither). */
+function canPlay(): boolean {
+  return typeof document !== "undefined" && "fonts" in document && typeof HTMLCanvasElement !== "undefined";
+}
+
+/** Visually hidden, still read by screen readers and crawlers. */
+const SR_ONLY: React.CSSProperties = {
+  position: "absolute",
+  width: 1,
+  height: 1,
+  margin: -1,
+  padding: 0,
+  overflow: "hidden",
+  clip: "rect(0 0 0 0)",
+  whiteSpace: "nowrap",
+  border: 0,
 };
 
 /**
- * Heat delay by COLUMN, not reading order: the exhaust blows right to left, so
- * the word nearest the nozzle catches the pulse first and it rolls back up the
- * line. Both headline lines are the same distance from the engine, so they
- * catch it together.
- */
-const heatDelay = (wordIndex: number, wordCount: number) =>
-  HEAT_START + (wordCount - 1 - wordIndex) * HEAT_STAGGER;
-
-/**
- * Opening identity beat. Pure DOM: no Canvas is mounted behind it, by design
- * (see CLAUDE.md, entrance flow), so three.js only downloads once someone
- * commits to entering. "Begin" mounts the world at its wide establishing shot
- * and flies the camera down into it. The resume escape hatch is always one
- * click away.
+ * Opening identity beat. The first visit of a session plays "The Datum", a
+ * 15 s Canvas2D reel (src/ui/reel) that states the name, the title, the proof
+ * and the five products with their real numbers, then comes to rest as this
+ * exact hero. It is the pitch, not a gate: ENTER and RESUME are live from the
+ * first frame, and SKIP, Esc or a click on the stage cut to the summary.
  *
- * The entrance is staged as a launch: a flat-shaded rocket (`Rocket`, SVG) flies
- * in from off-screen, settles beside the headline and holds station under power,
- * and the name and title are deposited in its exhaust. They enter smeared toward
- * the engine and sharpen as the plume settles, so the identity reads as
- * something the rocket left behind rather than text that faded in next to it.
- * All CSS and SVG: see the "Hero launch" block in `index.css`.
+ * The canvas is 2D, never WebGL, so three.js still only downloads once someone
+ * commits to entering (CLAUDE.md, entrance flow), and the reel module itself is
+ * fetched in parallel with the fonts rather than riding in the entry chunk.
+ *
+ * The DOM copy below is always rendered. While the canvas owns the frame it is
+ * visually hidden, so the heading, the line and the stats stay the page's real
+ * semantics for screen readers and for the prerendered no-JS page.
  */
 export default function HeroIntro({ onBegin }: { onBegin: () => void }) {
   const reduced = usePrefersReducedMotion();
-  // Stagger helper: each element rises in, unless reduced-motion (then static).
+  const [phase, setPhase] = useState<Phase>(() =>
+    reduced || attempted || !canPlay() || seenThisSession() ? "static" : "loading",
+  );
+  // True once the reel reaches its resting frame: hides SKIP, starts the CTA breathe.
+  const [atRest, setAtRest] = useState(false);
+  const [stage, setStage] = useState(() => stageTransform(window.innerWidth, window.innerHeight));
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const reelRef = useRef<Reel | null>(null);
+  const skipRef = useRef<() => void>(() => {});
+
+  // Reduced motion switched on mid-reel: drop to the static hero.
+  useEffect(() => {
+    if (reduced && phase !== "static") setPhase("static");
+  }, [reduced, phase]);
+
+  // Fonts first, raced against a timeout. Measuring the fallback face would put
+  // every glyph in the wrong place, so a miss means the static hero, never a
+  // reel in the wrong font.
+  useEffect(() => {
+    if (phase !== "loading") return;
+    attempted = true;
+    let cancelled = false;
+    let timer = 0;
+    const timeout = new Promise<never>((_, reject) => {
+      timer = window.setTimeout(() => reject(new Error("reel fonts timed out")), FONT_TIMEOUT_MS);
+    });
+    const ready = Promise.all([
+      import("./reel/drawReel"),
+      ...REEL_FONTS.map((f) => document.fonts.load(`${f} "Plus Jakarta Sans"`)),
+    ]);
+    Promise.race([ready, timeout])
+      .then(([reel]) => {
+        if (cancelled) return;
+        reelRef.current = reel;
+        markSeen();
+        setPhase("playing");
+      })
+      .catch(() => {
+        if (!cancelled) setPhase("static");
+      })
+      .finally(() => clearTimeout(timer));
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [phase]);
+
+  // The DOM button rides on the stage, so it tracks the viewport like the canvas.
+  useEffect(() => {
+    if (phase === "static") return;
+    const onResize = () => setStage(stageTransform(window.innerWidth, window.innerHeight));
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, [phase]);
+
+  // The clock. Deltas are capped, so a backgrounded tab resumes where it left
+  // off instead of jumping ahead.
+  useEffect(() => {
+    if (phase !== "playing") return;
+    const canvas = canvasRef.current;
+    const reel = reelRef.current;
+    const ctx = canvas?.getContext("2d", { alpha: false });
+    if (!canvas || !reel || !ctx) {
+      setPhase("static");
+      return;
+    }
+    let w = 0;
+    let h = 0;
+    const fit = () => {
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      w = window.innerWidth;
+      h = window.innerHeight;
+      canvas.width = Math.round(w * dpr);
+      canvas.height = Math.round(h * dpr);
+    };
+    fit();
+    reel.prepareReel(ctx);
+
+    let t = 0;
+    let speed = 1;
+    let last = -1;
+    let raf = 0;
+    let rested = false;
+    const paint = () => {
+      reel.drawReel(ctx, t, w, h);
+      if (!rested && t >= reel.REEL_REST) {
+        rested = true;
+        setAtRest(true);
+      }
+    };
+    const frame = (now: number) => {
+      if (last >= 0) t = Math.min(reel.REEL_DURATION, t + (Math.min(MAX_STEP_MS, now - last) / 1000) * speed);
+      last = now;
+      paint();
+      raf = t < reel.REEL_DURATION ? requestAnimationFrame(frame) : 0;
+    };
+    raf = requestAnimationFrame(frame);
+
+    // First skip cuts to the complete ledger and plays the resolve at 2x; a
+    // second one lands on the resting frame.
+    skipRef.current = () => {
+      if (t >= reel.REEL_DURATION) return;
+      if (speed > 1) t = reel.REEL_DURATION;
+      else {
+        t = Math.max(t, reel.SKIP_TARGET);
+        speed = SKIP_SPEED;
+      }
+      if (!raf) paint();
+    };
+    // Enter, Space and Tab stay with the focused CTA; only Escape skips.
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") skipRef.current();
+    };
+    const onResize = () => {
+      fit();
+      if (!raf) paint();
+    };
+    window.addEventListener("keydown", onKey);
+    window.addEventListener("resize", onResize);
+    return () => {
+      cancelAnimationFrame(raf);
+      skipRef.current = () => {};
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("resize", onResize);
+    };
+  }, [phase]);
+
+  const onStage = phase !== "static";
+  const animate = !reduced && !onStage;
   const rise = (delay: number): React.CSSProperties =>
-    reduced ? {} : { animation: `heroRise .7s cubic-bezier(.22,.61,.36,1) both`, animationDelay: `${delay}s` };
-  // The identity lines get the exhaust treatment instead: a horizontal smear out
-  // of the nozzle that decelerates into place, and then a heat pulse that keeps
-  // washing over them for as long as the engine is lit. Two animations, two
-  // clocks: `exhaustIn` fills forward and `wordHeat` takes the properties over
-  // from the same resting values, so the handover is invisible.
-  const exhaust = (delay: number, heat: number): React.CSSProperties =>
-    reduced
-      ? {}
-      : {
-          animation:
-            `exhaustIn .8s cubic-bezier(.16,.84,.3,1) ${delay}s both, ` +
-            `wordShift 2.2s ease-in-out ${heat}s infinite`,
-          transformOrigin: "right center",
-          // Read by `.hero-word::after`, which an inline style cannot reach.
-          "--glow-delay": `${heat}s`,
-        } as React.CSSProperties;
-  // The hot half of the pulse renders as `.hero-word::after` (index.css), which
-  // reads the word off `data-word` and fades its own opacity. A pseudo-element
-  // rather than a twin span so the glow's text never lands in the heading's
-  // `textContent`. The per-word delay has to travel as a custom property because
-  // an inline style cannot address a pseudo-element.
-  const glow = (text: string) =>
-    reduced ? { className: "hero-word is-static" } : { className: "hero-word", "data-word": text };
+    animate ? { animation: `heroRise .7s cubic-bezier(.22,.61,.36,1) both`, animationDelay: `${delay}s` } : {};
+  const hidden = onStage ? SR_ONLY : null;
+  const ctaGlow = reduced || (onStage && !atRest) ? undefined : `ctaGlow 2.8s ease-in-out ${onStage ? 0 : 1.8}s infinite`;
+
+  const cta = <MagneticCTA reduced={reduced} onClick={onBegin} glow={ctaGlow} rise={onStage ? undefined : rise(0.9)} />;
 
   return (
     <div
@@ -85,80 +223,45 @@ export default function HeroIntro({ onBegin }: { onBegin: () => void }) {
         justifyContent: "center",
         textAlign: "center",
         padding: 24,
-        // The rocket starts off-screen left; clip it rather than letting the
-        // flight path widen the page.
         overflow: "hidden",
         // Entrance stays black (Utku's call): opaque black base with a faint
-        // coral/periwinkle glow (logo palette). The dusk world is revealed only
-        // after entering dives the camera in.
+        // coral/periwinkle glow (logo palette). The reel paints this same
+        // recipe (src/ui/reel/cache.ts), so the hand-over is invisible.
         background: `radial-gradient(120% 80% at 50% 8%, ${T.entranceGlow.coral}, transparent 46%), radial-gradient(120% 80% at 50% 100%, ${T.entranceGlow.blue}, transparent 52%), radial-gradient(circle at 50% 42%, ${T.inkRaised} 0%, ${T.ink} 62%, #0C0A09 100%)`,
         textShadow: "0 2px 24px rgba(0,0,0,0.85), 0 1px 3px rgba(0,0,0,0.9)",
       }}
     >
-      <img src="/utku-logo.svg" alt="" width={56} height={56} style={{ marginBottom: 26, ...rise(0) }} />
+      {onStage && (
+        <canvas
+          ref={canvasRef}
+          aria-hidden
+          onPointerDown={() => skipRef.current()}
+          style={{ position: "fixed", inset: 0, width: "100%", height: "100%", display: "block" }}
+        />
+      )}
 
-      <div className="hero-identity">
-        <Exhaust reduced={reduced} />
-        <div className="hero-identity-copy">
-          <p
-            {...glow("UTKU ACIKGOZ")}
-            style={{
-              letterSpacing: 5,
-              fontSize: TYPE.small,
-              fontWeight: 700,
-              color: T.textMuted,
-              marginBottom: 16,
-              ...exhaust(0.4, HEAT_START + HEAT_STAGGER * 2),
-            }}
-          >
-            UTKU ACIKGOZ
-          </p>
-          <h1 style={{ fontSize: "clamp(40px, 8vw, 82px)", fontWeight: 900, lineHeight: 1.05 }}>
-            {HEADLINE.map((words, lineIndex) => (
-              <Fragment key={words.join(" ")}>
-                {/* The two lines are block spans sitting flush against each
-                    other, so without this the heading's text content reads
-                    "Senior TechnicalProduct Manager". Invisible in a block
-                    layout, correct to a crawler. */}
-                {lineIndex > 0 && " "}
-                <span style={{ display: "block" }}>
-                {words.map((word, wordIndex) => (
-                  <Fragment key={word}>
-                    {/* A real space, so the heading's text content still reads
-                        "Senior Technical Product Manager" to a crawler. */}
-                    {wordIndex > 0 && " "}
-                    <span
-                      {...glow(word)}
-                      style={{
-                        display: "inline-block",
-                        ...exhaust(wordDelay(lineIndex, wordIndex), heatDelay(wordIndex, words.length)),
-                      }}
-                    >
-                      {word}
-                    </span>
-                  </Fragment>
-                  ))}
-                </span>
-              </Fragment>
-            ))}
-          </h1>
-        </div>
-        <div className="hero-rocket-anchor" aria-hidden>
-          {/* Two nested wrappers: the flight and the station-keeping hover both
-              animate `transform`, and one element can only be driven by one. */}
-          <div style={reduced ? undefined : { animation: "rocketEnter 1s cubic-bezier(.16,.84,.3,1) .05s both" }}>
-            <div style={reduced ? undefined : { animation: "rocketHover 2.6s ease-in-out 1.05s infinite" }}>
-              <div style={reduced ? undefined : { animation: "rocketShudder .11s steps(2, end) 1.05s infinite alternate" }}>
-                <Rocket animated={!reduced} />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <img src="/utku-logo.svg" alt="" width={56} height={56} style={{ marginBottom: 26, ...rise(0), ...hidden }} />
+      <p
+        style={{
+          letterSpacing: 5,
+          fontSize: TYPE.small,
+          fontWeight: 700,
+          color: T.textMuted,
+          marginBottom: 16,
+          ...rise(0.1),
+          ...hidden,
+        }}
+      >
+        UTKU ACIKGOZ
+      </p>
+      <h1 style={{ fontSize: "clamp(40px, 8vw, 82px)", fontWeight: 900, lineHeight: 1.05, ...rise(0.2), ...hidden }}>
+        {/* Block spans for the two lines, with a real space between them so the
+            heading's text content reads "Senior Technical Product Manager". */}
+        <span style={{ display: "block" }}>Senior Technical</span>{" "}
+        <span style={{ display: "block" }}>Product Manager</span>
+      </h1>
 
-      {/* One supporting line, not three. With the sub-line and the second resume
-          link gone, everything below the headline gets more air and the CTA is
-          the only thing asking to be clicked. */}
+      {/* One supporting line, not three: the CTA is the only thing asking to be clicked. */}
       <p
         style={{
           fontSize: "clamp(17px, 2.8vw, 22px)",
@@ -167,112 +270,63 @@ export default function HeroIntro({ onBegin }: { onBegin: () => void }) {
           maxWidth: 660,
           lineHeight: 1.65,
           ...rise(0.74),
+          ...hidden,
         }}
       >
         I lead teams building complex products, from fintech infrastructure to AI features for marketplaces.
       </p>
 
-      <ProofRow reduced={reduced} style={rise(0.82)} />
+      <ProofRow style={{ ...rise(0.82), ...hidden }} />
 
-      <MagneticCTA reduced={reduced} onClick={onBegin} delay={0.9} />
+      {onStage ? (
+        <div
+          style={{
+            position: "absolute",
+            left: stage.ox + CTA_STAGE.cx * stage.s,
+            top: stage.oy + CTA_STAGE.cy * stage.s,
+            transform: `translate(-50%, -50%) scale(${Math.max(stage.s, 0.85)})`,
+          }}
+        >
+          {cta}
+        </div>
+      ) : (
+        cta
+      )}
+
+      {phase === "playing" && !atRest && (
+        <button
+          type="button"
+          onClick={() => skipRef.current()}
+          style={{
+            position: "fixed",
+            right: 24,
+            bottom: 20,
+            fontSize: TYPE.small,
+            fontWeight: 800,
+            letterSpacing: 1,
+            color: T.textMuted,
+            background: "transparent",
+            border: `1px solid ${T.border}`,
+            padding: "8px 14px",
+            cursor: "pointer",
+            textShadow: "none",
+          }}
+        >
+          SKIP
+        </button>
+      )}
     </div>
   );
 }
 
-// ── Exhaust: the cone, its hot core, and the embers it sheds ──────────────────
-// Anchored off `--rocket-w` (index.css) so the plume always starts at the
-// nozzle, whatever size the rocket is rendering at.
-type Spark = {
-  y: number;
-  delay: number;
-  duration: number;
-  size: number;
-  width?: number;
-  distance?: number;
-  color: string;
-};
-
-// Fifteen on unrelated cycles and short lifetimes: dense enough that the stream
-// never visibly restarts, still only fifteen composited transforms. `width`
-// makes a spark a speed line rather than an ember.
-const SPARKS: Spark[] = [
-  { y: -46, delay: 0.9, duration: 1.05, size: 6, color: T.amber },
-  { y: -18, delay: 1.02, duration: 0.9, size: 4, width: 44, color: T.gold },
-  { y: 8, delay: 0.96, duration: 1.2, size: 5, color: T.coral },
-  { y: 34, delay: 1.14, duration: 0.85, size: 3, width: 56, color: T.amber },
-  { y: 58, delay: 1.08, duration: 1.35, size: 5, color: T.gold },
-  { y: -70, delay: 1.2, duration: 1.15, size: 4, distance: -660, color: T.coral },
-  { y: -6, delay: 1.26, duration: 0.72, size: 3, width: 34, color: T.text },
-  { y: 76, delay: 1.32, duration: 1.45, size: 4, color: T.amber },
-  { y: -92, delay: 1.44, duration: 1.25, size: 3, distance: -700, color: T.gold },
-  { y: 22, delay: 1.5, duration: 0.8, size: 3, width: 38, color: T.text },
-  { y: -34, delay: 1.62, duration: 1.1, size: 5, color: T.amber },
-  { y: 96, delay: 1.68, duration: 1.55, size: 3, distance: -420, color: T.coral },
-  { y: -110, delay: 1.8, duration: 1.3, size: 4, color: T.gold },
-  { y: 48, delay: 1.86, duration: 0.95, size: 4, width: 50, color: T.amber },
-  { y: -58, delay: 1.98, duration: 1.4, size: 3, distance: -740, color: T.text },
+// ── Proof metrics: recruiter-skimmable numbers ────────────────────────────────
+const STATS: { value: string; label: string }[] = [
+  { value: "11+", label: "products shipped" },
+  { value: "100K+", label: "users reached" },
+  { value: "8+", label: "years in product" },
 ];
 
-function Exhaust({ reduced }: { reduced: boolean }) {
-  // Paint owns transform and fills forward; the pulse takes over opacity once
-  // the plume is fully drawn. Two properties, so both animations can coexist.
-  const plume = reduced
-    ? undefined
-    : { animation: "plumePaint .9s cubic-bezier(.16,.84,.3,1) .28s both, plumePulse 2.1s ease-in-out 1.1s infinite" };
-
-  // Stripes scrolling back down the cone: the flow that never stops. The paint-on
-  // stays on the cone (it shares the plume's clock); the endless scroll lives on
-  // a child so it can be a composited transform instead of a per-frame repaint.
-  const flow = reduced
-    ? undefined
-    : { animation: "plumePaint .9s cubic-bezier(.16,.84,.3,1) .28s both" };
-  // The stripes live on this child so the loop can be a composited transform.
-  const stripes = reduced
-    ? undefined
-    : { animation: "plumeFlow var(--flow-secs) linear .8s infinite" };
-
-  return (
-    <div className="hero-exhaust" aria-hidden>
-      <div className="hero-plume" style={plume} />
-      <div className="hero-plume-flow" style={flow}>
-        <i style={stripes} />
-      </div>
-      {/* Second, finer sheet running faster over the first: the two shear
-          against each other, which is what stops the flow reading as one rigid
-          scrolling texture. */}
-      <div className="hero-plume-flow is-fine" style={flow}>
-        <i style={stripes} />
-      </div>
-      <div className="hero-plume-core" style={plume} />
-      {!reduced &&
-        SPARKS.map((spark) => (
-          <span
-            key={`${spark.y}-${spark.delay}`}
-            className="hero-spark"
-            style={
-              {
-                "--spark-y": `${spark.y}px`,
-                "--spark-size": `${spark.size}px`,
-                "--spark-w": spark.width ? `${spark.width}px` : undefined,
-                "--spark-dist": spark.distance ? `${spark.distance}px` : undefined,
-                "--spark-color": spark.color,
-                animation: `sparkDrift ${spark.duration}s ease-out ${spark.delay}s infinite`,
-              } as React.CSSProperties
-            }
-          />
-        ))}
-    </div>
-  );
-}
-
-// ── Proof metrics: recruiter-skimmable numbers that count up on entry ─────────
-const STATS: { n: number; suffix: string; label: string }[] = [
-  { n: 11, suffix: "+", label: "products shipped" },
-  { n: 100, suffix: "K+", label: "users reached" },
-  { n: 8, suffix: "+", label: "years in product" },
-];
-
-function ProofRow({ reduced, style }: { reduced: boolean; style: React.CSSProperties }) {
+function ProofRow({ style }: { style: React.CSSProperties }) {
   return (
     <div
       style={{
@@ -289,9 +343,7 @@ function ProofRow({ reduced, style }: { reduced: boolean; style: React.CSSProper
         <div key={s.label} style={{ display: "flex", alignItems: "center", gap: "8px 22px" }}>
           {i > 0 && <span aria-hidden style={{ color: T.border, fontSize: TYPE.lead }}>·</span>}
           <span style={{ display: "inline-flex", alignItems: "baseline", gap: 8 }}>
-            <span style={{ fontSize: TYPE.display, fontWeight: 900, color: T.mauve, letterSpacing: 0.5 }}>
-              <CountUp target={s.n} suffix={s.suffix} reduced={reduced} />
-            </span>
+            <span style={{ fontSize: TYPE.display, fontWeight: 900, color: T.mauve, letterSpacing: 0.5 }}>{s.value}</span>
             <span style={{ fontSize: TYPE.small, fontWeight: 600, color: T.textMuted }}>{s.label}</span>
           </span>
         </div>
@@ -300,47 +352,23 @@ function ProofRow({ reduced, style }: { reduced: boolean; style: React.CSSProper
   );
 }
 
-// Counts up by writing textContent directly (no per-frame React re-render, so
-// the world Canvas behind stays smooth during the intro).
-function CountUp({ target, suffix, reduced }: { target: number; suffix: string; reduced: boolean }) {
-  const ref = useRef<HTMLSpanElement>(null);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    if (reduced) {
-      el.textContent = `${target}${suffix}`;
-      return;
-    }
-    let raf = 0;
-    const start = performance.now();
-    const dur = 1100;
-    const tick = (now: number) => {
-      const t = Math.min(1, (now - start) / dur);
-      const eased = 1 - Math.pow(1 - t, 3); // easeOutCubic
-      el.textContent = `${Math.round(target * eased)}${suffix}`;
-      if (t < 1) raf = requestAnimationFrame(tick);
-    };
-    el.textContent = `0${suffix}`;
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [target, suffix, reduced]);
-  return <span ref={ref}>{`${reduced ? target : 0}${suffix}`}</span>;
-}
-
 // ── CTA: neon breathe + subtle magnetic pull toward the pointer ───────────────
 function MagneticCTA({
   reduced,
   onClick,
-  delay,
+  glow,
+  rise,
 }: {
   reduced: boolean;
   onClick: () => void;
-  delay: number;
+  glow: string | undefined;
+  rise: React.CSSProperties | undefined;
 }) {
   const ref = useRef<HTMLButtonElement>(null);
 
   // Magnetic pull written straight to the node's transform — no state, no
-  // re-render per pointer move.
+  // re-render per pointer move. On the stage, the wrapper owns placement and
+  // scale, so the two transforms never fight.
   const onMove = (e: React.PointerEvent) => {
     if (reduced || e.pointerType === "touch" || !ref.current) return;
     const r = ref.current.getBoundingClientRect();
@@ -354,14 +382,6 @@ function MagneticCTA({
     if (ref.current) ref.current.style.transform = "translate(0px, 0px)";
   };
 
-  // Rise in, then breathe: two comma-separated animations, glow starting after
-  // the entrance settles. Disabled entirely under reduced-motion.
-  const animation = reduced
-    ? undefined
-    : `heroRise .7s cubic-bezier(.22,.61,.36,1) ${delay}s both`;
-  // The breathe rides an ::after overlay (index.css) whose opacity animates.
-  const glow = reduced ? undefined : `ctaGlow 2.8s ease-in-out ${delay + 0.9}s infinite`;
-
   return (
     <button
       ref={ref}
@@ -371,8 +391,9 @@ function MagneticCTA({
       onPointerLeave={reset}
       autoFocus
       style={{
+        // The breathe rides an ::after overlay (index.css) whose opacity animates.
         ...(glow ? ({ "--cta-glow": glow } as React.CSSProperties) : null),
-        marginTop: 42,
+        marginTop: rise ? 42 : 0,
         padding: "18px 40px",
         fontSize: TYPE.body,
         fontWeight: 800,
@@ -381,8 +402,9 @@ function MagneticCTA({
         color: T.text,
         border: "none",
         cursor: "pointer",
+        whiteSpace: "nowrap",
         transition: "transform .18s cubic-bezier(.22,.61,.36,1)",
-        animation,
+        ...rise,
       }}
     >
       ENTER THE UNIVERSE

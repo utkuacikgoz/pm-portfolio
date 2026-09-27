@@ -4,6 +4,7 @@ import type { CaseStudy } from "./types";
 import { CONTACT } from "./contact";
 import { PROJECTS, attributionLine } from "../projects/projects";
 import { SEO_ROUTES } from "../seo/routes";
+import { REEL_COPY } from "../ui/reel/drawReel";
 
 /**
  * House style (CLAUDE.md): no dashes in visible copy, ever. No em dash, no en
@@ -46,5 +47,15 @@ describe("house style: no dashes in visible copy", () => {
     expectNoDashes(strings(CONTACT, "contact"));
     // Titles, descriptions, no-JS summaries and JSON-LD all render or are read.
     expectNoDashes(strings(SEO_ROUTES, "seo"));
+  });
+
+  it("holds across every string the entry reel paints, hyphens included", () => {
+    // Stricter than DASHES: the reel sets type at display sizes, where even a
+    // hyphen or a figure dash reads as a dash. U+2010 to U+2015, the minus sign,
+    // and an ASCII hyphen between words are all out.
+    const REEL_DASHES = /[\u2010-\u2015\u2212]|\S-\S|\s-\s/;
+    const offenders = REEL_COPY.filter((text) => REEL_DASHES.test(text));
+    expect(offenders).toEqual([]);
+    expectNoDashes(REEL_COPY.map((text, i) => [`reel[${i}]`, text] as [string, string]));
   });
 });
