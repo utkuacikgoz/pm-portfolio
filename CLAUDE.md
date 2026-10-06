@@ -160,11 +160,15 @@ Indie products (shown as light "glimpse" panels, no full case study). They are
 `published: false`, which keeps them off the main rail; `INDIE_PROJECTS` selects
 them by `kind: "indie"` plus a `glimpse` line, so they still reach the resume
 shelf and the ocean island:
-**Buyback Signal** (trading-signal bot), **PassATS**, **Cofoundr** (co-founder matching).
+**PassATS** (resume checker), **Psst** (tap-a-friend iPhone app), **Rack Rate**
+(AI coding cost comparison), all live, then **Buyback Signal** (trading-signal
+bot), in development. Cofoundr was dropped 2026-10-06.
 
-**PassATS is live at https://passats.pro (2026-08-30).** A `url` on the registry
+**Live:** PassATS at https://passats.pro (2026-08-30); Psst at
+https://www.psstapp.fun (App Store listing) and Rack Rate at
+https://rack-rate-flax.vercel.app (both 2026-10-06). A `url` on the registry
 row is what makes an indie product live: `isLive()` reads it, the shelf links
-out and says "LIVE", and a row without one still says "COMING SOON". Everything
+out and says "LIVE", and a row without one says "IN DEVELOPMENT". Everything
 on the shelf used to claim to be forthcoming whether or not it existed, which
 costs the exact credibility the shelf is there to earn. `published` stays
 `false`: that flag puts a project on the career rail among the employment case
@@ -290,6 +294,11 @@ This section is only what is *true now* and what is *left*.
   that the camera crosses to the outside of it. Making it work means staging the
   ride against the wave, camera included, which is a feel-level redesign of the
   drop-in. The lip curl shipped and is the prerequisite.
+- **Entry showreel, parked 2026-10-06.** "The Datum", a 15 s Canvas2D reel
+  that played on the hero once per session, was built, verified and then taken
+  off the site because Utku did not love it. It is intact in git history at
+  commit 6b7f636 (reel module, hero wiring, tests); reverting the commit titled
+  "hero: take the Datum reel off the site for now" restores it.
 - **No surf share control.** The generated run card and capture pipeline were
   removed to keep the surf interface focused on finding and opening projects.
 - ~~Content-Security-Policy still ships as report-only.~~ **This was false.** It
@@ -311,8 +320,8 @@ This section is only what is *true now* and what is *left*.
   the first client-side move. It now tracks all three, and `src/router.test.tsx`
   pins it.
 - Business gaps, needing Utku rather than code: thin about/positioning, no social
-  proof. Buyback Signal and Cofoundr still say "COMING SOON" because they have
-  nowhere to send anyone; give them a `url` when they ship. A full case study for
+  proof. Buyback Signal still says "IN DEVELOPMENT" because it has nowhere to
+  send anyone; give it a `url` when it ships. A full case study for
   PassATS (content file plus `published: true`) is a separate, larger call, and
   would put an indie product on a rail whose other five rows are employment.
 - Lighting and structure tuning is checkable now (Playwright, **headed** for

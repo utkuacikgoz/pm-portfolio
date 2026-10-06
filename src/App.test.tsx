@@ -83,10 +83,16 @@ describe("portfolio journey", () => {
     expect(container.textContent).toContain("35% less AML review time");
     expect(container.textContent).toContain("INDEPENDENT PRODUCTS");
     expect(elementByText<HTMLAnchorElement>("a", "Book a 60 min call").href).toBe("https://cal.com/utku-acikgoz/60min");
-    const passats = elementByText<HTMLAnchorElement>("a", "PassATS");
-    expect(passats.href).toBe("https://www.passats.pro/");
-    expect(passats.textContent).toContain("LIVE");
-    expect(passats.textContent).not.toContain("IN DEVELOPMENT");
+    for (const [title, href] of [
+      ["PassATS", "https://www.passats.pro/"],
+      ["Psst", "https://www.psstapp.fun/"],
+      ["Rack Rate", "https://rack-rate-flax.vercel.app/"],
+    ]) {
+      const live = elementByText<HTMLAnchorElement>("a", title);
+      expect(live.href).toBe(href);
+      expect(live.textContent).toContain("LIVE");
+      expect(live.textContent).not.toContain("IN DEVELOPMENT");
+    }
     expect(elementByText<HTMLAnchorElement>("a", "Download CV").getAttribute("href")).toBe("/UtkuAcikgoz-CV.pdf");
   });
 
