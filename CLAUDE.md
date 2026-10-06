@@ -50,19 +50,8 @@ where each island = a project, with the narrative + metrics in a fast DOM overla
   the atmosphere and components must use its tokens rather than add ad hoc hex values.
 - **No sound controls or synthesized audio.** They were removed to keep the world
   interface focused on navigation and project discovery.
-- **Entrance flow:** hero first (no WebGL, no three.js) → Enter → character-select →
+- **Entrance flow:** static hero first (no Canvas mounted) → Enter → character-select →
   camera dive. The 3D world (and three.js) mounts only on entering or a deep link.
-  The first visit of a session plays **"The Datum"**, a 15 s Canvas2D reel
-  (`src/ui/reel/`) that states name, title, proof and the five products with
-  their registry numbers, then comes to rest as the exact hero (CTA box and text
-  positions match the DOM to the pixel). It is the pitch, not a gate: ENTER and
-  RESUME are live from frame one, SKIP / Esc / a click cut to the summary, and
-  return visits (`reel:seen` in sessionStorage), reduced motion and a font
-  timeout get the plain DOM hero. `drawReel` is a pure function of t; the
-  module is lazy (its own ~9 KB gzip chunk, fetched in parallel with the fonts)
-  and may only value-import `src/theme.ts` and `src/projects/projects.ts`. Its
-  test pins the published ids, so publishing a sixth project fails until the
-  reel is choreographed for it. The old rocket entrance is gone.
 - **Character-select gate** (`AvatarSelect`: HR / Hiring Manager / Stalker) is **fun
   label only** — cosmetic, no copy/story branching. Persisted in **sessionStorage**
   (not localStorage), so it re-asks every fresh launch; a same-tab refresh keeps the pick.

@@ -181,6 +181,323 @@ h1, h2, h3, h4, h5, h6 {
 .beat-section.revealed { animation: sectionReveal .55s cubic-bezier(.22,.61,.36,1) forwards; }
 @keyframes sectionReveal { to { opacity: 1; transform: none; } }
 
+/* ─────────────────────────────────────────────────────────────────────────────
+   Hero launch. The entrance is a rocket: it flies in from off-screen left,
+   settles beside the headline, and the identity block is *deposited in its
+   exhaust* — the lines blow out of the nozzle smeared toward the engine and
+   sharpen as they settle, the way a contrail resolves behind an aircraft.
+
+   All CSS/SVG. The hero mounts no Canvas by design, so none of this pulls
+   three.js onto the critical path.
+
+   Geometry contract: the rocket art is 220x120 with its nozzle at x=78, so the
+   plume starts `--rocket-w * .63` in from the right edge. One variable drives
+   the rocket width, the plume anchor and the sparks; the media queries below
+   only ever change that variable.
+   ───────────────────────────────────────────────────────────────────────── */
+.hero-identity {
+  --rocket-w: 208px;
+  position: relative;
+  width: min(1380px, 100%);
+  display: flex;
+  justify-content: center;
+}
+
+/* Text rides above the plume and the rocket. On narrow desktops the tail slides
+   under the last word rather than colliding with it. */
+.hero-identity-copy {
+  position: relative;
+  z-index: 1;
+  max-width: 900px;
+}
+
+.hero-exhaust {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  pointer-events: none;
+}
+
+.hero-rocket-anchor {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+}
+
+.hero-rocket {
+  display: block;
+  width: var(--rocket-w);
+  height: auto;
+}
+
+@media (max-width: 1180px) {
+  .hero-identity { --rocket-w: 150px; }
+}
+@media (max-width: 980px) {
+  .hero-identity { --rocket-w: 118px; }
+}
+
+/* The exhaust cone: narrow at the nozzle, widening back over the headline. */
+.hero-plume {
+  position: absolute;
+  top: 50%;
+  right: calc(var(--rocket-w) * 0.63);
+  left: -4%;
+  height: 210px;
+  transform: translateY(-50%);
+  transform-origin: right center;
+  clip-path: polygon(100% 45%, 100% 55%, 0% 100%, 0% 0%);
+  filter: blur(30px);
+  background: linear-gradient(
+    270deg,
+    rgba(241, 156, 35, 0.78) 0%,
+    rgba(215, 111, 83, 0.42) 20%,
+    rgba(197, 126, 194, 0.12) 42%,
+    rgba(98, 115, 191, 0) 62%
+  );
+  /* Without this the cone still had alpha where the clip-path cut it, so the
+     tail read as a straight diagonal edge rather than as exhaust dispersing. */
+  -webkit-mask-image: linear-gradient(270deg, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.5) 38%, rgba(0, 0, 0, 0) 72%);
+  mask-image: linear-gradient(270deg, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.5) 38%, rgba(0, 0, 0, 0) 72%);
+}
+
+/* The hot core running straight back from the nozzle. */
+.hero-plume-core {
+  position: absolute;
+  top: 50%;
+  right: calc(var(--rocket-w) * 0.63);
+  left: 16%;
+  height: 30px;
+  transform: translateY(-50%);
+  transform-origin: right center;
+  filter: blur(10px);
+  background: linear-gradient(
+    270deg,
+    rgba(251, 250, 249, 0.72) 0%,
+    rgba(241, 156, 35, 0.6) 18%,
+    rgba(215, 111, 83, 0) 100%
+  );
+}
+
+/* Embers torn off the plume, drifting back across the headline and dying. */
+.hero-spark {
+  position: absolute;
+  top: 50%;
+  right: calc(var(--rocket-w) * 0.63);
+  width: var(--spark-w, var(--spark-size, 5px));
+  height: var(--spark-size, 5px);
+  border-radius: 999px;
+  background: var(--spark-color, #f19c23);
+  transform: translateY(-50%);
+  opacity: 0;
+}
+
+/* The flight in: off-screen, low and tilted, decelerating onto its mark. */
+@keyframes rocketEnter {
+  /* Clamped so the run-in stays a flight and not a teleport on ultrawides. */
+  from { transform: translate(max(-1400px, -96vw), 26vh) rotate(-18deg) scale(0.5); opacity: 0; }
+  14% { opacity: 1; }
+  to { transform: translate(0, 0) rotate(0deg) scale(1); opacity: 1; }
+}
+
+/* Then it holds station, still under power. */
+@keyframes rocketHover {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-13px) rotate(2.2deg); }
+}
+
+/* Combustion: never let the flame sit still. */
+@keyframes flameFlicker {
+  from { transform: scale(0.94, 1.08); opacity: 0.88; }
+  to { transform: scale(1.3, 0.76); opacity: 1; }
+}
+
+/* Thrust shudder: a hard, small jitter. An engine at full burn is not smooth. */
+@keyframes rocketShudder {
+  0% { transform: translate(0, 0); }
+  50% { transform: translate(-2px, 1px); }
+  100% { transform: translate(1px, -1px); }
+}
+@keyframes shockDiamond {
+  0%, 100% { transform: scaleX(0.85); opacity: 0.4; }
+  50% { transform: scaleX(1.8); opacity: 1; }
+}
+.hero-flame {
+  transform-box: fill-box;
+  transform-origin: right center;
+}
+
+/* The plume is painted on as the rocket arrives, then breathes. Split across
+   two properties so both animations can run on the one element: `plumePaint`
+   owns transform (and fills forward), `plumePulse` takes over opacity after. */
+@keyframes plumePaint {
+  from { transform: translateY(-50%) scaleX(0.1); opacity: 0; }
+  to { transform: translateY(-50%) scaleX(1); opacity: 1; }
+}
+@keyframes plumePulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+@keyframes sparkDrift {
+  from { transform: translate(0, -50%) scale(1); opacity: 0.95; }
+  to { transform: translate(var(--spark-dist, -520px), calc(-50% + var(--spark-y, -20px))) scale(0.12); opacity: 0; }
+}
+
+/* Identity text, blown out of the nozzle: smeared toward the engine, then
+   decelerating into place as the exhaust settles. The end state restores the
+   hero's own legibility shadow. */
+@keyframes exhaustIn {
+  from {
+    opacity: 0;
+    transform: translateX(52px) scaleX(1.4);
+    filter: blur(16px);
+    text-shadow: 30px 0 26px rgba(241, 156, 35, 0.65), 72px 0 48px rgba(215, 111, 83, 0.45);
+  }
+  55% { opacity: 1; }
+  to {
+    opacity: 1;
+    transform: translateX(0) scaleX(1);
+    filter: blur(0);
+    text-shadow: 0 2px 24px rgba(0, 0, 0, 0.85), 0 1px 3px rgba(0, 0, 0, 0.9);
+  }
+}
+
+/* ── Constant flow ───────────────────────────────────────────────────────────
+   The entry animation is a one-shot; the engine is not. These keep running for
+   as long as the hero is up: stripes scroll back down the cone, embers stream
+   off it, and a heat pulse rolls through the headline nozzle-side first, so the
+   words look like they are still sitting in the blast rather than having landed
+   next to a decorative rocket. */
+
+/* Scrolling exhaust stripes. Tile width and travel match, so it loops seamlessly.
+
+   The stripes used to live on this element and scroll via `background-position`
+   under a `filter: blur()`. background-position is not a compositable property,
+   so every frame re-rasterized a 1400x210 blurred layer on the raster threads.
+   The stripes now sit on an over-wide child that only moves by `transform`, so
+   the blurred texture is rasterized once and the compositor slides it. */
+.hero-plume-flow {
+  position: absolute;
+  top: 50%;
+  right: calc(var(--rocket-w) * 0.63);
+  left: -4%;
+  height: 210px;
+  transform: translateY(-50%);
+  transform-origin: right center;
+  clip-path: polygon(100% 45%, 100% 55%, 0% 100%, 0% 0%);
+  overflow: hidden;
+  opacity: 0.8;
+  --flow-tile: 220px;
+  --flow-secs: 0.62s;
+  /* Fade the stripes out toward the tail so the cone still dissolves. */
+  -webkit-mask-image: linear-gradient(270deg, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.4) 34%, rgba(0, 0, 0, 0) 66%);
+  mask-image: linear-gradient(270deg, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.4) 34%, rgba(0, 0, 0, 0) 66%);
+}
+
+.hero-plume-flow > i {
+  position: absolute;
+  top: 0;
+  left: 0;
+  /* Exactly one extra tile of runway: the loop translates by one tile, so this
+     is the smallest width that never exposes the right edge. Wider only costs
+     composited layer memory. */
+  width: calc(100% + var(--flow-tile));
+  height: 100%;
+  filter: blur(11px);
+  background-size: var(--flow-tile) 100%;
+  background-image: repeating-linear-gradient(
+    270deg,
+    rgba(241, 156, 35, 0) 0px,
+    rgba(241, 156, 35, 0.52) 34px,
+    rgba(215, 111, 83, 0.3) 84px,
+    rgba(241, 156, 35, 0) 148px,
+    rgba(241, 156, 35, 0) 220px
+  );
+  will-change: transform;
+}
+
+@keyframes plumeFlow {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(calc(var(--flow-tile) * -1), 0, 0); }
+}
+
+/* The shear layer: finer, whiter, running faster over the top of the first. */
+.hero-plume-flow.is-fine {
+  --flow-tile: 96px;
+  --flow-secs: 0.28s;
+  opacity: 0.5;
+  clip-path: polygon(100% 46%, 100% 54%, 0% 84%, 0% 16%);
+}
+
+.hero-plume-flow.is-fine > i {
+  filter: blur(6px);
+  background-image: repeating-linear-gradient(
+    270deg,
+    rgba(251, 250, 249, 0) 0px,
+    rgba(251, 250, 249, 0.34) 12px,
+    rgba(234, 196, 53, 0.24) 30px,
+    rgba(251, 250, 249, 0) 58px,
+    rgba(251, 250, 249, 0) 96px
+  );
+}
+
+/* Heat rolling through the headline. Staggered by column, not reading order:
+   the words nearest the nozzle catch it first and it travels back up the line.
+
+   Split into two animations on purpose. The single `wordHeat` loop animated
+   `text-shadow` on 82px text, which is not compositable: Chromium re-painted
+   and re-rasterized every glyph plus its 44px blur halo on every frame, for as
+   long as the hero was up. Measured on the production build, that was 5.0s of
+   raster work per 6s window (99% of ALL raster on the page) and 13.8 fps on a
+   software-raster machine. The glow now lives on an aria-hidden twin span that
+   only fades `opacity`, and the word itself only animates `transform`; both are
+   compositor properties, so steady-state raster is zero. Same picture. */
+@keyframes wordShift {
+  0%, 100% { transform: translateX(0) scaleX(1); }
+  45% { transform: translateX(6px) scaleX(1.016); }
+}
+@keyframes wordGlow {
+  0%, 100% { opacity: 0; }
+  45% { opacity: 1; }
+}
+
+/* will-change pins the raster scale so the scaleX step does not re-raster. */
+.hero-word { position: relative; will-change: transform; }
+
+/* The hot half of the word pulse. It sits exactly on top of its word and
+   carries only the hot shadows; the word underneath keeps the resting
+   legibility shadow, so the two compose to the same stack the old 45% keyframe
+   declared. It is a pseudo-element rather than a twin
+   span on purpose: `content: attr(data-word)` never enters `textContent`, so the
+   heading still reads "Senior Technical Product Manager" to a crawler instead of
+   doubling every word. Only `opacity` animates, so the glow costs the compositor
+   a fade instead of costing the raster threads a repaint of 82px text plus a
+   44px blur halo every frame. */
+.hero-word::after {
+  content: attr(data-word);
+  position: absolute;
+  /* Spans the parent's full box and inherits its alignment, rather than pinning
+     to the left edge: the words are shrink-wrapped inline-blocks where those are
+     the same thing, but the eyebrow is a full-width centred block, where pinning
+     left renders the glow beside the word instead of on top of it. */
+  left: 0;
+  right: 0;
+  top: 0;
+  text-align: inherit;
+  white-space: pre;
+  pointer-events: none;
+  opacity: 0;
+  will-change: opacity;
+  animation: wordGlow 2.2s ease-in-out var(--glow-delay, 0s) infinite;
+  text-shadow: 5px 0 9px rgba(251, 250, 249, 0.38), 18px 0 20px rgba(241, 156, 35, 0.66),
+    44px 0 34px rgba(215, 111, 83, 0.42);
+}
+
+/* Reduced motion: no pulse at all, so nothing to paint. */
+.hero-word.is-static::after { content: none; }
+
 /* Respect reduced-motion: the app already falls back to the flat map, but kill
    any residual transitions/animations for users who ask for it. */
 @media (prefers-reduced-motion: reduce) {
