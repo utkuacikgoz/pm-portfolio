@@ -933,8 +933,8 @@ function IndieOverlay({ onBack }: { onBack: () => void }) {
         🏄 WHAT I'M BUILDING
       </div>
       <p style={{ fontSize: TYPE.small, color: T.textSoft, lineHeight: 1.55, marginBottom: 16 }}>
-        Products I’m building independently. Try PassATS, my live resume checker,
-        or see what’s in development.
+        Products I’m building independently. Three are live: PassATS, Psst and
+        Rack Rate. More are in development.
       </p>
       <div style={{ display: "grid", gap: 8, marginBottom: 16 }}>
         {INDIE_PROJECTS.map((p) => {

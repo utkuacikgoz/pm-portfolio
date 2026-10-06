@@ -143,18 +143,9 @@ export const PROJECTS: Project[] = [
     story: "Building a product function around customer retention.",
   },
 
-  // ── Indie products — live on the separate "ocean" island as coming-soon
-  //    bubbles (not clickable). published:false keeps them off the main rail. ──
-  {
-    id: "signalbot",
-    title: "Buyback Signal",
-    tagline: "trading signal bot",
-    kind: "indie",
-    published: false,
-    accent: T.seafoam,
-    structure: "beacon",
-    glimpse: "A bot that watches the market and flags buyback signals in real time.",
-  },
+  // ── Indie products: pylons on the separate "ocean" island and rows on the
+  //    resume shelf. published:false keeps them off the employment rail; a
+  //    `url` is what makes one LIVE and links it out. Shipped ones lead. ──
   {
     id: "passats",
     title: "PassATS",
@@ -167,14 +158,36 @@ export const PROJECTS: Project[] = [
     glimpse: "Checks resume structure, missing keywords and weak experience bullets. Live now.",
   },
   {
-    id: "cofoundr",
-    title: "Cofoundr",
-    tagline: "cofounder matching",
+    id: "psst",
+    title: "Psst",
+    tagline: "tap a friend, iPhone app",
     kind: "indie",
     published: false,
-    accent: T.gold,
+    accent: T.coral,
     structure: "beacon",
-    glimpse: "A matching app for finding a cofounder, the right person at the right time.",
+    url: "https://www.psstapp.fun",
+    glimpse: "A free iPhone app for the people you are close to: tap a friend and they get a whispered psst that says thinking of you.",
+  },
+  {
+    id: "rackrate",
+    title: "Rack Rate",
+    tagline: "AI coding cost comparison",
+    kind: "indie",
+    published: false,
+    accent: T.blue,
+    structure: "beacon",
+    url: "https://rack-rate-flax.vercel.app",
+    glimpse: "Finds the best AI coding model and monthly plan for your budget, from benchmark scores and cost per task, with every number sourced.",
+  },
+  {
+    id: "signalbot",
+    title: "Buyback Signal",
+    tagline: "trading signal bot",
+    kind: "indie",
+    published: false,
+    accent: T.seafoam,
+    structure: "beacon",
+    glimpse: "A bot that watches the market and flags buyback signals in real time.",
   },
   // Mona is real but lower-signal; surface it by flipping published:true.
   {
@@ -191,7 +204,7 @@ export const PROJECTS: Project[] = [
 /** Employment projects on the main rail / flat map, in travel order. */
 export const PUBLISHED_PROJECTS: Project[] = PROJECTS.filter((p) => p.published);
 
-/** Indie products shown as coming-soon bubbles on the separate ocean island. */
+/** Indie products: the ocean island's pylons and the resume shelf. */
 export const INDIE_PROJECTS: Project[] = PROJECTS.filter((p) => p.kind === "indie" && !!p.glimpse);
 
 /** Indie products that have actually shipped, so the shelf can say which. */
