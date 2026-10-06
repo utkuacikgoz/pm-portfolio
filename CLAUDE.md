@@ -151,10 +151,15 @@ documents describe the same job from different angles rather than disagreeing.
 Worth adding a churn bullet to the CV so they corroborate each other; until then
 the site is the only place that story appears.
 
-**BiLira matches the CV exactly** (35% review time, 99.7% accuracy, 40% fewer
-false positives, 500ms to 275ms, +45% throughput, 50M+ calls/month, 99.9%
-uptime, quarterly to bi-weekly, 0 breaches). Real BiLira facts: 100K+ users,
-150+ assets, 5+ chains, 25-person team, Chainalysis/Notabene.
+**BiLira vs the CV (CV replaced 2026-10-06).** The current CV still states 35%
+review time, 40% fewer false positives, +45% throughput, 500+ OTC trades/week
+over 15+ pairs, 50M+ calls/month, 99.9% uptime, quarterly to biweekly, a
+25-person team and Chainalysis/Notabene. It **no longer states** 99.7%
+accuracy, 500ms to 275ms latency, 0 breaches, 100K+ users, 150+ assets or 5+
+chains, all of which the site's BiLira case study (and the hero's "100K+ users
+reached") still use. Utku confirmed those as real earlier; they are simply not
+on the CV now, so the site claims more than the CV backs. The previous CV,
+which carried all of them, is in git history.
 
 Indie products (shown as light "glimpse" panels, no full case study). They are
 `published: false`, which keeps them off the main rail; `INDIE_PROJECTS` selects
