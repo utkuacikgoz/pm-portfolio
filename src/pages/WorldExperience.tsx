@@ -1,6 +1,6 @@
 import { Suspense, lazy, useCallback, useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "../router";
-import { PUBLISHED_PROJECTS, INDIE_PROJECTS, projectIndexById, projectById, isLive, type Project } from "../projects/projects";
+import { PUBLISHED_PROJECTS, INDIE_PROJECTS, projectIndexById, projectById, isLive, indieStatusLine, type Project } from "../projects/projects";
 import { INDIE_INDEX } from "../world/layout";
 import { useExperienceMode, useTouchSurf } from "../state/useExperienceMode";
 import WorldNav from "../ui/WorldNav";
@@ -933,8 +933,7 @@ function IndieOverlay({ onBack }: { onBack: () => void }) {
         🏄 WHAT I'M BUILDING
       </div>
       <p style={{ fontSize: TYPE.small, color: T.textSoft, lineHeight: 1.55, marginBottom: 16 }}>
-        Products I’m building independently. Three are live: PassATS, Psst and
-        Rack Rate. More are in development.
+        Products I’m building independently. {indieStatusLine()}
       </p>
       <div style={{ display: "grid", gap: 8, marginBottom: 16 }}>
         {INDIE_PROJECTS.map((p) => {

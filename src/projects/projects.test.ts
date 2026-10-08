@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { attributionLine, PROJECTS, PUBLISHED_PROJECTS, INDIE_PROJECTS, projectIndexById, isLive } from "./projects";
+import { attributionLine, PROJECTS, PUBLISHED_PROJECTS, INDIE_PROJECTS, projectIndexById, isLive, indieStatusLine } from "./projects";
+import type { Project } from "./projects";
 
 describe("project registry invariants", () => {
   it("has unique project ids", () => {
@@ -110,5 +111,26 @@ describe("live indie products", () => {
     for (const p of INDIE_PROJECTS) {
       expect(p.glimpse && p.glimpse.length).toBeGreaterThan(10);
     }
+  });
+});
+
+describe("indieStatusLine", () => {
+  const row = (title: string, url?: string): Project =>
+    ({ id: title.toLowerCase(), title, tagline: "", kind: "indie", published: false, accent: "", structure: "beacon", url }) as Project;
+
+  it("names every live product from the registry and says what is still coming", () => {
+    const line = indieStatusLine();
+    for (const p of INDIE_PROJECTS.filter(isLive)) expect(line).toContain(p.title);
+    for (const p of INDIE_PROJECTS.filter((x) => !isLive(x))) expect(line).not.toContain(p.title);
+    expect(line).toContain("More are in development.");
+  });
+
+  it("reads naturally for one, two and many live products", () => {
+    expect(indieStatusLine([row("A", "https://a")])).toBe("Live now: A.");
+    expect(indieStatusLine([row("A", "https://a"), row("B", "https://b")])).toBe("Live now: A and B.");
+    expect(indieStatusLine([row("A", "https://a"), row("B", "https://b"), row("C", "https://c"), row("D")])).toBe(
+      "Live now: A, B and C. More are in development.",
+    );
+    expect(indieStatusLine([row("D")])).toBe("More are in development.");
   });
 });
