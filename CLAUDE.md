@@ -166,12 +166,16 @@ Indie products (shown as light "glimpse" panels, no full case study). They are
 them by `kind: "indie"` plus a `glimpse` line, so they still reach the resume
 shelf and the ocean island:
 **PassATS** (resume checker), **Psst** (tap-a-friend iPhone app), **Rack Rate**
-(AI coding cost comparison), all live, then **Buyback Signal** (trading-signal
-bot), in development. Cofoundr was dropped 2026-10-06.
+(AI coding cost comparison), **Little Menace** (gremlin pet iPhone app), all
+live, then **Buyback Signal** (trading-signal bot), in development. Cofoundr
+was dropped 2026-10-06. The indie panel's "Live now: ..." sentence is derived
+by `indieStatusLine()` from the registry, so shipping one is a `url` and nothing
+else.
 
 **Live:** PassATS at https://passats.pro (2026-08-30); Psst at
 https://www.psstapp.fun (App Store listing) and Rack Rate at
-https://rack-rate-flax.vercel.app (both 2026-10-06). A `url` on the registry
+https://rack-rate-flax.vercel.app (both 2026-10-06); Little Menace at
+https://www.littlemenace.fun (App Store listing, 2026-10-08). A `url` on the registry
 row is what makes an indie product live: `isLive()` reads it, the shelf links
 out and says "LIVE", and a row without one says "IN DEVELOPMENT". Everything
 on the shelf used to claim to be forthcoming whether or not it existed, which

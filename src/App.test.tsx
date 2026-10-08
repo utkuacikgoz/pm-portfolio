@@ -87,6 +87,7 @@ describe("portfolio journey", () => {
       ["PassATS", "https://www.passats.pro/"],
       ["Psst", "https://www.psstapp.fun/"],
       ["Rack Rate", "https://rack-rate-flax.vercel.app/"],
+      ["Little Menace", "https://www.littlemenace.fun/"],
     ]) {
       const live = elementByText<HTMLAnchorElement>("a", title);
       expect(live.href).toBe(href);

@@ -180,6 +180,17 @@ export const PROJECTS: Project[] = [
     glimpse: "Finds the best AI coding model and monthly plan for your budget, from benchmark scores and cost per task, with every number sourced.",
   },
   {
+    id: "littlemenace",
+    title: "Little Menace",
+    tagline: "gremlin pet, iPhone app",
+    kind: "indie",
+    published: false,
+    accent: T.gold,
+    structure: "beacon",
+    url: "https://www.littlemenace.fun",
+    glimpse: "An iPhone pet toy: adopt a tiny gremlin, pet it, feed it, let it nap and play three tiny games. Care earns points, neglect costs them.",
+  },
+  {
     id: "signalbot",
     title: "Buyback Signal",
     tagline: "trading signal bot",
@@ -210,6 +221,18 @@ export const INDIE_PROJECTS: Project[] = PROJECTS.filter((p) => p.kind === "indi
 /** Indie products that have actually shipped, so the shelf can say which. */
 export function isLive(project: Project): boolean {
   return Boolean(project.url);
+}
+
+/**
+ * "Live now: A, B and C. More are in development." for the indie panel, read off
+ * the registry. The sentence was hand written and went stale every time a
+ * product shipped, so it is derived instead.
+ */
+export function indieStatusLine(projects: Project[] = INDIE_PROJECTS): string {
+  const live = projects.filter(isLive).map((p) => p.title);
+  const names = live.length < 2 ? live.join("") : `${live.slice(0, -1).join(", ")} and ${live[live.length - 1]}`;
+  const parts = [live.length ? `Live now: ${names}.` : "", live.length < projects.length ? "More are in development." : ""];
+  return parts.filter(Boolean).join(" ");
 }
 
 /** A published project by registry id, or null. */
