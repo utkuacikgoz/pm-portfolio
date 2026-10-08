@@ -192,7 +192,11 @@ the quantified outcomes are the gold.
 
 ## Stack / conventions
 - **React 19 + Vite 7 + @vitejs/plugin-react 5 + @react-three/fiber 9 + drei 10 +
-  three 0.185 + TS 6.** TS **strict** + `verbatimModuleSyntax` → **use
+  three 0.185 + TS 6.** **three is held at 0.185** (2026-10-08): r186's
+  lighting change darkens the sea toward the horizon because we have no
+  environment map, and Utku chose to keep today's look. `.github/dependabot.yml`
+  ignores three >=0.186; lift it only with a water retune checked in surf mode.
+  TS **strict** + `verbatimModuleSyntax` → **use
   `import type` for type-only imports** (this bites otherwise).
 - **Node ≥22.22.2 required** (jsdom 30 sets the floor; Vite 7 is fine above it).
   The machine's default `node` is **22.11**, which is BELOW the floor — local
