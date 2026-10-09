@@ -61,6 +61,15 @@ updates:
       # retune that keeps today's look, and check surf mode before/after.
       - dependency-name: "three"
         versions: [">=0.186.0"]
+      # React 19.3 is held (Utku's call, 2026-10-08): it adds 8.7 KB gzip to the
+      # modulepreloaded react chunk every visitor downloads, flat path included,
+      # for ViewTransition / Fragment-ref code we do not use. Revisit when we
+      # need a 19.3 feature or a fix. r3f 9.8 also accepts 19.2, so it is free
+      # to update on its own.
+      - dependency-name: "react"
+        versions: [">=19.3.0"]
+      - dependency-name: "react-dom"
+        versions: [">=19.3.0"]
       - dependency-name: "typescript"
         # TS majors are gated by typescript-eslint's peer range (currently
         # <6.1.0); adopt a new TS major only when the eslint toolchain supports it.
