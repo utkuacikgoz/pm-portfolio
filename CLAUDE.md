@@ -196,6 +196,9 @@ the quantified outcomes are the gold.
   lighting change darkens the sea toward the horizon because we have no
   environment map, and Utku chose to keep today's look. `.github/dependabot.yml`
   ignores three >=0.186; lift it only with a water retune checked in surf mode.
+  **React is held at 19.2** (2026-10-08): 19.3 adds 8.7 KB gzip to the react
+  chunk every visitor preloads, for features we do not use. Dependabot ignores
+  react/react-dom >=19.3.
   TS **strict** + `verbatimModuleSyntax` → **use
   `import type` for type-only imports** (this bites otherwise).
 - **Node ≥22.22.2 required** (jsdom 30 sets the floor; Vite 7 is fine above it).
