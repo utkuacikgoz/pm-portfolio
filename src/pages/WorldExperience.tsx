@@ -302,7 +302,13 @@ export default function WorldExperience() {
   // The world mounts on the rail path once you enter, and on the flat path only
   // while surfing. Exiting surf on a phone unmounts it again and hands the
   // visitor back to the flat map they came from.
-  const worldMounted = surfing || (mode === "world" && (entered || panelOpen));
+  //
+  // It also mounts behind the character select. Enter has been clicked by then,
+  // so the hero's "no canvas until you commit" promise still holds, and the
+  // ~1 s of scene build and shader compile happens while the visitor is
+  // choosing instead of after. The camera holds the establishing shot until
+  // `entered`, then dives as before.
+  const worldMounted = surfing || (mode === "world" && (entered || panelOpen || choosingAvatar));
   // The hero owns the visible <h1> while it is up. Once it goes, nothing else in
   // the world carries one (the title card is a div, the panel starts at <h2>),
   // so the primary route was left with no top-level heading at all.
