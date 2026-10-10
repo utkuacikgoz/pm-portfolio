@@ -129,6 +129,32 @@ h1, h2, h3, h4, h5, h6 {
   box-shadow: 0 0 34px 3px rgba(46, 134, 171, 0.42), 0 8px 30px rgba(215, 111, 83, 0.56);
 }
 
+/* The indie island's panel. It arrives once the rail camera has landed there,
+   so the flight reads as the transition, and on wide screens it docks right so
+   the pylons it describes stay visible instead of sitting under it. */
+.indie-dock {
+  position: fixed;
+  z-index: 44;
+  left: 50%;
+  bottom: calc(28px + env(safe-area-inset-bottom));
+  width: min(560px, calc(100vw - 32px));
+  transform: translateX(-50%);
+  animation: indieInUp .6s cubic-bezier(.22,.61,.36,1) .9s both;
+}
+@media (min-width: 1100px) {
+  .indie-dock {
+    left: auto;
+    right: 32px;
+    bottom: auto;
+    top: 50%;
+    width: 440px;
+    transform: translateY(-50%);
+    animation-name: indieInSide;
+  }
+}
+@keyframes indieInUp { from { opacity: 0; translate: 0 24px; } to { opacity: 1; translate: 0 0; } }
+@keyframes indieInSide { from { opacity: 0; translate: 24px 0; } to { opacity: 1; translate: 0 0; } }
+
 /* Begin → camera dive punctuation: a quick accent wash that clears to the world. */
 @keyframes diveFlash {
   from { opacity: 0.85; }
@@ -506,4 +532,10 @@ h1, h2, h3, h4, h5, h6 {
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
   }
+}
+
+/* Case study overview: a one-line teaser truncated to a few words says
+   nothing, so phones get the section names alone. */
+@media (max-width: 520px) {
+  .overview-teaser { display: none; }
 }

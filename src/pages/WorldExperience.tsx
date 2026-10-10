@@ -1,7 +1,9 @@
-import { Suspense, lazy, useCallback, useEffect, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { lazyWithReload } from "../lazy-reload";
 import { Link, useLocation, useNavigate, useParams } from "../router";
-import { PUBLISHED_PROJECTS, INDIE_PROJECTS, projectIndexById, projectById, isLive, indieStatusLine, type Project } from "../projects/projects";
+import { PUBLISHED_PROJECTS, INDIE_PROJECTS, projectIndexById, projectById, isLive, type Project } from "../projects/projects";
 import { INDIE_INDEX } from "../world/layout";
+import { initialWheel, wheelStep } from "../state/wheel-travel";
 import { useExperienceMode, useTouchSurf } from "../state/useExperienceMode";
 import WorldNav from "../ui/WorldNav";
 import EscapeHatch from "../ui/EscapeHatch";
@@ -21,12 +23,12 @@ import { EVENTS, track } from "../analytics/events";
 import FlatMap from "./FlatMap";
 
 // Lazy so three.js / r3f / drei only download on the interactive world path.
-const World = lazy(() => import("../world/World"));
+const World = lazyWithReload(() => import("../world/World"));
 // Both mount behind a user gesture (opening a case study, answering the character
 // gate), so their Suspense gap is invisible in practice and they stay out of the
 // entry chunk. ProjectPanel drags the SVG viz layer with it.
-const ProjectPanel = lazy(() => import("../ui/ProjectPanel"));
-const AvatarSelect = lazy(() => import("../ui/AvatarSelect"));
+const ProjectPanel = lazyWithReload(() => import("../ui/ProjectPanel"));
+const AvatarSelect = lazyWithReload(() => import("../ui/AvatarSelect"));
 
 export default function WorldExperience() {
   const mode = useExperienceMode();
@@ -83,7 +85,10 @@ export default function WorldExperience() {
   }, []);
   // The surf controls hint auto-hides (it eats real estate) after a few seconds
   // or the moment you start moving.
-  const [surfHint, setSurfHint] = useState(true);
+  // The controls hint opens from the HUD's CONTROLS button. It only pops up on
+  // its own for a touch run, where one-drag steering is not guessable; on a
+  // keyboard it was a banner over the ocean on every entry.
+  const [surfHint, setSurfHint] = useState(false);
   // Playful "who's looking?" gate. Shown AFTER the hero (once you choose to
   // enter), not as the first screen. Fun label only — no story branching.
   const [avatar, setAvatar] = useState<string | null>(() => readAvatar());
@@ -133,7 +138,7 @@ export default function WorldExperience() {
   // loading string. Idle-time only, so it never competes with first paint.
   useEffect(() => {
     if (mode !== "world" || entered) return;
-    const warm = () => void import("../world/World");
+    const warm = () => void import("../world/World").catch(() => {}); // a stale chunk is handled when it is actually needed
     const idle = window.requestIdleCallback?.(warm);
     const timer = idle === undefined ? window.setTimeout(warm, 1200) : undefined;
     return () => {
@@ -158,6 +163,19 @@ export default function WorldExperience() {
     track(EVENTS.surfEntered, { source: "shared_link" });
   }, [search, mode, touchSurf]);
 
+  // The indie island and its panel share one focus: hovering a row lights its
+  // pylon, hovering a pylon highlights its row. Clicking a live pylon opens
+  // the product, the same as its row.
+  const [indieFocus, setIndieFocus] = useState<string | null>(null);
+  const openIndie = useCallback((id: string) => {
+    const p = INDIE_PROJECTS.find((x) => x.id === id);
+    if (!p) return;
+    setIndieFocus(id);
+    if (!isLive(p)) return;
+    track(EVENTS.indieProductOpened, { project_id: id, source: "pylon" });
+    window.open(p.url, "_blank", "noopener,noreferrer");
+  }, []);
+
   // Free surf mode: hop on the board and roam the ocean; Esc comes back.
   const enterSurf = useCallback(
     (source: "world" | "flat_map") => {
@@ -167,7 +185,7 @@ export default function WorldExperience() {
     // Coins are NOT reset here: the run persists for the visit, and the
     // controller reports the resumed count on entry.
       setWave(null);
-      setSurfHint(true);
+      setSurfHint(touchSurf);
     },
     [touchSurf]
   );
@@ -288,7 +306,13 @@ export default function WorldExperience() {
   // The world mounts on the rail path once you enter, and on the flat path only
   // while surfing. Exiting surf on a phone unmounts it again and hands the
   // visitor back to the flat map they came from.
-  const worldMounted = surfing || (mode === "world" && (entered || panelOpen));
+  //
+  // It also mounts behind the character select. Enter has been clicked by then,
+  // so the hero's "no canvas until you commit" promise still holds, and the
+  // ~1 s of scene build and shader compile happens while the visitor is
+  // choosing instead of after. The camera holds the establishing shot until
+  // `entered`, then dives as before.
+  const worldMounted = surfing || (mode === "world" && (entered || panelOpen || choosingAvatar));
   // The hero owns the visible <h1> while it is up. Once it goes, nothing else in
   // the world carries one (the title card is a div, the panel starts at <h2>),
   // so the primary route was left with no top-level heading at all.
@@ -350,6 +374,22 @@ export default function WorldExperience() {
     navigate("/");
     requestAnimationFrame(() => opener.current?.focus?.());
   }, [navigate, openIndex, projects]);
+
+  // Scroll to travel: recruiters scroll by reflex, and the world used to ignore
+  // it. One island per gesture (see wheel-travel.ts), pinch zoom left alone.
+  const wheel = useRef(initialWheel());
+  useEffect(() => {
+    if (mode !== "world" || panelOpen || !entered || surfing) return;
+    const onWheel = (e: WheelEvent) => {
+      if (e.ctrlKey) return;
+      const delta = Math.abs(e.deltaY) >= Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
+      const r = wheelStep(wheel.current, e.deltaMode === 1 ? delta * 40 : delta, e.timeStamp);
+      wheel.current = r.state;
+      if (r.step) setActive((a) => Math.max(0, Math.min(INDIE_INDEX, a + r.step)));
+    };
+    window.addEventListener("wheel", onWheel, { passive: true });
+    return () => window.removeEventListener("wheel", onWheel);
+  }, [mode, panelOpen, entered, surfing]);
 
   // Arrow-key travel + Enter to open, for mouse users focused on the canvas/body.
   // Skipped when focus is on an interactive element (WorldNav handles its own keys).
@@ -413,6 +453,9 @@ export default function WorldExperience() {
               onWave={onSurfWave}
               onTotals={onTotals}
               onComplete={onRunComplete}
+              indieFocus={indieFocus}
+              onIndieFocus={setIndieFocus}
+              onIndieOpen={openIndie}
               // `touchControls` holds this for the whole run, so rotating a
               // phone into landscape does not hand a phone GPU the full-fat
               // scene halfway through.
@@ -483,7 +526,7 @@ export default function WorldExperience() {
             animation: "panelIn .4s ease",
           }}
         >
-          ← → to travel · click a structure to open
+          Scroll or ← → to travel · click a structure to open
         </div>
       )}
 
@@ -495,31 +538,14 @@ export default function WorldExperience() {
             index={active}
             total={projects.length}
             onPrev={() => setActive((a) => Math.max(0, a - 1))}
-            onNext={() => setActive((a) => Math.min(projects.length - 1, a + 1))}
+            onNext={() => {
+              // The rail runs on past the last job to the indie island: the
+              // camera flight is the transition, no separate button.
+              if (active === projects.length - 1) track(EVENTS.indieShelfViewed, { source: "world_next" });
+              setActive((a) => Math.min(INDIE_INDEX, a + 1));
+            }}
             onOpen={() => open(active)}
           />
-          {active === projects.length - 1 && <button
-            onClick={() => {
-              track(EVENTS.indieShelfViewed, { source: "world_cta" });
-              setActive(INDIE_INDEX);
-            }}
-            style={{
-              position: "fixed",
-              bottom: "calc(28px + env(safe-area-inset-bottom))",
-              right: 24,
-              zIndex: 44,
-              padding: "11px 18px",
-              background: T.scrim,
-              border: `2px solid ${T.seafoam}`,
-              color: T.seafoam,
-              fontSize: TYPE.small,
-              fontWeight: 800,
-              cursor: "pointer",
-              backdropFilter: "blur(6px)",
-            }}
-          >
-            🚀 What I'm building →
-          </button>}
         </>
       )}
 
@@ -547,7 +573,7 @@ export default function WorldExperience() {
       )}
 
       {mode === "world" && entered && !panelOpen && isIndie && !surfing && (
-        <IndieOverlay onBack={() => setActive(INDIE_INDEX - 1)} />
+        <IndieOverlay onBack={() => setActive(INDIE_INDEX - 1)} focus={indieFocus} onFocus={setIndieFocus} />
       )}
 
       {surfing && (
@@ -576,8 +602,8 @@ export default function WorldExperience() {
               }}
             >
               {touchControls
-                ? "🏄 Drag up to paddle and steer · pull down to slow · tap to jump · double tap for a 360"
-                : "🏄 WASD or arrows to surf · Shift to boost · Space to jump · double Space for a 360"}
+                ? "Drag up to paddle and steer · pull down to slow · tap to jump · double tap for a 360"
+                : "WASD or arrows to surf · Shift to boost · Space to jump · double Space for a 360"}
             </div>
           )}
           {/* The project tray and controls remain useful after the coin loop is
@@ -912,95 +938,113 @@ function RunCompleteCard({ coinTotal, onCases, onDismiss }: { coinTotal: number;
   );
 }
 
-function IndieOverlay({ onBack }: { onBack: () => void }) {
+function IndieOverlay({ onBack, focus, onFocus }: { onBack: () => void; focus: string | null; onFocus: (id: string | null) => void }) {
+  // Placement and the arrival (it eases in once the camera has landed, and
+  // docks to the right on wide screens so the pylons stay in view) live in the
+  // `.indie-dock` rule in index.css, since inline styles cannot hold a media
+  // query. The panel itself is a plain editorial list: colour appears once per
+  // product, as the bar that matches its pylon, never as a box around it.
   return (
     <div
+      className="indie-dock"
       style={{
-        position: "fixed",
-        left: "50%",
-        bottom: "calc(28px + env(safe-area-inset-bottom))",
-        transform: "translateX(-50%)",
-        zIndex: 44,
-        width: "min(560px, calc(100vw - 32px))",
         background: T.scrimStrong,
-        border: `2px solid ${T.seafoam}`,
-        backdropFilter: "blur(8px)",
-        padding: "20px 22px",
-        textAlign: "center",
+        border: `1px solid ${T.border}`,
+        boxShadow: "0 24px 60px rgba(0,0,0,0.45)",
+        backdropFilter: "blur(10px)",
+        padding: "26px 28px 18px",
       }}
     >
-      <div style={{ fontSize: TYPE.small, fontWeight: 800, letterSpacing: 1.5, color: T.seafoam, marginBottom: 8 }}>
-        🏄 WHAT I'M BUILDING
-      </div>
-      <p style={{ fontSize: TYPE.small, color: T.textSoft, lineHeight: 1.55, marginBottom: 16 }}>
-        Products I’m building independently. {indieStatusLine()}
-      </p>
-      <div style={{ display: "grid", gap: 8, marginBottom: 16 }}>
+      <div style={{ fontSize: TYPE.micro, fontWeight: 800, letterSpacing: 2, color: T.textMuted }}>ON MY OWN TIME</div>
+      <h2 style={{ fontSize: TYPE.title, fontWeight: 900, lineHeight: 1.2, margin: "6px 0 14px" }}>What I&rsquo;m building</h2>
+      <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
         {INDIE_PROJECTS.map((p) => {
           const live = isLive(p);
-          const row = (
+          const lit = focus === p.id;
+          const body = (
             <>
-              <span style={{ width: 9, height: 9, borderRadius: "50%", background: p.accent, flexShrink: 0 }} />
-              <span style={{ fontWeight: 800, fontSize: TYPE.body }}>{p.title}</span>
-              <span style={{ fontSize: TYPE.small, color: T.textMuted }}>{p.tagline}</span>
+              <span aria-hidden style={{ width: 3, alignSelf: "stretch", background: p.accent, opacity: live ? 1 : 0.45, borderRadius: 2 }} />
+              <span style={{ minWidth: 0 }}>
+                <span style={{ display: "block", fontSize: TYPE.body, fontWeight: 800, color: lit ? textAccent(p.accent) : T.text, transition: "color .15s" }}>
+                  {p.title}
+                </span>
+                <span style={{ display: "block", fontSize: TYPE.small, color: T.textMuted, marginTop: 2 }}>
+                  {p.tagline.charAt(0).toUpperCase() + p.tagline.slice(1)}
+                </span>
+              </span>
               <span
                 style={{
-                  marginLeft: "auto",
                   fontSize: TYPE.micro,
                   fontWeight: 800,
                   letterSpacing: 0.5,
-                  color: textAccent(p.accent),
                   whiteSpace: "nowrap",
+                  padding: "4px 10px",
+                  borderRadius: 999,
+                  color: live ? textAccent(p.accent) : T.textMuted,
+                  border: `1px solid ${live ? p.accent : T.border}`,
                 }}
               >
-                {live ? "LIVE →" : "IN DEVELOPMENT"}
+                {live ? "Live ↗" : "In development"}
               </span>
             </>
           );
           const style = {
-            display: "flex",
+            display: "grid",
+            gridTemplateColumns: "3px 1fr auto",
             alignItems: "center",
-            gap: 10,
-            padding: "10px 14px",
-            border: `1.5px solid ${p.accent}${live ? "" : "55"}`,
-            background: T.inkRaised,
-            textAlign: "left" as const,
+            gap: 14,
+            padding: "12px 12px",
+            margin: "0 -12px",
+            borderTop: `1px solid ${T.border}`,
+            background: lit ? T.inkRaised : "transparent",
+            transition: "background .15s",
             textDecoration: "none",
             color: T.text,
           };
+          const hover = {
+            onMouseEnter: () => onFocus(p.id),
+            onMouseLeave: () => onFocus(null),
+            onFocus: () => onFocus(p.id),
+            onBlur: () => onFocus(null),
+          };
           // A live product is a link out; a bet is not, because there is nowhere
           // to send anyone yet and a dead link costs more than a quiet row.
-          return live ? (
-            <a
-              key={p.id}
-              href={p.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => track(EVENTS.indieProductOpened, { project_id: p.id })}
-              style={style}
-            >
-              {row}
-            </a>
-          ) : (
-            <div key={p.id} style={style}>
-              {row}
-            </div>
+          return (
+            <li key={p.id}>
+              {live ? (
+                <a
+                  href={p.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => track(EVENTS.indieProductOpened, { project_id: p.id })}
+                  style={style}
+                  {...hover}
+                >
+                  {body}
+                </a>
+              ) : (
+                <div style={style} {...hover}>
+                  {body}
+                </div>
+              )}
+            </li>
           );
         })}
-      </div>
+      </ul>
       <button
         onClick={onBack}
         style={{
-          padding: "10px 20px",
-          background: "transparent",
-          border: `2px solid ${T.seafoam}`,
-          color: T.seafoam,
+          marginTop: 12,
+          padding: "6px 0",
+          background: "none",
+          border: "none",
+          color: T.textMuted,
           fontSize: TYPE.small,
-          fontWeight: 800,
+          fontWeight: 700,
           cursor: "pointer",
         }}
       >
-        ← Surf back
+        ← Back to the rail
       </button>
     </div>
   );
@@ -1049,6 +1093,8 @@ function TitleCard({
             }}
           />
         ))}
+        {/* One more stop past the last job: what I'm building on my own. */}
+        <span title="What I'm building" style={{ width: 8, height: 8, boxSizing: "border-box", border: `1.5px solid ${T.seafoam}` }} />
       </div>
       <div style={{ fontSize: TYPE.title, fontWeight: 900, letterSpacing: 0.5 }}>{project.title}</div>
       <div style={{ fontSize: TYPE.small, color: T.textMuted, margin: "6px 0 14px", lineHeight: 1.5 }}>
@@ -1074,7 +1120,7 @@ function TitleCard({
         >
           OPEN CASE STUDY
         </button>
-        <ChevBtn accent={project.accent} disabled={index === total - 1} onClick={onNext} label="Next island">
+        <ChevBtn accent={project.accent} disabled={false} onClick={onNext} label={index === total - 1 ? "What I'm building" : "Next island"}>
           →
         </ChevBtn>
       </div>

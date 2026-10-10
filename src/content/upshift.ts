@@ -3,6 +3,11 @@ import type { CaseStudy } from "./types";
 export const upshift: CaseStudy = {
   id: "upshift",
   title: "Upshift, Product Leadership and Retention",
+  glance: [
+    { value: "$5M+", label: "new enterprise contracts" },
+    { value: "+18%", label: "revenue per customer" },
+    { value: "50", label: "NPS, up from 32" },
+  ],
   sentimentScores: [20, 35, 50, 75, 92],
   beats: [
     {
