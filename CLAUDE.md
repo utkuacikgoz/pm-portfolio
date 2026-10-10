@@ -192,10 +192,13 @@ the quantified outcomes are the gold.
 
 ## Stack / conventions
 - **React 19 + Vite 7 + @vitejs/plugin-react 5 + @react-three/fiber 9 + drei 10 +
-  three 0.185 + TS 6.** **three is held at 0.185** (2026-10-08): r186's
-  lighting change darkens the sea toward the horizon because we have no
-  environment map, and Utku chose to keep today's look. `.github/dependabot.yml`
-  ignores three >=0.186; lift it only with a water retune checked in surf mode.
+  three 0.186 + TS 6.** **three r186+ runs with the r185 diffuse look**
+  (2026-10-10): r186 made standard materials take the specular share out of
+  diffuse light, and with no environment map the sea lost up to 42% of its
+  brightness toward the horizon. `src/world/legacy-diffuse.ts` restores the two
+  r185 diffuse lines in `ShaderChunk` once, at World load; its test fails CI if
+  a three release rewrites them. On any three bump, compare surf mode before
+  and after (band luminance, not just eyeballing).
   **React is held at 19.2** (2026-10-08): 19.3 adds 8.7 KB gzip to the react
   chunk every visitor preloads, for features we do not use. Dependabot ignores
   react/react-dom >=19.3.
