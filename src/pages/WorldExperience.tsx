@@ -85,7 +85,10 @@ export default function WorldExperience() {
   }, []);
   // The surf controls hint auto-hides (it eats real estate) after a few seconds
   // or the moment you start moving.
-  const [surfHint, setSurfHint] = useState(true);
+  // The controls hint opens from the HUD's CONTROLS button. It only pops up on
+  // its own for a touch run, where one-drag steering is not guessable; on a
+  // keyboard it was a banner over the ocean on every entry.
+  const [surfHint, setSurfHint] = useState(false);
   // Playful "who's looking?" gate. Shown AFTER the hero (once you choose to
   // enter), not as the first screen. Fun label only — no story branching.
   const [avatar, setAvatar] = useState<string | null>(() => readAvatar());
@@ -182,7 +185,7 @@ export default function WorldExperience() {
     // Coins are NOT reset here: the run persists for the visit, and the
     // controller reports the resumed count on entry.
       setWave(null);
-      setSurfHint(true);
+      setSurfHint(touchSurf);
     },
     [touchSurf]
   );
@@ -599,8 +602,8 @@ export default function WorldExperience() {
               }}
             >
               {touchControls
-                ? "🏄 Drag up to paddle and steer · pull down to slow · tap to jump · double tap for a 360"
-                : "🏄 WASD or arrows to surf · Shift to boost · Space to jump · double Space for a 360"}
+                ? "Drag up to paddle and steer · pull down to slow · tap to jump · double tap for a 360"
+                : "WASD or arrows to surf · Shift to boost · Space to jump · double Space for a 360"}
             </div>
           )}
           {/* The project tray and controls remain useful after the coin loop is
