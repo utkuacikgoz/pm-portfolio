@@ -67,6 +67,9 @@ where each island = a project, with the narrative + metrics in a fast DOM overla
   break now carries a real project with a real metric, which is the same job
   done properly.
 
+- **No social proof, ever** (Utku, 2026-10-10): no testimonials, quotes,
+  recommendations or logos walls. Do not propose it again.
+
 **Biomes now (visible):** BiLira, Mestores, Apollo, La3eb, Upshift (employment,
   strongest-signal first). **Hidden, ready to flip:** PassATS, Stats XI, Mona — set
   `published: true` in the registry to surface.
@@ -335,8 +338,7 @@ This section is only what is *true now* and what is *left*.
   the address bar was right, while the router's own state dropped the query on
   the first client-side move. It now tracks all three, and `src/router.test.tsx`
   pins it.
-- Business gaps, needing Utku rather than code: thin about/positioning, no social
-  proof. Buyback Signal still says "IN DEVELOPMENT" because it has nowhere to
+- Business gaps, needing Utku rather than code: thin about/positioning. Buyback Signal still says "IN DEVELOPMENT" because it has nowhere to
   send anyone; give it a `url` when it ships. A full case study for
   PassATS (content file plus `published: true`) is a separate, larger call, and
   would put an indie product on a rail whose other five rows are employment.
