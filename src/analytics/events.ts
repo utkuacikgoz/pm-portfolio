@@ -24,6 +24,10 @@ export const EVENTS = {
   resumeOpened: "resume_opened",
   cvDownloaded: "cv_downloaded",
   ctaClicked: "cta_clicked",
+  /** The 30 second guided tour: started, watched to the end, or taken over. */
+  tourStarted: "tour_started",
+  tourCompleted: "tour_completed",
+  tourInterrupted: "tour_interrupted",
   surfEntered: "surf_entered",
   /** Caught the wave at a break, which is how the ocean introduces a project. */
   surfWaveCaught: "surf_wave_caught",

@@ -3,6 +3,10 @@ import { Link, useLocation, useNavigate, useParams } from "../router";
 import { PUBLISHED_PROJECTS, INDIE_PROJECTS, projectIndexById, projectById, isLive, indieStatusLine, type Project } from "../projects/projects";
 import { INDIE_INDEX } from "../world/layout";
 import { initialWheel, wheelStep } from "../state/wheel-travel";
+
+// Per island on the guided tour: the camera lands, the metric counts, and
+// there is still time to read the line. Six stops come to about 30 seconds.
+const TOUR_STEP_MS = 5000;
 import { useExperienceMode, useTouchSurf } from "../state/useExperienceMode";
 import WorldNav from "../ui/WorldNav";
 import EscapeHatch from "../ui/EscapeHatch";
@@ -365,6 +369,43 @@ export default function WorldExperience() {
     requestAnimationFrame(() => opener.current?.focus?.());
   }, [navigate, openIndex, projects]);
 
+  // The 30 second tour, for the visitor who would rather watch than drive: the
+  // rail plays itself, one island every TOUR_STEP_MS, and ends on the indie
+  // island. Any click, key or scroll takes over at once; the listeners are
+  // added after the starting click has been handled, so it cannot cancel itself.
+  const [touring, setTouring] = useState(false);
+  const startTour = useCallback(() => {
+    track(EVENTS.tourStarted);
+    setActive(0);
+    setTouring(true);
+  }, []);
+  useEffect(() => {
+    if (!touring) return;
+    if (panelOpen || surfing) {
+      setTouring(false);
+      return;
+    }
+    const stop = () => {
+      track(EVENTS.tourInterrupted, { island: active });
+      setTouring(false);
+    };
+    const timer = window.setTimeout(() => {
+      if (active >= INDIE_INDEX) {
+        track(EVENTS.tourCompleted);
+        setTouring(false);
+      } else setActive(active + 1);
+    }, TOUR_STEP_MS);
+    window.addEventListener("pointerdown", stop, true);
+    window.addEventListener("keydown", stop, true);
+    window.addEventListener("wheel", stop, true);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener("pointerdown", stop, true);
+      window.removeEventListener("keydown", stop, true);
+      window.removeEventListener("wheel", stop, true);
+    };
+  }, [touring, active, panelOpen, surfing]);
+
   // Scroll to travel: recruiters scroll by reflex, and the world used to ignore
   // it. One island per gesture (see wheel-travel.ts), pinch zoom left alone.
   const wheel = useRef(initialWheel());
@@ -537,6 +578,62 @@ export default function WorldExperience() {
             onOpen={() => open(active)}
           />
         </>
+      )}
+
+      {mode === "world" && entered && !panelOpen && !surfing && (
+        touring ? (
+          <>
+            {/* Progress across the whole tour, in the current island's colour. */}
+            <div aria-hidden style={{ position: "fixed", top: 0, left: 0, right: 0, height: 3, zIndex: 60, background: T.scrim }}>
+              <div
+                style={{
+                  height: "100%",
+                  width: `${((active + 1) / (INDIE_INDEX + 1)) * 100}%`,
+                  background: projects[active]?.accent ?? T.seafoam,
+                  transition: `width ${TOUR_STEP_MS}ms linear, background .4s`,
+                }}
+              />
+            </div>
+            <div
+              role="status"
+              style={{
+                position: "fixed",
+                left: 24,
+                bottom: "calc(28px + env(safe-area-inset-bottom))",
+                zIndex: 44,
+                padding: "10px 16px",
+                background: T.scrim,
+                border: `2px solid ${T.seafoam}`,
+                color: T.textSoft,
+                fontSize: TYPE.small,
+                fontWeight: 700,
+                backdropFilter: "blur(6px)",
+              }}
+            >
+              Touring · click anywhere to take over
+            </div>
+          </>
+        ) : (
+          <button
+            onClick={startTour}
+            style={{
+              position: "fixed",
+              left: 24,
+              bottom: "calc(28px + env(safe-area-inset-bottom))",
+              zIndex: 44,
+              padding: "11px 18px",
+              background: T.scrim,
+              border: `2px solid ${T.seafoam}`,
+              color: T.seafoam,
+              fontSize: TYPE.small,
+              fontWeight: 800,
+              cursor: "pointer",
+              backdropFilter: "blur(6px)",
+            }}
+          >
+            ▶ 30 second tour
+          </button>
+        )
       )}
 
       {mode === "world" && entered && !panelOpen && !surfing && (
