@@ -39,7 +39,7 @@ export const bilira: CaseStudy = {
       id: "defi",
       label: "Stablecoin & DeFi",
       body: [
-        "I was Senior PM for TRYB, BiLira's Turkish Lira stablecoin, and I owned its onchain surface: mint and redeem infrastructure, exchange integrations, DeFi vault partnerships, and institutional onboarding. TRYB stayed fully backed by reserves and redeemable one to one, live for mint and redeem across six chains: Ethereum, Avalanche, Solana, Polygon, BNB Smart Chain and Base.",
+        "I led the product team for TRYB, BiLira's Turkish Lira stablecoin, across its onchain surface: mint and redeem infrastructure, exchange integrations, DeFi vault partnerships, and institutional onboarding. TRYB stayed fully backed by reserves and redeemable one to one, live for mint and redeem across six chains: Ethereum, Avalanche, Solana, Polygon, BNB Smart Chain and Base.",
         "On the DeFi side I opened up liquidity and distribution: DEX liquidity on Curve, institutional liquidity with B2C2, curated yield vaults with Piku Finance and Morini Capital, and onboarding work with Circle (Arc live, StableFX in discussion). Onchain supply sat around $10M with roughly $2M to $3M in monthly onchain volume.",
         "The vaults were the point. Morini curated delta neutral strategies on Turkish Lira exposure: USD/TRY arbitrage, a BIST basis trade, and a leveraged TRY carry trade, running native strategy APYs of 8.71%, 19.30% and 45.31%. Combined TRY vault TVL reached $21.85M ($3.51M, $5.24M and $13.10M across the three) inside a $30.02M Piku platform. It held because the guardrails were real: Fireblocks MPC custody under regulated HSM procedures, independent reserve verification at a 100.14% collateral ratio checked every 15 minutes, and zkTLS NAV proofs via vlayer for vault transparency.",
       ],
@@ -48,7 +48,7 @@ export const bilira: CaseStudy = {
     {
       id: "results",
       body: [
-        "Manual review time fell approximately 35%, and false positives fell 40%. Detection accuracy was 99.7%, with zero regulatory breaches reported during the period.",
+        "Manual review time fell approximately 35%, and false positives fell 40%.",
         "OTC latency fell from 500ms to 275ms, and throughput increased 45%. The system handled more than 500 institutional trades a week across 15+ pairs.",
         "The Trade API supported 50M+ monthly calls with 99.9% uptime. A release cycle of two weeks helped the team respond to changing requirements more quickly.",
       ],
