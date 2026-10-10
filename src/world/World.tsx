@@ -12,6 +12,7 @@ import WorldProfile from "./WorldProfile";
 import CameraRig from "./CameraRig";
 import Emblems from "./Emblems";
 import IndiePylons from "./IndiePylons";
+import Ambient from "./Ambient";
 import SurfController from "./SurfController";
 import SurfSpots from "./SurfSpots";
 import { Water, IslandShadows, Ripples, LightShaft, SunDisc, DistantMountains, MountainReflections } from "./Ocean";
@@ -219,6 +220,7 @@ function World({ activeIndex, entered, dive, surfing, onOpen, onCoin, onWave, on
         <IslandShadows />
         {!surfing && <Ripples active={activeIndex} />}
         {!surfing && <LightShaft active={activeIndex} />}
+        {!surfing && <Ambient active={activeIndex} />}
       <Emblems active={activeIndex} onOpen={onOpen} />
       {!surfing && onIndieFocus && onIndieOpen && (
         <IndiePylons focus={indieFocus} onFocus={onIndieFocus} onOpenProduct={onIndieOpen} />
