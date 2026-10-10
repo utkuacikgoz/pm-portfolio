@@ -262,17 +262,8 @@ export function structureTop(type: StructureType): number {
  * emblem sat at 6.1 over structures only 2.5 tall (an icon adrift over a flat
  * plate), while the 9.1 tower punched straight through its own emblem at 8.5.
  */
-/**
- * Islands drawn by hand (ProductHarbor, MarketplaceIslands) instead of the
- * procedural structures, and the tallest thing any of them draws, in world
- * units (the harbour's floating crystal, about 3.6). Emblem clearance is tested
- * against what is rendered, not against a procedural spire nobody sees.
- */
-export const ILLUSTRATED_IDS = ["bilira", "mestores", "upshift", "apollo", "la3eb"] as const;
-export const ILLUSTRATED_TOP = 5;
-
 export const EMBLEM_HOVER: Record<StructureType, number> = {
-  tower: 8.0,
+  tower: 10.6,
   market: 8.0,
   campus: 8.4,
   arcade: 6.8,

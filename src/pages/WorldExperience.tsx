@@ -484,7 +484,6 @@ export default function WorldExperience() {
               onWave={onSurfWave}
               onTotals={onTotals}
               onComplete={onRunComplete}
-              focused={panelOpen}
               indieFocus={indieFocus}
               onIndieFocus={setIndieFocus}
               onIndieOpen={openIndie}
