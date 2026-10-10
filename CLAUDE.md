@@ -168,9 +168,8 @@ shelf and the ocean island:
 **PassATS** (resume checker), **Psst** (tap-a-friend iPhone app), **Rack Rate**
 (AI coding cost comparison), **Little Menace** (gremlin pet iPhone app), all
 live, then **Buyback Signal** (trading-signal bot), in development. Cofoundr
-was dropped 2026-10-06. The indie panel's "Live now: ..." sentence is derived
-by `indieStatusLine()` from the registry, so shipping one is a `url` and nothing
-else.
+was dropped 2026-10-06. Shipping one is a `url` on its registry row and nothing
+else: the panel's "Live" pill, the finished pylon and the shelf all read it.
 
 **Live:** PassATS at https://passats.pro (2026-08-30); Psst at
 https://www.psstapp.fun (App Store listing) and Rack Rate at

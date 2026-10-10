@@ -1,6 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { attributionLine, PROJECTS, PUBLISHED_PROJECTS, INDIE_PROJECTS, projectIndexById, isLive, indieStatusLine, formatHeadline } from "./projects";
-import type { Project } from "./projects";
+import { attributionLine, PROJECTS, PUBLISHED_PROJECTS, INDIE_PROJECTS, projectIndexById, isLive, formatHeadline } from "./projects";
 
 describe("project registry invariants", () => {
   it("has unique project ids", () => {
@@ -111,23 +110,6 @@ describe("live indie products", () => {
     for (const p of INDIE_PROJECTS) {
       expect(p.glimpse && p.glimpse.length).toBeGreaterThan(10);
     }
-  });
-});
-
-describe("indieStatusLine", () => {
-  const row = (title: string, url?: string): Project =>
-    ({ id: title.toLowerCase(), title, tagline: "", kind: "indie", published: false, accent: "", structure: "beacon", url }) as Project;
-
-  it("counts the registry's live and in development products", () => {
-    const live = INDIE_PROJECTS.filter(isLive).length;
-    expect(live).toBeGreaterThan(0);
-    expect(indieStatusLine()).toMatch(/live/);
-  });
-
-  it("reads naturally whatever the mix", () => {
-    expect(indieStatusLine([row("A", "https://a")])).toBe("One live.");
-    expect(indieStatusLine([row("A", "https://a"), row("B", "https://b"), row("C")])).toBe("Two live, one in development.");
-    expect(indieStatusLine([row("D")])).toBe("One in development.");
   });
 });
 

@@ -1,6 +1,7 @@
-import { Suspense, lazy, useCallback, useEffect, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { lazyWithReload } from "../lazy-reload";
 import { Link, useLocation, useNavigate, useParams } from "../router";
-import { PUBLISHED_PROJECTS, INDIE_PROJECTS, projectIndexById, projectById, isLive, indieStatusLine, type Project } from "../projects/projects";
+import { PUBLISHED_PROJECTS, INDIE_PROJECTS, projectIndexById, projectById, isLive, type Project } from "../projects/projects";
 import { INDIE_INDEX } from "../world/layout";
 import { initialWheel, wheelStep } from "../state/wheel-travel";
 import { useExperienceMode, useTouchSurf } from "../state/useExperienceMode";
@@ -22,12 +23,12 @@ import { EVENTS, track } from "../analytics/events";
 import FlatMap from "./FlatMap";
 
 // Lazy so three.js / r3f / drei only download on the interactive world path.
-const World = lazy(() => import("../world/World"));
+const World = lazyWithReload(() => import("../world/World"));
 // Both mount behind a user gesture (opening a case study, answering the character
 // gate), so their Suspense gap is invisible in practice and they stay out of the
 // entry chunk. ProjectPanel drags the SVG viz layer with it.
-const ProjectPanel = lazy(() => import("../ui/ProjectPanel"));
-const AvatarSelect = lazy(() => import("../ui/AvatarSelect"));
+const ProjectPanel = lazyWithReload(() => import("../ui/ProjectPanel"));
+const AvatarSelect = lazyWithReload(() => import("../ui/AvatarSelect"));
 
 export default function WorldExperience() {
   const mode = useExperienceMode();
@@ -134,7 +135,7 @@ export default function WorldExperience() {
   // loading string. Idle-time only, so it never competes with first paint.
   useEffect(() => {
     if (mode !== "world" || entered) return;
-    const warm = () => void import("../world/World");
+    const warm = () => void import("../world/World").catch(() => {}); // a stale chunk is handled when it is actually needed
     const idle = window.requestIdleCallback?.(warm);
     const timer = idle === undefined ? window.setTimeout(warm, 1200) : undefined;
     return () => {
@@ -952,8 +953,7 @@ function IndieOverlay({ onBack, focus, onFocus }: { onBack: () => void; focus: s
       }}
     >
       <div style={{ fontSize: TYPE.micro, fontWeight: 800, letterSpacing: 2, color: T.textMuted }}>ON MY OWN TIME</div>
-      <h2 style={{ fontSize: TYPE.title, fontWeight: 900, lineHeight: 1.2, margin: "6px 0 4px" }}>What I&rsquo;m building</h2>
-      <p style={{ fontSize: TYPE.small, color: T.textSoft, marginBottom: 14 }}>{indieStatusLine()}</p>
+      <h2 style={{ fontSize: TYPE.title, fontWeight: 900, lineHeight: 1.2, margin: "6px 0 14px" }}>What I&rsquo;m building</h2>
       <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
         {INDIE_PROJECTS.map((p) => {
           const live = isLive(p);
