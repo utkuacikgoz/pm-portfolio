@@ -20,6 +20,13 @@ interface Props {
    * played at all. A deep link should still skip it and open on its island.
    */
   dive: boolean;
+  /**
+   * A case study is open for the active island. The camera eases in close and
+   * slides the island into the part of the screen the drawer leaves visible,
+   * so opening reads as walking up to the monument rather than a sheet of
+   * paper sliding over the world.
+   */
+  focused?: boolean;
 }
 
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
@@ -37,6 +44,12 @@ const LOOK_Y = 2.5;
 // the crossing is unhurried — you can actually see the surfer riding the gap.
 const STIFF = 68;
 const DAMP = 12;
+// Focused framing: how close the camera comes, and how far the island shifts
+// left (along screen-right, (1, 0, -1)/sqrt2 at this iso angle) to clear the
+// 620px drawer. Narrow screens get a full-width drawer, so no shift there.
+const FOCUS_DIST = 21;
+const FOCUS_SHIFT = 9;
+const SCREEN_RIGHT = new THREE.Vector3(1, 0, -1).normalize();
 
 /**
  * On-rails camera at a fixed 45-degree angle, with a springy bounce between
@@ -44,7 +57,7 @@ const DAMP = 12;
  * sampled along the gapped island path (islandX). While over water, a surfboard
  * (with a little rider) rides the surface for personality.
  */
-export default function CameraRig({ activeIndex, accent, entered, surfing, dive }: Props) {
+export default function CameraRig({ activeIndex, accent, entered, surfing, dive, focused = false }: Props) {
   const gl = useThree((s) => s.gl);
   const regress = useThree((s) => s.performance.regress);
   const reduced = usePrefersReducedMotion();
@@ -55,6 +68,9 @@ export default function CameraRig({ activeIndex, accent, entered, surfing, dive 
   // Starts at 0 only when this mount is an entrance; the per-frame easing below
   // then carries it to 1, which is the dive.
   const enterT = useRef(dive ? 0 : 1);
+  // A deep link mounts straight into an open case study: start already focused.
+  const focusT = useRef(focused ? 1 : 0);
+  const wide = useThree((s) => s.size.width > 760);
   const wasSurfing = useRef(false); // true on the frame surf hands the camera back
   const look = useRef(new THREE.Vector3(CENTER_X, 1, 0));
   const tPos = useRef(new THREE.Vector3());
@@ -100,15 +116,22 @@ export default function CameraRig({ activeIndex, accent, entered, surfing, dive 
     const cz = lerp(islandBaseZ(i0), islandBaseZ(i1), f);
     const t = state.clock.elapsedTime;
 
+    focusT.current += ((focused ? 1 : 0) - focusT.current) * (reduced ? 1 : 1 - Math.exp(-4 * dt));
+    const fe = focusT.current * focusT.current * (3 - 2 * focusT.current); // smoothstep
+    const dist = lerp(ISO_DIST, FOCUS_DIST, fe);
+    const shift = wide ? FOCUS_SHIFT * fe : 0;
+    const fx = cx + SCREEN_RIGHT.x * shift;
+    const fz = cz + SCREEN_RIGHT.z * shift;
+
     // Fixed iso position, plus a barely-there idle float for life.
     const bob = reduced ? 0 : Math.sin(t * 0.45) * 0.15;
-    iPos.current.set(cx + ISO.x * ISO_DIST, ISO.y * ISO_DIST + bob, cz + ISO.z * ISO_DIST);
+    iPos.current.set(fx + ISO.x * dist, ISO.y * dist + bob, fz + ISO.z * dist);
     // Establishing shot: high + far back so entering descends into the framing.
     wPos.current.set(CENTER_X + Math.sin(t * 0.1) * 3, 34, 70);
 
     const e = enterT.current;
     tPos.current.copy(wPos.current).lerp(iPos.current, e);
-    tLook.current.set(lerp(CENTER_X, cx, e), lerp(1, LOOK_Y, e), lerp(0, cz, e));
+    tLook.current.set(lerp(CENTER_X, fx, e), lerp(1, LOOK_Y, e), lerp(0, fz, e));
     state.camera.position.copy(tPos.current);
     look.current.lerp(tLook.current, k);
     state.camera.lookAt(look.current);

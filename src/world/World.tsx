@@ -5,7 +5,7 @@ import { Instances, Instance, PerformanceMonitor, Stars } from "@react-three/dre
 import { usePrefersReducedMotion } from "../ui/hooks/useReducedMotion";
 import { daylight, SUN_POSITION } from "./daylight";
 import { PUBLISHED_PROJECTS, INDIE_PROJECTS } from "../projects/projects";
-import { buildWorld, buildIndieIsland, islandPosition } from "./geometry";
+import { buildWorld, buildIndieIsland, islandPosition, ILLUSTRATED_IDS } from "./geometry";
 import ProductHarbor from "./ProductHarbor";
 import MarketplaceIslands from "./MarketplaceIslands";
 import WorldProfile from "./WorldProfile";
@@ -111,6 +111,8 @@ interface Props {
   onTotals?: (coins: number) => void;
   onComplete?: () => void;
   /** Indie product in focus (a hovered row or pylon), and the pylon handlers. */
+  /** A case study is open for the active island: the camera moves in close. */
+  focused?: boolean;
   indieFocus?: string | null;
   onIndieFocus?: (id: string | null) => void;
   onIndieOpen?: (id: string) => void;
@@ -130,10 +132,10 @@ interface Props {
  * across every island lives in a single <Instances> (one draw call, per-instance
  * color) — no per-cube draw calls. Lazy-loaded so three.js only ships here.
  */
-function World({ activeIndex, entered, dive, surfing, onOpen, onCoin, onWave, onTotals, onComplete, indieFocus = null, onIndieFocus, onIndieOpen, lowPower = false, frameloop = "always" }: Props) {
+function World({ activeIndex, entered, dive, surfing, onOpen, onCoin, onWave, onTotals, onComplete, focused = false, indieFocus = null, onIndieFocus, onIndieOpen, lowPower = false, frameloop = "always" }: Props) {
   // One list, one InstancedMesh: the indie island's pylons ride in the same
   // field as the rail, so showing it costs no extra draw call.
-  const cubes = useMemo(() => [...buildWorld(PUBLISHED_PROJECTS, ["bilira", "mestores", "upshift", "apollo", "la3eb"]), ...buildIndieIsland(INDIE_PROJECTS)], []);
+  const cubes = useMemo(() => [...buildWorld(PUBLISHED_PROJECTS, ILLUSTRATED_IDS), ...buildIndieIsland(INDIE_PROJECTS)], []);
   const biliraIndex = PUBLISHED_PROJECTS.findIndex(project => project.id === "bilira");
   const accent = PUBLISHED_PROJECTS[activeIndex]?.accent ?? T.blue;
   const [profiling] = useState(() => import.meta.env.DEV && new URLSearchParams(location.search).has("perf"));
@@ -224,7 +226,7 @@ function World({ activeIndex, entered, dive, surfing, onOpen, onCoin, onWave, on
       {/* The breaks only exist while surfing → the rail diorama stays clean. */}
       {surfing && <SurfSpots />}
       <SurfController active={surfing} onCoin={onCoin} onWave={onWave} onTotals={onTotals} onComplete={onComplete} />
-      <CameraRig activeIndex={activeIndex} accent={accent} entered={entered} dive={dive} surfing={surfing} />
+      <CameraRig activeIndex={activeIndex} accent={accent} entered={entered} dive={dive} surfing={surfing} focused={focused} />
     </Canvas>
   );
 }
