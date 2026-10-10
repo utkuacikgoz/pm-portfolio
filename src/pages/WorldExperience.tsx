@@ -158,6 +158,19 @@ export default function WorldExperience() {
     track(EVENTS.surfEntered, { source: "shared_link" });
   }, [search, mode, touchSurf]);
 
+  // The indie island and its panel share one focus: hovering a row lights its
+  // pylon, hovering a pylon highlights its row. Clicking a live pylon opens
+  // the product, the same as its row.
+  const [indieFocus, setIndieFocus] = useState<string | null>(null);
+  const openIndie = useCallback((id: string) => {
+    const p = INDIE_PROJECTS.find((x) => x.id === id);
+    if (!p) return;
+    setIndieFocus(id);
+    if (!isLive(p)) return;
+    track(EVENTS.indieProductOpened, { project_id: id, source: "pylon" });
+    window.open(p.url, "_blank", "noopener,noreferrer");
+  }, []);
+
   // Free surf mode: hop on the board and roam the ocean; Esc comes back.
   const enterSurf = useCallback(
     (source: "world" | "flat_map") => {
@@ -413,6 +426,9 @@ export default function WorldExperience() {
               onWave={onSurfWave}
               onTotals={onTotals}
               onComplete={onRunComplete}
+              indieFocus={indieFocus}
+              onIndieFocus={setIndieFocus}
+              onIndieOpen={openIndie}
               // `touchControls` holds this for the whole run, so rotating a
               // phone into landscape does not hand a phone GPU the full-fat
               // scene halfway through.
@@ -530,7 +546,7 @@ export default function WorldExperience() {
       )}
 
       {mode === "world" && entered && !panelOpen && isIndie && !surfing && (
-        <IndieOverlay onBack={() => setActive(INDIE_INDEX - 1)} />
+        <IndieOverlay onBack={() => setActive(INDIE_INDEX - 1)} focus={indieFocus} onFocus={setIndieFocus} />
       )}
 
       {surfing && (
@@ -895,7 +911,7 @@ function RunCompleteCard({ coinTotal, onCases, onDismiss }: { coinTotal: number;
   );
 }
 
-function IndieOverlay({ onBack }: { onBack: () => void }) {
+function IndieOverlay({ onBack, focus, onFocus }: { onBack: () => void; focus: string | null; onFocus: (id: string | null) => void }) {
   // Placement and the arrival (it eases in once the camera has landed, and
   // docks to the right on wide screens so the pylons stay in view) live in the
   // `.indie-dock` rule in index.css, since inline styles cannot hold a media
@@ -939,13 +955,21 @@ function IndieOverlay({ onBack }: { onBack: () => void }) {
               </span>
             </>
           );
+          const lit = focus === p.id;
+          const hover = {
+            onMouseEnter: () => onFocus(p.id),
+            onMouseLeave: () => onFocus(null),
+            onFocus: () => onFocus(p.id),
+            onBlur: () => onFocus(null),
+          };
           const style = {
             display: "flex",
             alignItems: "center",
             gap: 10,
             padding: "10px 14px",
-            border: `1.5px solid ${p.accent}${live ? "" : "55"}`,
-            background: T.inkRaised,
+            border: `1.5px solid ${p.accent}${live || lit ? "" : "55"}`,
+            background: lit ? T.surface : T.inkRaised,
+            transition: "background .15s",
             textAlign: "left" as const,
             textDecoration: "none",
             color: T.text,
@@ -960,11 +984,12 @@ function IndieOverlay({ onBack }: { onBack: () => void }) {
               rel="noopener noreferrer"
               onClick={() => track(EVENTS.indieProductOpened, { project_id: p.id })}
               style={style}
+              {...hover}
             >
               {row}
             </a>
           ) : (
-            <div key={p.id} style={style}>
+            <div key={p.id} style={style} {...hover}>
               {row}
             </div>
           );

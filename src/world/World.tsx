@@ -11,6 +11,7 @@ import MarketplaceIslands from "./MarketplaceIslands";
 import WorldProfile from "./WorldProfile";
 import CameraRig from "./CameraRig";
 import Emblems from "./Emblems";
+import IndiePylons from "./IndiePylons";
 import SurfController from "./SurfController";
 import SurfSpots from "./SurfSpots";
 import { Water, IslandShadows, Ripples, LightShaft, SunDisc, DistantMountains, MountainReflections } from "./Ocean";
@@ -109,6 +110,10 @@ interface Props {
   onWave?: (projectId: string | null) => void;
   onTotals?: (coins: number) => void;
   onComplete?: () => void;
+  /** Indie product in focus (a hovered row or pylon), and the pylon handlers. */
+  indieFocus?: string | null;
+  onIndieFocus?: (id: string | null) => void;
+  onIndieOpen?: (id: string) => void;
   /**
    * Phone-grade GPU: trade resolution and sea tessellation for frame rate. The
    * scene is unchanged, only how finely it is sampled, because a phone visitor
@@ -125,7 +130,7 @@ interface Props {
  * across every island lives in a single <Instances> (one draw call, per-instance
  * color) — no per-cube draw calls. Lazy-loaded so three.js only ships here.
  */
-function World({ activeIndex, entered, dive, surfing, onOpen, onCoin, onWave, onTotals, onComplete, lowPower = false, frameloop = "always" }: Props) {
+function World({ activeIndex, entered, dive, surfing, onOpen, onCoin, onWave, onTotals, onComplete, indieFocus = null, onIndieFocus, onIndieOpen, lowPower = false, frameloop = "always" }: Props) {
   // One list, one InstancedMesh: the indie island's pylons ride in the same
   // field as the rail, so showing it costs no extra draw call.
   const cubes = useMemo(() => [...buildWorld(PUBLISHED_PROJECTS, ["bilira", "mestores", "upshift", "apollo", "la3eb"]), ...buildIndieIsland(INDIE_PROJECTS)], []);
@@ -213,6 +218,9 @@ function World({ activeIndex, entered, dive, surfing, onOpen, onCoin, onWave, on
         {!surfing && <Ripples active={activeIndex} />}
         {!surfing && <LightShaft active={activeIndex} />}
       <Emblems active={activeIndex} onOpen={onOpen} />
+      {!surfing && onIndieFocus && onIndieOpen && (
+        <IndiePylons focus={indieFocus} onFocus={onIndieFocus} onOpenProduct={onIndieOpen} />
+      )}
       {/* The breaks only exist while surfing → the rail diorama stays clean. */}
       {surfing && <SurfSpots />}
       <SurfController active={surfing} onCoin={onCoin} onWave={onWave} onTotals={onTotals} onComplete={onComplete} />

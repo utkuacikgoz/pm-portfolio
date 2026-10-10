@@ -278,19 +278,29 @@ export const EMBLEM_HOVER: Record<StructureType, number> = {
 const INDIE_RING = 3.4;
 const INDIE_RING_START = -Math.PI / 6;
 
+/** Where indie pylon `i` of `n` stands on its island, in island-local voxels. */
+export function indiePylon(i: number, n: number): { x: number; z: number; height: number } {
+  const angle = INDIE_RING_START + (i * 2 * Math.PI) / n;
+  // Snapped to the voxel grid so the pylons sit on the terrain, not between it.
+  return { x: Math.round(Math.cos(angle) * INDIE_RING), z: Math.round(Math.sin(angle) * INDIE_RING), height: 4 + (i % 3) };
+}
+
+/** World position of the top of indie pylon `i` of `n` (its light or capstone). */
+export function indiePylonTop(i: number, n: number): [number, number, number] {
+  const [ox, , oz] = islandPosition(INDIE_INDEX);
+  const { x, z, height } = indiePylon(i, n);
+  return [ox + x, height + 1, oz + z];
+}
+
 /**
- * The indie island, out past the water gap.
+ * The indie island, out past the water gap, built from the registry like every
+ * other island: one pylon per indie product, in that product's own accent.
  *
- * Its monuments were missing outright: the island was two hand-placed dark
- * boxes (off-palette blue-black, no cubes, no structures), so the "what I'm
- * building" panel listed three products over an empty slab. This builds it the
- * same way every other island is built, from the registry: one pylon per indie
- * product, in that product's own accent.
- *
- * Deliberately scaffolding rather than finished monuments. Each stack is
- * missing a course and carries a scaffold frame and a signal light instead of a
- * capstone, because none of these have shipped yet. That is the difference the
- * island is there to show.
+ * A pylon says whether its product shipped. A live product (one with a `url`)
+ * is a finished stack with a capstone; a bet in development is still
+ * scaffolding, missing a course, with a signal light where the cap will go.
+ * The island used to draw every pylon as scaffolding while four of them were
+ * live, which undersold exactly what it is there to show.
  */
 export function buildIndieIsland(projects: Project[]): Cube[] {
   if (projects.length === 0) return [];
@@ -298,21 +308,22 @@ export function buildIndieIsland(projects: Project[]): Cube[] {
   const local: Cube[] = buildTerrain(T.seafoam, 9173);
 
   projects.forEach((p, i) => {
-    const angle = INDIE_RING_START + (i * 2 * Math.PI) / projects.length;
-    // Snapped to the voxel grid so the pylons sit on the terrain, not between it.
-    const x = Math.round(Math.cos(angle) * INDIE_RING);
-    const z = Math.round(Math.sin(angle) * INDIE_RING);
+    const { x, z, height } = indiePylon(i, projects.length);
+    const live = Boolean(p.url);
     const bright = mix(p.accent, "#ffffff", 0.4);
     const deep = mix(p.accent, "#000000", 0.35);
-    const height = 4 + (i % 3);
 
     for (let y = 1; y <= height; y++) {
-      if (y === height - 1) continue; // the course still to be built
+      if (!live && y === height - 1) continue; // the course still to be built
       local.push(block(x, y, z, y % 2 ? p.accent : deep));
     }
-    local.push(block(x + 1, 1, z, deep, [0.3, 2, 0.3])); // scaffold posts
-    local.push(block(x - 1, 1, z, deep, [0.3, 2, 0.3]));
-    local.push(block(x, height + 1, z, bright, [0.6, 0.8, 0.6])); // signal light
+    if (live) {
+      local.push(block(x, height + 1, z, bright, [1.3, 0.35, 1.3])); // capstone
+    } else {
+      local.push(block(x + 1, 1, z, deep, [0.3, 2, 0.3])); // scaffold posts
+      local.push(block(x - 1, 1, z, deep, [0.3, 2, 0.3]));
+      local.push(block(x, height + 1, z, bright, [0.6, 0.8, 0.6])); // signal light
+    }
   });
 
   return local.map((c) => ({
