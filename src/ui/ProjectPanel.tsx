@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { attributionLine, type Project } from "../projects/projects";
+import { attributionLine, formatHeadline, type Project } from "../projects/projects";
 import { CASE_STUDIES, type CaseStudyId } from "../content";
 import type { CaseStudy } from "../content/types";
 import type { Beat } from "../content/types";
@@ -184,7 +184,7 @@ export default function ProjectPanel({ project, onClose, onNext, nextTitle }: Pr
         onJump={jumpTo}
       />
 
-      <Attribution project={project} />
+      <Overview project={project} study={content} labels={beats.map(beatLabel)} onJump={jumpTo} />
 
       {beats.map((b, i) => {
         const label = beatLabel(b);
@@ -252,32 +252,97 @@ export default function ProjectPanel({ project, onClose, onNext, nextTitle }: Pr
   );
 }
 
-// Opens each beat with its first sentence emphasized — an at-a-glance takeaway
-// so the panel skims instead of reading as a wall of text.
 /**
- * Who, where, when. The CV lists four employers and the world shows five
- * islands, so without this line three of the studies read as jobs that are not
- * in the employment history.
+ * The opening screen: the outcome first, depth on demand. A recruiter gets the
+ * headline number, who/where/when, three supporting numbers and the one line
+ * story without scrolling; each section below is one tap away.
+ *
+ * The attribution line matters as much as the number: the CV lists four
+ * employers and the world shows five islands, so without it three of the
+ * studies read as jobs that are not in the employment history.
  */
-function Attribution({ project }: { project: Project }) {
+function Overview({
+  project,
+  study,
+  labels,
+  onJump,
+}: {
+  project: Project;
+  study: CaseStudy;
+  labels: string[];
+  onJump: (i: number) => void;
+}) {
+  const accent = textAccent(project.accent);
   const line = attributionLine(project);
-  if (!line) return null;
+  const h = project.headline;
   return (
-    <p
-      style={{
-        padding: "0 clamp(20px, 5vw, 40px)",
-        marginTop: 14,
-        fontSize: TYPE.small,
-        fontWeight: 600,
-        color: T.textMuted,
-        letterSpacing: 0.2,
-      }}
-    >
-      {line}
-    </p>
+    <section style={{ scrollSnapAlign: "start", padding: "28px clamp(20px, 5vw, 40px) 40px", display: "flex", flexDirection: "column", gap: 26 }}>
+      <div>
+        {h && (
+          <div style={{ fontSize: "clamp(56px, 11vw, 88px)", fontWeight: 900, lineHeight: 0.95, letterSpacing: -2, color: accent }}>
+            {formatHeadline(h)}
+          </div>
+        )}
+        {h && <p style={{ fontSize: TYPE.display, fontWeight: 900, lineHeight: 1.2, color: T.text, marginTop: 8 }}>{h.label}</p>}
+        {line && <p style={{ fontSize: TYPE.small, fontWeight: 600, color: T.textMuted, letterSpacing: 0.2, marginTop: 12 }}>{line}</p>}
+      </div>
+
+      {study.glance && study.glance.length > 0 && (
+        <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 10 }}>
+          {study.glance.map((g) => (
+            <li key={g.label} style={{ background: T.inkRaised, border: `1px solid ${T.border}`, borderRadius: 12, padding: "14px clamp(10px, 2.5vw, 16px)" }}>
+              <div style={{ fontSize: "clamp(20px, 5.5vw, 28px)", fontWeight: 900, color: T.text, lineHeight: 1.1 }}>{g.value}</div>
+              <div style={{ fontSize: TYPE.small, color: T.textSoft, lineHeight: 1.4, marginTop: 4 }}>{g.label}</div>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {project.story && (
+        <div>
+          <div style={{ fontSize: TYPE.micro, fontWeight: 800, letterSpacing: 1.5, color: T.textMuted, marginBottom: 6 }}>IN ONE LINE</div>
+          <p style={{ fontSize: TYPE.lead, lineHeight: 1.55, color: T.text, maxWidth: "34em" }}>{project.story}</p>
+        </div>
+      )}
+
+      <nav aria-label="Read a section">
+        <ul style={{ listStyle: "none", margin: 0, padding: 0, borderTop: `1px solid ${T.border}` }}>
+          {labels.map((label, i) => (
+            <li key={label} style={{ borderBottom: `1px solid ${T.border}` }}>
+              <button
+                onClick={() => onJump(i)}
+                style={{
+                  width: "100%",
+                  minHeight: 52,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 14,
+                  padding: 0,
+                  background: "transparent",
+                  border: "none",
+                  color: T.text,
+                  font: "inherit",
+                  textAlign: "left",
+                  cursor: "pointer",
+                }}
+              >
+                <span style={{ fontSize: TYPE.micro, fontWeight: 800, color: T.textMuted, width: 18 }}>{String(i + 1).padStart(2, "0")}</span>
+                <span style={{ flex: "none", fontSize: TYPE.body, fontWeight: 800 }}>{label}</span>
+                <span className="overview-teaser" style={{ flex: 1, minWidth: 0, fontSize: TYPE.small, color: T.textMuted, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {study.beats[i]?.insight ?? ""}
+                </span>
+                <span aria-hidden="true" style={{ marginLeft: "auto", color: accent, fontWeight: 800 }}>↓</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    </section>
   );
 }
 
+// Opens each beat with its first sentence emphasized, an at a glance takeaway
+// so the panel skims instead of reading as a wall of text.
 function Lead({ text }: { text: string }) {
   const cut = text.indexOf(". ");
   if (cut === -1) return <strong style={{ color: T.text, fontWeight: 800 }}>{text}</strong>;
@@ -291,10 +356,11 @@ function Lead({ text }: { text: string }) {
 
 function InsightCallout({ accent, text }: { accent: string; text: string }) {
   return (
-    <div style={{ margin: "30px 0 6px", paddingLeft: 20, borderLeft: `3px solid ${accent}` }}>
-      <div style={{ fontSize: TYPE.micro, fontWeight: 800, letterSpacing: 2, color: textAccent(accent), marginBottom: 8 }}>WHAT I LEARNED</div>
-      <p style={{ fontSize: TYPE.lead, lineHeight: 1.45, fontWeight: 800, color: T.text, letterSpacing: -0.2 }}>{text}</p>
-    </div>
+    <figure style={{ margin: "30px 0 10px" }}>
+      <blockquote style={{ margin: 0, fontSize: TYPE.title + 2, lineHeight: 1.3, fontWeight: 900, color: textAccent(accent), letterSpacing: -0.3, maxWidth: "26em" }}>
+        {text}
+      </blockquote>
+    </figure>
   );
 }
 
@@ -419,7 +485,7 @@ function Shell({
         top: 0,
         right: 0,
         height: "100dvh",
-        width: "min(620px, 100vw)",
+        width: "min(680px, 100vw)",
         background: "rgba(29,24,22,0.97)",
         backdropFilter: "blur(10px)",
         borderLeft: `3px solid ${accent}`,

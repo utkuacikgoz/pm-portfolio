@@ -11,6 +11,8 @@ import {
   buildIndieIsland,
   structureTop,
   EMBLEM_HOVER,
+  ILLUSTRATED_IDS,
+  ILLUSTRATED_TOP,
   WATER_Y,
 } from "./geometry";
 import { PUBLISHED_PROJECTS, INDIE_PROJECTS } from "../projects/projects";
@@ -116,10 +118,12 @@ describe("island silhouettes", () => {
 
   it("floats each emblem clear of its own structure", () => {
     // The tower used to punch through its emblem: 9.1 of spire under a 8.5 hover.
+    // Illustrated islands do not draw the procedural structure, so they are
+    // measured against the tallest thing they do draw.
     for (const project of PUBLISHED_PROJECTS) {
-      expect(EMBLEM_HOVER[project.structure]).toBeGreaterThan(
-        structureTop(project.structure) + 1
-      );
+      const illustrated = (ILLUSTRATED_IDS as readonly string[]).includes(project.id);
+      const top = illustrated ? ILLUSTRATED_TOP : structureTop(project.structure);
+      expect(EMBLEM_HOVER[project.structure], project.id).toBeGreaterThan(top + 1);
     }
   });
 

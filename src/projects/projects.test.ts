@@ -1,6 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { attributionLine, PROJECTS, PUBLISHED_PROJECTS, INDIE_PROJECTS, projectIndexById, isLive, indieStatusLine } from "./projects";
-import type { Project } from "./projects";
+import { attributionLine, PROJECTS, PUBLISHED_PROJECTS, INDIE_PROJECTS, projectIndexById, isLive, formatHeadline } from "./projects";
 
 describe("project registry invariants", () => {
   it("has unique project ids", () => {
@@ -114,23 +113,20 @@ describe("live indie products", () => {
   });
 });
 
-describe("indieStatusLine", () => {
-  const row = (title: string, url?: string): Project =>
-    ({ id: title.toLowerCase(), title, tagline: "", kind: "indie", published: false, accent: "", structure: "beacon", url }) as Project;
-
-  it("names every live product from the registry and says what is still coming", () => {
-    const line = indieStatusLine();
-    for (const p of INDIE_PROJECTS.filter(isLive)) expect(line).toContain(p.title);
-    for (const p of INDIE_PROJECTS.filter((x) => !isLive(x))) expect(line).not.toContain(p.title);
-    expect(line).toContain("More are in development.");
+describe("headline metrics", () => {
+  it("every published project has one, and its tagline states the same figure", () => {
+    for (const p of PUBLISHED_PROJECTS) {
+      expect(p.headline, p.id).toBeDefined();
+      expect(p.tagline, p.id).toContain(formatHeadline(p.headline!));
+      if (p.headline!.from !== undefined && p.headline!.from !== 1) {
+        const before = formatHeadline(p.headline!, p.headline!.from);
+        expect(p.tagline, `${p.id} before`).toContain(before);
+      }
+    }
   });
 
-  it("reads naturally for one, two and many live products", () => {
-    expect(indieStatusLine([row("A", "https://a")])).toBe("Live now: A.");
-    expect(indieStatusLine([row("A", "https://a"), row("B", "https://b")])).toBe("Live now: A and B.");
-    expect(indieStatusLine([row("A", "https://a"), row("B", "https://b"), row("C", "https://c"), row("D")])).toBe(
-      "Live now: A, B and C. More are in development.",
-    );
-    expect(indieStatusLine([row("D")])).toBe("More are in development.");
+  it("formats the in-between values of a count", () => {
+    expect(formatHeadline({ from: 0.8, to: 2.1, decimals: 1, suffix: "%", label: "" }, 1.234)).toBe("1.2%");
+    expect(formatHeadline({ to: 2, prefix: "$", suffix: "M/yr", label: "" }, 1)).toBe("$1M/yr");
   });
 });

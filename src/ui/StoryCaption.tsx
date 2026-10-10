@@ -1,5 +1,7 @@
+import { useEffect, useRef } from "react";
 import { usePrefersReducedMotion } from "./hooks/useReducedMotion";
-import type { Project } from "../projects/projects";
+import { formatHeadline } from "../projects/projects";
+import type { Headline, Project } from "../projects/projects";
 import { T, TYPE, textAccent } from "../theme";
 
 /**
@@ -15,7 +17,7 @@ export default function StoryCaption({ project }: { project: Project }) {
       aria-live="polite"
       style={{
         position: "fixed",
-        top: "11%",
+        top: "3%",
         left: "50%",
         transform: "translateX(-50%)",
         zIndex: 38,
@@ -52,6 +54,48 @@ export default function StoryCaption({ project }: { project: Project }) {
       >
         {project.story}
       </p>
+      {project.headline && <HeadlineCount key={project.id} headline={project.headline} accent={project.accent} reduced={reduced} />}
+    </div>
+  );
+}
+
+const COUNT_DELAY_MS = 450; // let the camera land first
+const COUNT_MS = 1100;
+
+/**
+ * The island's one number, counting from its "before" to its result. Written
+ * straight to the node per frame, so a count never re-renders the overlay.
+ * Screen readers get the final figure once, not every tick.
+ */
+function HeadlineCount({ headline, accent, reduced }: { headline: Headline; accent: string; reduced: boolean }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const final = formatHeadline(headline);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || reduced) return;
+    const from = headline.from ?? 0;
+    let raf = 0;
+    let start = -1;
+    const tick = (now: number) => {
+      if (start < 0) start = now + COUNT_DELAY_MS;
+      const p = Math.min(1, Math.max(0, (now - start) / COUNT_MS));
+      const e = 1 - Math.pow(1 - p, 3);
+      el.textContent = formatHeadline(headline, from + (headline.to - from) * e);
+      if (p < 1) raf = requestAnimationFrame(tick);
+    };
+    el.textContent = formatHeadline(headline, from);
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [headline, reduced]);
+  return (
+    <div style={{ marginTop: 4, display: "flex", alignItems: "baseline", justifyContent: "center", gap: 12, flexWrap: "wrap" }}>
+      <span aria-hidden="true" style={{ fontSize: "clamp(34px, 5vw, 52px)", fontWeight: 900, lineHeight: 1, color: textAccent(accent), fontVariantNumeric: "tabular-nums", textShadow: "0 2px 18px rgba(0,0,0,0.85)" }}>
+        <span ref={ref}>{final}</span>
+      </span>
+      <span style={{ fontSize: TYPE.body, fontWeight: 700, color: T.textSoft, textShadow: "0 2px 12px rgba(0,0,0,0.8)" }}>
+        <span style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)" }}>{final} </span>
+        {headline.label}
+      </span>
     </div>
   );
 }

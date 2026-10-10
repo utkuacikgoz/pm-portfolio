@@ -1,10 +1,11 @@
-import { Suspense, lazy, useEffect, useRef } from "react";
+import { Suspense, useEffect, useRef } from "react";
+import { lazyWithReload } from "./lazy-reload";
 import { useLocation, useNavigate } from "./router";
 import WorldExperience from "./pages/WorldExperience";
 
 // The resume is a separate route nobody sees on first paint, so it ships as its
 // own chunk rather than riding in the entry bundle.
-const Resume = lazy(() => import("./pages/Resume"));
+const Resume = lazyWithReload(() => import("./pages/Resume"));
 import { projectIndexById } from "./projects/projects";
 import { useSeo } from "./seo/useSeo";
 

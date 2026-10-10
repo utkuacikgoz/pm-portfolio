@@ -64,6 +64,27 @@ export interface Project {
    */
   url?: string;
   story?: string; // one-line narrative caption for the fly-through tour
+  /**
+   * The one number a visitor should leave the island with. It counts up under
+   * the story caption on arrival, so the proof lands in the first seconds of
+   * each stop. Explicit rather than parsed out of `tagline`, which a test keeps
+   * consistent: the tagline must contain the formatted final value.
+   */
+  headline?: Headline;
+}
+
+export interface Headline {
+  to: number;
+  from?: number; // counts from here (default 0); "8% to 4%" counts down
+  decimals?: number;
+  prefix?: string;
+  suffix?: string;
+  label: string;
+}
+
+/** The headline as printed, at any point of its count. */
+export function formatHeadline(h: Headline, value = h.to): string {
+  return `${h.prefix ?? ""}${value.toFixed(h.decimals ?? 0)}${h.suffix ?? ""}`;
 }
 
 
@@ -81,6 +102,7 @@ export const PROJECTS: Project[] = [
     accent: T.blue,
     structure: "tower",
     mark: "coin",
+    headline: { to: 35, suffix: "%", label: "less AML review time" },
     story: "Making compliance faster with automation and human review.",
   },
   {
@@ -96,6 +118,7 @@ export const PROJECTS: Project[] = [
     accent: T.gold,
     structure: "market",
     mark: "bag",
+    headline: { from: 0.8, to: 2.1, decimals: 1, suffix: "%", label: "conversion, up from 0.8%" },
     story: "Improving conversion without rebuilding the entire platform.",
   },
   {
@@ -111,6 +134,7 @@ export const PROJECTS: Project[] = [
     accent: T.coral,
     structure: "campus",
     mark: "cross",
+    headline: { to: 2, prefix: "$", suffix: "M/yr", label: "saved" },
     story: "Connecting hospital, pharmacy and inventory workflows.",
   },
   {
@@ -126,6 +150,7 @@ export const PROJECTS: Project[] = [
     accent: T.mauve,
     structure: "arcade",
     mark: "joystick",
+    headline: { from: 1, to: 6, suffix: "×", label: "daily active users in 10 weeks" },
     story: "Building a gaming community around the PS5 launch.",
   },
   {
@@ -140,6 +165,7 @@ export const PROJECTS: Project[] = [
     accent: T.seafoam,
     structure: "bridge",
     mark: "growth",
+    headline: { from: 8, to: 4, suffix: "%", label: "monthly churn, down from 8%" },
     story: "Building a product function around customer retention.",
   },
 
@@ -223,17 +249,6 @@ export function isLive(project: Project): boolean {
   return Boolean(project.url);
 }
 
-/**
- * "Live now: A, B and C. More are in development." for the indie panel, read off
- * the registry. The sentence was hand written and went stale every time a
- * product shipped, so it is derived instead.
- */
-export function indieStatusLine(projects: Project[] = INDIE_PROJECTS): string {
-  const live = projects.filter(isLive).map((p) => p.title);
-  const names = live.length < 2 ? live.join("") : `${live.slice(0, -1).join(", ")} and ${live[live.length - 1]}`;
-  const parts = [live.length ? `Live now: ${names}.` : "", live.length < projects.length ? "More are in development." : ""];
-  return parts.filter(Boolean).join(" ");
-}
 
 /** A published project by registry id, or null. */
 export function projectById(id: string): Project | null {
