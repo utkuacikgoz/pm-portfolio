@@ -533,3 +533,9 @@ h1, h2, h3, h4, h5, h6 {
     transition-duration: 0.001ms !important;
   }
 }
+
+/* Case study overview: a one-line teaser truncated to a few words says
+   nothing, so phones get the section names alone. */
+@media (max-width: 520px) {
+  .overview-teaser { display: none; }
+}

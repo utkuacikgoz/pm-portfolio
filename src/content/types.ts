@@ -44,9 +44,19 @@ export interface Beat {
   stakeholders?: Stakeholder[];
 }
 
+/** One supporting number on the case study's opening screen. */
+export interface GlanceNumber {
+  value: string;
+  label: string;
+}
+
 export interface CaseStudy {
   id: string;
   title: string;
+  // Three numbers shown under the headline before any prose. Each must be
+  // stated in this study's Results beat; the headline itself lives on the
+  // registry row.
+  glance?: GlanceNumber[];
   sentimentScores?: number[];
   beats: Beat[];
 }

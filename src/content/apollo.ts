@@ -3,6 +3,11 @@ import type { CaseStudy } from "./types";
 export const apollo: CaseStudy = {
   id: "apollo",
   title: "Apollo, Healthcare Digital Transformation",
+  glance: [
+    { value: "60%", label: "fewer stockouts" },
+    { value: "45 min", label: "or less for medication fulfillment" },
+    { value: "4.6/5", label: "patient satisfaction" },
+  ],
   sentimentScores: [15, 28, 45, 82, 95],
   beats: [
     {

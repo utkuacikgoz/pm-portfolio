@@ -3,6 +3,11 @@ import type { CaseStudy } from "./types";
 export const mestores: CaseStudy = {
   id: "mestores",
   title: "Mestores, E-Commerce Modernization",
+  glance: [
+    { value: "48%", label: "repeat purchases, up from 22%" },
+    { value: "$280", label: "customer lifetime value, up from $120" },
+    { value: "$500K", label: "sales recovered from abandoned carts" },
+  ],
   sentimentScores: [14, 32, 48, 76, 94],
   beats: [
     {

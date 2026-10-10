@@ -3,6 +3,11 @@ import type { CaseStudy } from "./types";
 export const la3eb: CaseStudy = {
   id: "la3eb",
   title: "La3eb, Gaming Super-App",
+  glance: [
+    { value: "34%", label: "15 day retention at launch" },
+    { value: "58", label: "NPS, up from 22" },
+    { value: "12,000+", label: "users in the PS5 lobby" },
+  ],
   sentimentScores: [10, 20, 35, 75, 95],
   beats: [
     {

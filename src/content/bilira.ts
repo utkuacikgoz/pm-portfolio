@@ -3,6 +3,11 @@ import type { CaseStudy } from "./types";
 export const bilira: CaseStudy = {
   id: "bilira",
   title: "BiLira, Technical Product Management",
+  glance: [
+    { value: "40%", label: "fewer false positives" },
+    { value: "+45%", label: "OTC throughput" },
+    { value: "99.9%", label: "uptime on 50M+ API calls a month" },
+  ],
   sentimentScores: [15, 28, 45, 60, 82, 95], // Problem, Constraints, Approach, Stablecoin & DeFi, Results, Learnings
   beats: [
     {
