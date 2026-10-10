@@ -148,18 +148,16 @@ not "career stops", for the same reason.
 $5M contracts are accurate, the CV bullets simply chose the HR-ops and RevOps
 story instead (NPS 32 to 50, hiring cycle 45 to 34 days, ROI +22%). The two
 documents describe the same job from different angles rather than disagreeing.
-Worth adding a churn bullet to the CV so they corroborate each other; until then
-the site is the only place that story appears.
+The CV carries a churn bullet since 2026-10-10, so the two corroborate.
 
-**BiLira vs the CV (CV replaced 2026-10-06).** The current CV still states 35%
-review time, 40% fewer false positives, +45% throughput, 500+ OTC trades/week
-over 15+ pairs, 50M+ calls/month, 99.9% uptime, quarterly to biweekly, a
-25-person team and Chainalysis/Notabene. It **no longer states** 99.7%
-accuracy, 500ms to 275ms latency, 0 breaches, 100K+ users, 150+ assets or 5+
-chains, all of which the site's BiLira case study (and the hero's "100K+ users
-reached") still use. Utku confirmed those as real earlier; they are simply not
-on the CV now, so the site claims more than the CV backs. The previous CV,
-which carried all of them, is in git history.
+**BiLira vs the CV (CV replaced 2026-10-10).** The CV now carries 100K+
+users, 150+ assets, OTC latency 500ms to 275ms and a TRYB stablecoin bullet, so
+the site and CV corroborate each other. Two claims were **deliberately dropped
+from both** at Utku's request: 99.7% detection accuracy and zero regulatory
+breaches. Do not reintroduce them. On TRYB, Utku **led the product team**; he
+did not "own" it, so copy must not say he owned it. The CV also now names the
+Lean Scale clients (Mestores, Apollo, La3eb) and carries the Upshift churn
+bullet. It has no independent products section, by Utku's choice.
 
 Indie products (shown as light "glimpse" panels, no full case study). They are
 `published: false`, which keeps them off the main rail; `INDIE_PROJECTS` selects
