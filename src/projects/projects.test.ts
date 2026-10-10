@@ -118,20 +118,16 @@ describe("indieStatusLine", () => {
   const row = (title: string, url?: string): Project =>
     ({ id: title.toLowerCase(), title, tagline: "", kind: "indie", published: false, accent: "", structure: "beacon", url }) as Project;
 
-  it("names every live product from the registry and says what is still coming", () => {
-    const line = indieStatusLine();
-    for (const p of INDIE_PROJECTS.filter(isLive)) expect(line).toContain(p.title);
-    for (const p of INDIE_PROJECTS.filter((x) => !isLive(x))) expect(line).not.toContain(p.title);
-    expect(line).toContain("More are in development.");
+  it("counts the registry's live and in development products", () => {
+    const live = INDIE_PROJECTS.filter(isLive).length;
+    expect(live).toBeGreaterThan(0);
+    expect(indieStatusLine()).toMatch(/live/);
   });
 
-  it("reads naturally for one, two and many live products", () => {
-    expect(indieStatusLine([row("A", "https://a")])).toBe("Live now: A.");
-    expect(indieStatusLine([row("A", "https://a"), row("B", "https://b")])).toBe("Live now: A and B.");
-    expect(indieStatusLine([row("A", "https://a"), row("B", "https://b"), row("C", "https://c"), row("D")])).toBe(
-      "Live now: A, B and C. More are in development.",
-    );
-    expect(indieStatusLine([row("D")])).toBe("More are in development.");
+  it("reads naturally whatever the mix", () => {
+    expect(indieStatusLine([row("A", "https://a")])).toBe("One live.");
+    expect(indieStatusLine([row("A", "https://a"), row("B", "https://b"), row("C")])).toBe("Two live, one in development.");
+    expect(indieStatusLine([row("D")])).toBe("One in development.");
   });
 });
 

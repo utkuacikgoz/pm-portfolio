@@ -74,8 +74,8 @@ function Boats() {
 }
 
 // ── Flock ────────────────────────────────────────────────────────────────────
-const WING = new THREE.BoxGeometry(0.55, 0.04, 0.16);
-const BIRD_MAT = new THREE.MeshBasicMaterial({ color: T.ink });
+const WING = new THREE.BoxGeometry(0.32, 0.03, 0.1);
+const BIRD_MAT = new THREE.MeshBasicMaterial({ color: T.inkRaised, transparent: true, opacity: 0.8 });
 const BIRDS = Array.from({ length: 7 }, (_, i) => ({
   offset: i * 0.42,
   radius: 5 + (i % 3) * 0.9,
@@ -115,10 +115,10 @@ function Flock({ active }: { active: number }) {
         <group key={i} ref={(el) => { birds.current[i] = el; }}>
           {/* Each wing hangs off a pivot at the body, so it flaps rather than seesaws. */}
           <group ref={(el) => { left.current[i] = el; }}>
-            <mesh geometry={WING} material={BIRD_MAT} position={[-0.27, 0, 0]} raycast={noRaycast} />
+            <mesh geometry={WING} material={BIRD_MAT} position={[-0.16, 0, 0]} raycast={noRaycast} />
           </group>
           <group ref={(el) => { right.current[i] = el; }}>
-            <mesh geometry={WING} material={BIRD_MAT} position={[0.27, 0, 0]} raycast={noRaycast} />
+            <mesh geometry={WING} material={BIRD_MAT} position={[0.16, 0, 0]} raycast={noRaycast} />
           </group>
         </group>
       ))}

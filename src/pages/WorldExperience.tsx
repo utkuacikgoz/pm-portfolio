@@ -932,99 +932,110 @@ function IndieOverlay({ onBack, focus, onFocus }: { onBack: () => void; focus: s
   // Placement and the arrival (it eases in once the camera has landed, and
   // docks to the right on wide screens so the pylons stay in view) live in the
   // `.indie-dock` rule in index.css, since inline styles cannot hold a media
-  // query.
+  // query. The panel itself is a plain editorial list: colour appears once per
+  // product, as the bar that matches its pylon, never as a box around it.
   return (
     <div
       className="indie-dock"
       style={{
         background: T.scrimStrong,
-        border: `2px solid ${T.seafoam}`,
-        backdropFilter: "blur(8px)",
-        padding: "20px 22px",
-        textAlign: "center",
+        border: `1px solid ${T.border}`,
+        boxShadow: "0 24px 60px rgba(0,0,0,0.45)",
+        backdropFilter: "blur(10px)",
+        padding: "26px 28px 18px",
       }}
     >
-      <div style={{ fontSize: TYPE.small, fontWeight: 800, letterSpacing: 1.5, color: T.seafoam, marginBottom: 8 }}>
-        🏄 WHAT I'M BUILDING
-      </div>
-      <p style={{ fontSize: TYPE.small, color: T.textSoft, lineHeight: 1.55, marginBottom: 16 }}>
-        Products I’m building independently. {indieStatusLine()}
-      </p>
-      <div style={{ display: "grid", gap: 8, marginBottom: 16 }}>
+      <div style={{ fontSize: TYPE.micro, fontWeight: 800, letterSpacing: 2, color: T.textMuted }}>ON MY OWN TIME</div>
+      <h2 style={{ fontSize: TYPE.title, fontWeight: 900, lineHeight: 1.2, margin: "6px 0 4px" }}>What I&rsquo;m building</h2>
+      <p style={{ fontSize: TYPE.small, color: T.textSoft, marginBottom: 14 }}>{indieStatusLine()}</p>
+      <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
         {INDIE_PROJECTS.map((p) => {
           const live = isLive(p);
-          const row = (
+          const lit = focus === p.id;
+          const body = (
             <>
-              <span style={{ width: 9, height: 9, borderRadius: "50%", background: p.accent, flexShrink: 0 }} />
-              <span style={{ fontWeight: 800, fontSize: TYPE.body }}>{p.title}</span>
-              <span style={{ fontSize: TYPE.small, color: T.textMuted }}>{p.tagline}</span>
+              <span aria-hidden style={{ width: 3, alignSelf: "stretch", background: p.accent, opacity: live ? 1 : 0.45, borderRadius: 2 }} />
+              <span style={{ minWidth: 0 }}>
+                <span style={{ display: "block", fontSize: TYPE.body, fontWeight: 800, color: lit ? textAccent(p.accent) : T.text, transition: "color .15s" }}>
+                  {p.title}
+                </span>
+                <span style={{ display: "block", fontSize: TYPE.small, color: T.textMuted, marginTop: 2 }}>
+                  {p.tagline.charAt(0).toUpperCase() + p.tagline.slice(1)}
+                </span>
+              </span>
               <span
                 style={{
-                  marginLeft: "auto",
                   fontSize: TYPE.micro,
                   fontWeight: 800,
                   letterSpacing: 0.5,
-                  color: textAccent(p.accent),
                   whiteSpace: "nowrap",
+                  padding: "4px 10px",
+                  borderRadius: 999,
+                  color: live ? textAccent(p.accent) : T.textMuted,
+                  border: `1px solid ${live ? p.accent : T.border}`,
                 }}
               >
-                {live ? "LIVE →" : "IN DEVELOPMENT"}
+                {live ? "Live ↗" : "In development"}
               </span>
             </>
           );
-          const lit = focus === p.id;
+          const style = {
+            display: "grid",
+            gridTemplateColumns: "3px 1fr auto",
+            alignItems: "center",
+            gap: 14,
+            padding: "12px 12px",
+            margin: "0 -12px",
+            borderTop: `1px solid ${T.border}`,
+            background: lit ? T.inkRaised : "transparent",
+            transition: "background .15s",
+            textDecoration: "none",
+            color: T.text,
+          };
           const hover = {
             onMouseEnter: () => onFocus(p.id),
             onMouseLeave: () => onFocus(null),
             onFocus: () => onFocus(p.id),
             onBlur: () => onFocus(null),
           };
-          const style = {
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-            padding: "10px 14px",
-            border: `1.5px solid ${p.accent}${live || lit ? "" : "55"}`,
-            background: lit ? T.surface : T.inkRaised,
-            transition: "background .15s",
-            textAlign: "left" as const,
-            textDecoration: "none",
-            color: T.text,
-          };
           // A live product is a link out; a bet is not, because there is nowhere
           // to send anyone yet and a dead link costs more than a quiet row.
-          return live ? (
-            <a
-              key={p.id}
-              href={p.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => track(EVENTS.indieProductOpened, { project_id: p.id })}
-              style={style}
-              {...hover}
-            >
-              {row}
-            </a>
-          ) : (
-            <div key={p.id} style={style} {...hover}>
-              {row}
-            </div>
+          return (
+            <li key={p.id}>
+              {live ? (
+                <a
+                  href={p.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => track(EVENTS.indieProductOpened, { project_id: p.id })}
+                  style={style}
+                  {...hover}
+                >
+                  {body}
+                </a>
+              ) : (
+                <div style={style} {...hover}>
+                  {body}
+                </div>
+              )}
+            </li>
           );
         })}
-      </div>
+      </ul>
       <button
         onClick={onBack}
         style={{
-          padding: "10px 20px",
-          background: "transparent",
-          border: `2px solid ${T.seafoam}`,
-          color: T.seafoam,
+          marginTop: 12,
+          padding: "6px 0",
+          background: "none",
+          border: "none",
+          color: T.textMuted,
           fontSize: TYPE.small,
-          fontWeight: 800,
+          fontWeight: 700,
           cursor: "pointer",
         }}
       >
-        ← Surf back
+        ← Back to the rail
       </button>
     </div>
   );

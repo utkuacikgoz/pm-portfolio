@@ -249,16 +249,21 @@ export function isLive(project: Project): boolean {
   return Boolean(project.url);
 }
 
+const NUMBER_WORDS = ["No", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten"];
+const word = (n: number) => NUMBER_WORDS[n] ?? String(n);
+
 /**
- * "Live now: A, B and C. More are in development." for the indie panel, read off
- * the registry. The sentence was hand written and went stale every time a
- * product shipped, so it is derived instead.
+ * "Four live, one in development." for the indie panel, counted off the
+ * registry. The status pills on each row already name which is which; this is
+ * the one line summary above them. Derived, because the hand written version
+ * went stale every time a product shipped.
  */
 export function indieStatusLine(projects: Project[] = INDIE_PROJECTS): string {
-  const live = projects.filter(isLive).map((p) => p.title);
-  const names = live.length < 2 ? live.join("") : `${live.slice(0, -1).join(", ")} and ${live[live.length - 1]}`;
-  const parts = [live.length ? `Live now: ${names}.` : "", live.length < projects.length ? "More are in development." : ""];
-  return parts.filter(Boolean).join(" ");
+  const live = projects.filter(isLive).length;
+  const building = projects.length - live;
+  if (!building) return `${word(live)} live.`;
+  if (!live) return `${word(building)} in development.`;
+  return `${word(live)} live, ${word(building).toLowerCase()} in development.`;
 }
 
 /** A published project by registry id, or null. */
