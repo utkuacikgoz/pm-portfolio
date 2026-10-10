@@ -495,31 +495,14 @@ export default function WorldExperience() {
             index={active}
             total={projects.length}
             onPrev={() => setActive((a) => Math.max(0, a - 1))}
-            onNext={() => setActive((a) => Math.min(projects.length - 1, a + 1))}
+            onNext={() => {
+              // The rail runs on past the last job to the indie island: the
+              // camera flight is the transition, no separate button.
+              if (active === projects.length - 1) track(EVENTS.indieShelfViewed, { source: "world_next" });
+              setActive((a) => Math.min(INDIE_INDEX, a + 1));
+            }}
             onOpen={() => open(active)}
           />
-          {active === projects.length - 1 && <button
-            onClick={() => {
-              track(EVENTS.indieShelfViewed, { source: "world_cta" });
-              setActive(INDIE_INDEX);
-            }}
-            style={{
-              position: "fixed",
-              bottom: "calc(28px + env(safe-area-inset-bottom))",
-              right: 24,
-              zIndex: 44,
-              padding: "11px 18px",
-              background: T.scrim,
-              border: `2px solid ${T.seafoam}`,
-              color: T.seafoam,
-              fontSize: TYPE.small,
-              fontWeight: 800,
-              cursor: "pointer",
-              backdropFilter: "blur(6px)",
-            }}
-          >
-            🚀 What I'm building →
-          </button>}
         </>
       )}
 
@@ -913,15 +896,14 @@ function RunCompleteCard({ coinTotal, onCases, onDismiss }: { coinTotal: number;
 }
 
 function IndieOverlay({ onBack }: { onBack: () => void }) {
+  // Placement and the arrival (it eases in once the camera has landed, and
+  // docks to the right on wide screens so the pylons stay in view) live in the
+  // `.indie-dock` rule in index.css, since inline styles cannot hold a media
+  // query.
   return (
     <div
+      className="indie-dock"
       style={{
-        position: "fixed",
-        left: "50%",
-        bottom: "calc(28px + env(safe-area-inset-bottom))",
-        transform: "translateX(-50%)",
-        zIndex: 44,
-        width: "min(560px, calc(100vw - 32px))",
         background: T.scrimStrong,
         border: `2px solid ${T.seafoam}`,
         backdropFilter: "blur(8px)",
@@ -1049,6 +1031,8 @@ function TitleCard({
             }}
           />
         ))}
+        {/* One more stop past the last job: what I'm building on my own. */}
+        <span title="What I'm building" style={{ width: 8, height: 8, boxSizing: "border-box", border: `1.5px solid ${T.seafoam}` }} />
       </div>
       <div style={{ fontSize: TYPE.title, fontWeight: 900, letterSpacing: 0.5 }}>{project.title}</div>
       <div style={{ fontSize: TYPE.small, color: T.textMuted, margin: "6px 0 14px", lineHeight: 1.5 }}>
@@ -1074,7 +1058,7 @@ function TitleCard({
         >
           OPEN CASE STUDY
         </button>
-        <ChevBtn accent={project.accent} disabled={index === total - 1} onClick={onNext} label="Next island">
+        <ChevBtn accent={project.accent} disabled={false} onClick={onNext} label={index === total - 1 ? "What I'm building" : "Next island"}>
           →
         </ChevBtn>
       </div>
