@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { attributionLine, PROJECTS, PUBLISHED_PROJECTS, INDIE_PROJECTS, projectIndexById, isLive, indieStatusLine } from "./projects";
+import { attributionLine, PROJECTS, PUBLISHED_PROJECTS, INDIE_PROJECTS, projectIndexById, isLive, indieStatusLine, formatHeadline } from "./projects";
 import type { Project } from "./projects";
 
 describe("project registry invariants", () => {
@@ -132,5 +132,23 @@ describe("indieStatusLine", () => {
       "Live now: A, B and C. More are in development.",
     );
     expect(indieStatusLine([row("D")])).toBe("More are in development.");
+  });
+});
+
+describe("headline metrics", () => {
+  it("every published project has one, and its tagline states the same figure", () => {
+    for (const p of PUBLISHED_PROJECTS) {
+      expect(p.headline, p.id).toBeDefined();
+      expect(p.tagline, p.id).toContain(formatHeadline(p.headline!));
+      if (p.headline!.from !== undefined && p.headline!.from !== 1) {
+        const before = formatHeadline(p.headline!, p.headline!.from);
+        expect(p.tagline, `${p.id} before`).toContain(before);
+      }
+    }
+  });
+
+  it("formats the in-between values of a count", () => {
+    expect(formatHeadline({ from: 0.8, to: 2.1, decimals: 1, suffix: "%", label: "" }, 1.234)).toBe("1.2%");
+    expect(formatHeadline({ to: 2, prefix: "$", suffix: "M/yr", label: "" }, 1)).toBe("$1M/yr");
   });
 });
