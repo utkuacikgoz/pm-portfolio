@@ -54,13 +54,6 @@ updates:
         update-types: ["version-update:semver-major"]
       - dependency-name: "@vitest/coverage-v8"
         update-types: ["version-update:semver-major"]
-      # three is held at 0.185 (Utku's call, 2026-10-08). r186 changed how
-      # MeshStandardMaterial splits light between diffuse and specular; with no
-      # environment map the sea loses that light and darkens toward the horizon
-      # (about half in surf mode). Lift this only alongside a water/lighting
-      # retune that keeps today's look, and check surf mode before/after.
-      - dependency-name: "three"
-        versions: [">=0.186.0"]
       # React 19.3 is held (Utku's call, 2026-10-08): it adds 8.7 KB gzip to the
       # modulepreloaded react chunk every visitor downloads, flat path included,
       # for ViewTransition / Fragment-ref code we do not use. Revisit when we

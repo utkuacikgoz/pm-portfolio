@@ -27,7 +27,7 @@
     "posthog-js": "^1.435.8",
     "react": "~19.2.8",
     "react-dom": "~19.2.8",
-    "three": "^0.185.1"
+    "three": "^0.186.1"
   },
   "devDependencies": {
     "@dicebear/core": "^9.4.3",

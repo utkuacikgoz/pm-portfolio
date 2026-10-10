@@ -15,6 +15,10 @@ import SurfController from "./SurfController";
 import SurfSpots from "./SurfSpots";
 import { Water, IslandShadows, Ripples, LightShaft, SunDisc, DistantMountains, MountainReflections } from "./Ocean";
 import { T } from "../theme";
+import { applyLegacyDiffuse } from "./legacy-diffuse";
+
+// Before any material compiles: keep the r185 diffuse look on three r186+.
+applyLegacyDiffuse();
 
 // Horizon color the fog fades islands into — the logo-derived dusk haze, matching
 // the CSS sky gradient behind the (transparent) canvas so the world melts into it.
