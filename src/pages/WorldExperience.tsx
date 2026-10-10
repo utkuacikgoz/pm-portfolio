@@ -2,6 +2,7 @@ import { Suspense, lazy, useCallback, useEffect, useRef, useState } from "react"
 import { Link, useLocation, useNavigate, useParams } from "../router";
 import { PUBLISHED_PROJECTS, INDIE_PROJECTS, projectIndexById, projectById, isLive, indieStatusLine, type Project } from "../projects/projects";
 import { INDIE_INDEX } from "../world/layout";
+import { initialWheel, wheelStep } from "../state/wheel-travel";
 import { useExperienceMode, useTouchSurf } from "../state/useExperienceMode";
 import WorldNav from "../ui/WorldNav";
 import EscapeHatch from "../ui/EscapeHatch";
@@ -364,6 +365,22 @@ export default function WorldExperience() {
     requestAnimationFrame(() => opener.current?.focus?.());
   }, [navigate, openIndex, projects]);
 
+  // Scroll to travel: recruiters scroll by reflex, and the world used to ignore
+  // it. One island per gesture (see wheel-travel.ts), pinch zoom left alone.
+  const wheel = useRef(initialWheel());
+  useEffect(() => {
+    if (mode !== "world" || panelOpen || !entered || surfing) return;
+    const onWheel = (e: WheelEvent) => {
+      if (e.ctrlKey) return;
+      const delta = Math.abs(e.deltaY) >= Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
+      const r = wheelStep(wheel.current, e.deltaMode === 1 ? delta * 40 : delta, e.timeStamp);
+      wheel.current = r.state;
+      if (r.step) setActive((a) => Math.max(0, Math.min(INDIE_INDEX, a + r.step)));
+    };
+    window.addEventListener("wheel", onWheel, { passive: true });
+    return () => window.removeEventListener("wheel", onWheel);
+  }, [mode, panelOpen, entered, surfing]);
+
   // Arrow-key travel + Enter to open, for mouse users focused on the canvas/body.
   // Skipped when focus is on an interactive element (WorldNav handles its own keys).
   useEffect(() => {
@@ -499,7 +516,7 @@ export default function WorldExperience() {
             animation: "panelIn .4s ease",
           }}
         >
-          ← → to travel · click a structure to open
+          Scroll or ← → to travel · click a structure to open
         </div>
       )}
 
