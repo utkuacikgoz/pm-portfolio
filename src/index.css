@@ -402,8 +402,18 @@ h1, h2, h3, h4, h5, h6 {
    The stripes used to live on this element and scroll via `background-position`
    under a `filter: blur()`. background-position is not a compositable property,
    so every frame re-rasterized a 1400x210 blurred layer on the raster threads.
-   The stripes now sit on an over-wide child that only moves by `transform`, so
-   the blurred texture is rasterized once and the compositor slides it. */
+   The stripes now sit on an over-wide child that only moves by `transform`.
+
+   That move was supposed to let the blurred texture rasterize once and have the
+   compositor slide it, and this comment claimed for a while that it did. It did
+   not: the parent carries clip-path, mask-image AND overflow, so the filtered
+   child got its render surface re-composited every frame anyway. Measured on
+   the production build, dropping `filter` from the two stripe layers was worth
+   +60% on steady-state hero frame rate, and killing every other blur on the
+   page bought nothing further. The softness now lives in the gradient stops,
+   which cost nothing to raster: each ramp is widened and its apex rounded to
+   approximate the gaussian the blur used to apply along the travel axis. Edge
+   feathering was never the blur's job here, the parent's mask-image does it. */
 .hero-plume-flow {
   position: absolute;
   top: 50%;
@@ -431,14 +441,15 @@ h1, h2, h3, h4, h5, h6 {
      composited layer memory. */
   width: calc(100% + var(--flow-tile));
   height: 100%;
-  filter: blur(11px);
   background-size: var(--flow-tile) 100%;
   background-image: repeating-linear-gradient(
     270deg,
     rgba(241, 156, 35, 0) 0px,
-    rgba(241, 156, 35, 0.52) 34px,
-    rgba(215, 111, 83, 0.3) 84px,
-    rgba(241, 156, 35, 0) 148px,
+    rgba(241, 156, 35, 0.18) 24px,
+    rgba(241, 156, 35, 0.4) 52px,
+    rgba(215, 111, 83, 0.26) 96px,
+    rgba(241, 156, 35, 0.09) 134px,
+    rgba(241, 156, 35, 0) 168px,
     rgba(241, 156, 35, 0) 220px
   );
   will-change: transform;
@@ -458,13 +469,14 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .hero-plume-flow.is-fine > i {
-  filter: blur(6px);
   background-image: repeating-linear-gradient(
     270deg,
     rgba(251, 250, 249, 0) 0px,
-    rgba(251, 250, 249, 0.34) 12px,
-    rgba(234, 196, 53, 0.24) 30px,
-    rgba(251, 250, 249, 0) 58px,
+    rgba(251, 250, 249, 0.1) 10px,
+    rgba(251, 250, 249, 0.22) 22px,
+    rgba(234, 196, 53, 0.18) 38px,
+    rgba(251, 250, 249, 0.06) 56px,
+    rgba(251, 250, 249, 0) 72px,
     rgba(251, 250, 249, 0) 96px
   );
 }

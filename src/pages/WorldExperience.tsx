@@ -460,7 +460,19 @@ export default function WorldExperience() {
               // phone into landscape does not hand a phone GPU the full-fat
               // scene halfway through.
               lowPower={mode === "flat" || touchControls}
-              frameloop={visible && (!panelOpen || travelling) ? "always" : "never"}
+              // The character select's backdrop is opaque, so the world behind it
+              // is not visible: an "always" loop there is a full-rate render
+              // nobody sees, competing with the select UI for the main thread.
+              // "demand" still renders on mount, which is the whole point of
+              // mounting this early — the shader programs compile now rather
+              // than during the dive — and then goes quiet.
+              frameloop={
+                choosingAvatar && !entered
+                  ? "demand"
+                  : visible && (!panelOpen || travelling)
+                    ? "always"
+                    : "never"
+              }
             />
           </Suspense>
         </ErrorBoundary>

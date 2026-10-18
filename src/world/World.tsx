@@ -123,7 +123,11 @@ interface Props {
   lowPower?: boolean;
   // "never" parks the render loop (hidden tab) so a backgrounded world does no
   // GPU/CPU work; "always" runs it while the world is active + visible.
-  frameloop?: "always" | "never";
+  // "demand" renders on mount and then only when something invalidates, which
+  // is what the character select wants: the shader programs compile, and the
+  // loop does not then run at full rate behind an overlay you cannot see
+  // through.
+  frameloop?: "always" | "never" | "demand";
 }
 
 /**
@@ -163,6 +167,20 @@ function World({ activeIndex, entered, dive, surfing, onOpen, onCoin, onWave, on
       // Flat-shaded low-poly on a phone screen barely shows its edges; MSAA on a
       // full-screen ocean there is a real cost for an invisible gain.
       gl={{ antialias: !lowPower, powerPreference: "high-performance", alpha: true }}
+      // three checks every shader and program for errors as it compiles them,
+      // and reading those logs forces a synchronous flush: the main thread
+      // blocks until the driver has finished compiling, once per program. This
+      // scene links 11 programs at mount, which is exactly when the character
+      // select is on screen and wants the main thread. Profiled on the
+      // production build, getShaderInfoLog + getProgramInfoLog were 3.7 s of a
+      // 7.4 s mount, half of it, against 22 ms of React.
+      //
+      // Kept ON in dev, because off it a broken shader fails silently to a
+      // black scene with nothing in the console, and `legacy-diffuse.ts`
+      // rewrites ShaderChunk out from under three on every World load.
+      onCreated={({ gl }) => {
+        gl.debug.checkShaderErrors = import.meta.env.DEV;
+      }}
       style={{ position: "fixed", inset: 0 }}
       aria-hidden="true"
     >
