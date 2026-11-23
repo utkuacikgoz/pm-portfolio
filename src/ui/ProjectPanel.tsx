@@ -329,7 +329,7 @@ function Overview({
                 <span style={{ fontSize: TYPE.micro, fontWeight: 800, color: T.textMuted, width: 18 }}>{String(i + 1).padStart(2, "0")}</span>
                 <span style={{ flex: "none", fontSize: TYPE.body, fontWeight: 800 }}>{label}</span>
                 <span className="overview-teaser" style={{ flex: 1, minWidth: 0, fontSize: TYPE.small, color: T.textMuted, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                  {study.beats[i]?.insight ?? ""}
+                  {teaser(study.beats[i])}
                 </span>
                 <span aria-hidden="true" style={{ marginLeft: "auto", color: accent, fontWeight: 800 }}>↓</span>
               </button>
@@ -339,6 +339,33 @@ function Overview({
       </nav>
     </section>
   );
+}
+
+// The section index teaser. An authored `insight` when the beat has one, else
+// the beat's opening sentence.
+//
+// The fallback is the point: `insight` is optional, so a beat without one used
+// to render an empty string and leave a blank gap in the index. On every case
+// study the beats missing an insight were Problem and Results, which are the
+// two a recruiter scans for, so the index was most silent exactly where it
+// most needed to speak. The opening sentence is the author's own prose, not
+// invented copy.
+function teaser(beat: Beat | undefined): string {
+  if (!beat) return "";
+  const text = beat.insight ?? beat.body[0] ?? "";
+  const stop = text.indexOf(". ");
+  return clampToWord(stop === -1 ? text : text.slice(0, stop + 1), 58);
+}
+
+// `text-overflow: ellipsis` cuts at the pixel the box runs out, which lands
+// mid-word ("preserve human review for ambiguous c..."). Trimming back to the
+// last whole word first means the common case reads as a clipped phrase rather
+// than a broken one; the CSS rule stays as the backstop for a narrow panel.
+function clampToWord(text: string, max: number): string {
+  if (text.length <= max) return text;
+  const cut = text.slice(0, max);
+  const lastSpace = cut.lastIndexOf(" ");
+  return `${(lastSpace > 0 ? cut.slice(0, lastSpace) : cut).replace(/[.,;:]$/, "")}…`;
 }
 
 // Opens each beat with its first sentence emphasized, an at a glance takeaway
