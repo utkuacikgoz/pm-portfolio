@@ -69,6 +69,20 @@ where each island = a project, with the narrative + metrics in a fast DOM overla
 
 - **No social proof, ever** (Utku, 2026-10-10): no testimonials, quotes,
   recommendations or logos walls. Do not propose it again.
+- **The positioning claim** (Utku, 2026-11-23): *"I earn the big change by
+  shipping a small result first."* Picked over two alternatives because four of
+  the five case studies already close on it in their own `insight` lines
+  (Mestores cart recovery before the platform rewrite, Apollo's locator before
+  the department integration, Upshift's small planning process, BiLira
+  automating the clear half first), so every example is evidence a reader can go
+  and check. It leads the hero and the resume bio, and the registry `story`
+  lines were rewritten from gerund category descriptions ("Making compliance
+  faster with...") into the decision each project actually took. The site talks
+  to **recruiters and the indie funnel at once**, which works only because the
+  indie shelf is more evidence for the same claim rather than a second pitch.
+  Keep it that way: the moment the shelf starts selling, the claim splits.
+  The live indie count is stated in prose in two places and derived from the
+  registry (`LIVE_INDIE_WORD`), never typed in.
 
 **Biomes now (visible):** BiLira, Mestores, Apollo, La3eb, Upshift (employment,
   strongest-signal first). **Hidden, ready to flip:** PassATS, Stats XI, Mona — set
@@ -144,8 +158,10 @@ confirmed by Utku. They are not separate jobs. Every published project now
 carries `role` / `org` / `period` (+ `clientWork`) in the registry, rendered by
 `attributionLine()` on the panel, the resume, the flat map and the crawlable
 summaries, and a test asserts every project maps to an employer that exists on
-the CV. Do not add a project without one. The hero says "five products shipped",
-not "career stops", for the same reason.
+the CV. Do not add a project without one. The hero's proof row counts products,
+not "career stops", for the same reason. (It reads "11+ products shipped", the
+CV's career total. This line claimed for a while that the hero said "five
+products shipped"; it never has.)
 
 **Upshift's numbers are real**, per Utku: the site's churn 8% to 4%, $30M ARR and
 $5M contracts are accurate, the CV bullets simply chose the HR-ops and RevOps

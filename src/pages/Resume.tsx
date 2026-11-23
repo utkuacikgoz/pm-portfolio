@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Link } from "../router";
-import { PUBLISHED_PROJECTS, INDIE_PROJECTS, attributionLine, isLive } from "../projects/projects";
+import { PUBLISHED_PROJECTS, INDIE_PROJECTS, attributionLine, isLive, LIVE_INDIE_WORD } from "../projects/projects";
 import { useProgress } from "../state/progress";
 import { CONTACT } from "../content/contact";
 import { EVENTS, track } from "../analytics/events";
@@ -16,6 +16,7 @@ const CONTACTS = [
 
 const EMPLOYMENT = PUBLISHED_PROJECTS;
 const INDIE = INDIE_PROJECTS;
+
 
 /**
  * The <30s escape hatch: fast, plain-DOM résumé. No 3D, no animation. Skimmable
@@ -54,11 +55,22 @@ export default function Resume() {
         <p style={{ color: textAccent(T.blue), fontSize: TYPE.lead, fontWeight: 700, marginTop: 6 }}>
           Senior Technical Product Manager
         </p>
-        <p style={{ color: T.textSoft, fontSize: TYPE.body, marginTop: 12, lineHeight: 1.75 }}>
-          8+ years and 11+ products shipped across fintech, ecommerce and marketplaces. I’ve led product
-          work with distributed teams of up to 25 people and built a five-person product and design
-          function. My work spans compliance automation, AI retention features and platform growth.
-          Certified Scrum Master (PSM I) and Product Owner (PSPO I).
+        {/* The claim leads, the credentials follow. This used to open "8+ years
+            and 11+ products shipped across fintech, ecommerce and marketplaces",
+            which is a sentence every senior PM writes and tells a recruiter
+            nothing they cannot get from the CV. The claim below is the one
+            through-line four of the five case studies already make in their own
+            closing insights, so each example here is evidence the reader can go
+            and check rather than a line of positioning. */}
+        <p style={{ color: T.text, fontSize: TYPE.lead, marginTop: 14, lineHeight: 1.6, maxWidth: 680 }}>
+          I earn the big change by shipping a small result first. Cart recovery before Mestores rebuilt its
+          platform. A locator staff could use before Apollo connected hospital, pharmacy and inventory. The
+          clear half of compliance automated before BiLira touched the ambiguous half.
+        </p>
+        <p style={{ color: T.textSoft, fontSize: TYPE.body, marginTop: 12, lineHeight: 1.75, maxWidth: 680 }}>
+          8+ years, 11+ products shipped, distributed teams of up to 25 people, and a five-person product and
+          design function I built. I do the same on my own time: {LIVE_INDIE_WORD} products live. Certified Scrum
+          Master (PSM I) and Product Owner (PSPO I).
         </p>
         <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginTop: 20, alignItems: "center" }}>
           <a
@@ -76,7 +88,12 @@ export default function Resume() {
               target={c.href.startsWith("http") ? "_blank" : undefined}
               rel={c.href.startsWith("http") ? "noopener" : undefined}
               onClick={() => track(EVENTS.ctaClicked, { cta: c.id, location: "resume" })}
-              style={{ padding: "8px 16px", border: `2px solid ${c.color}`, color: textAccent(c.color), fontSize: TYPE.small, fontWeight: 700 }}
+              // One primary, three quiet. These carried a 2px border in their own
+              // accent, so four buttons in four colours sat at equal weight and
+              // none of them read as the ask. The border is now the neutral one
+              // and only the label keeps its accent, which leaves the filled CV
+              // button as the single obvious action.
+              style={{ padding: "8px 16px", border: `1px solid ${T.border}`, color: textAccent(c.color), fontSize: TYPE.small, fontWeight: 700 }}
             >
               {c.label}
             </a>

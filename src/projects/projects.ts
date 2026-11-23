@@ -103,7 +103,7 @@ export const PROJECTS: Project[] = [
     structure: "tower",
     mark: "coin",
     headline: { to: 35, suffix: "%", label: "less AML review time" },
-    story: "Making compliance faster with automation and human review.",
+    story: "Automated the clear decisions, kept humans on the hard ones.",
   },
   {
     id: "mestores",
@@ -119,7 +119,7 @@ export const PROJECTS: Project[] = [
     structure: "market",
     mark: "bag",
     headline: { from: 0.8, to: 2.1, decimals: 1, suffix: "%", label: "conversion, up from 0.8%" },
-    story: "Improving conversion without rebuilding the entire platform.",
+    story: "Shipped cart recovery first, then earned the platform rewrite.",
   },
   {
     id: "apollo",
@@ -135,7 +135,7 @@ export const PROJECTS: Project[] = [
     structure: "campus",
     mark: "cross",
     headline: { to: 2, prefix: "$", suffix: "M/yr", label: "saved" },
-    story: "Connecting hospital, pharmacy and inventory workflows.",
+    story: "Shipped a usable locator first, then connected the departments.",
   },
   {
     id: "la3eb",
@@ -151,7 +151,7 @@ export const PROJECTS: Project[] = [
     structure: "arcade",
     mark: "joystick",
     headline: { from: 1, to: 6, suffix: "×", label: "daily active users in 10 weeks" },
-    story: "Building a gaming community around the PS5 launch.",
+    story: "Gave players a reason to return, then tied it to purchases.",
   },
   {
     id: "upshift",
@@ -166,7 +166,7 @@ export const PROJECTS: Project[] = [
     structure: "bridge",
     mark: "growth",
     headline: { from: 8, to: 4, suffix: "%", label: "monthly churn, down from 8%" },
-    story: "Building a product function around customer retention.",
+    story: "Made retention the one number every function shared.",
   },
 
   // ── Indie products: pylons on the separate "ocean" island and rows on the
@@ -248,6 +248,18 @@ export const INDIE_PROJECTS: Project[] = PROJECTS.filter((p) => p.kind === "indi
 export function isLive(project: Project): boolean {
   return Boolean(project.url);
 }
+
+/**
+ * How many indie products are live, as a word.
+ *
+ * Both the hero and the resume state this count in prose, so it is counted here
+ * rather than typed into two files: "four" is true today and stops being true
+ * the next time one of them ships, and a number written into copy is exactly
+ * the kind of claim that rots quietly.
+ */
+const COUNT_WORDS = ["no", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
+export const LIVE_INDIE_COUNT = INDIE_PROJECTS.filter(isLive).length;
+export const LIVE_INDIE_WORD = COUNT_WORDS[LIVE_INDIE_COUNT] ?? String(LIVE_INDIE_COUNT);
 
 
 /** A published project by registry id, or null. */

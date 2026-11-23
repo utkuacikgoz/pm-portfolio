@@ -2,6 +2,7 @@ import { Fragment, useEffect, useRef } from "react";
 import { usePrefersReducedMotion } from "./hooks/useReducedMotion";
 import Rocket from "./Rocket";
 import { T, TYPE } from "../theme";
+import { LIVE_INDIE_WORD } from "../projects/projects";
 
 // The headline, one array per rendered line. Split into words so each one can be
 // blown out of the nozzle on its own beat instead of the line arriving as a slab.
@@ -169,7 +170,8 @@ export default function HeroIntro({ onBegin }: { onBegin: () => void }) {
           ...rise(0.74),
         }}
       >
-        I lead teams building complex products, from fintech infrastructure to AI features for marketplaces.
+        I earn the big change by shipping a small result first. Fintech infrastructure, marketplaces, and{" "}
+        {LIVE_INDIE_WORD} products of my own.
       </p>
 
       <ProofRow reduced={reduced} style={rise(0.82)} />
