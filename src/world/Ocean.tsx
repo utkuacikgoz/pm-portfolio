@@ -11,7 +11,7 @@ import { daylight, SUN_POSITION } from "./daylight";
 const WATER_DUSK = new THREE.Color(T.water);
 const WATER_DAY = new THREE.Color(T.dayWater);
 const MOUNTAIN_GEO = new THREE.ConeGeometry(1, 1, 4);
-const MOUNTAIN_MAT = new THREE.MeshStandardMaterial({ color: T.surface, flatShading: true });
+const MOUNTAIN_MAT = new THREE.MeshStandardMaterial({ color: T.mountain, flatShading: true });
 const MOUNTAIN_MATRICES = DISTANT_PEAKS.map((peak) => new THREE.Matrix4().compose(
   new THREE.Vector3(peak.x, WATER_Y + peak.h / 2 - 2, peak.z),
   new THREE.Quaternion(),

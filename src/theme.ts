@@ -44,10 +44,31 @@ export const T = {
 
   // atmosphere
   sky: "linear-gradient(180deg, #1D1816 0%, #2C4832 34%, #473C39 64%, #D76F53 100%)",
-  fog: "#5B4F4B", // taupe dusk haze the distant islands fade into
-  skyBounce: "#C2D076", // sage-tinted hemisphere sky light
-  ground: "#1D1816", // hemisphere ground light
+  // On the rail the camera looks down and the sea runs to the top of the frame,
+  // so the upper third of every shot is this colour, not the sky gradient. It
+  // was the taupe of the UI border, which made the world read as an overcast
+  // evening; a coral dusk haze is the "taupe to coral" the palette describes,
+  // and what the distant islands and range now fade into.
+  fog: "#B97A6C",
+  // Hemisphere SKY light: what every upward face sees, the sea above all.
+  // It was sage, a yellow green, which turned the ocean-blue water teal and
+  // made it go grey wherever it met the coral haze. A dusk sky dome is lilac,
+  // and lit by it the same water material reads blue again.
+  skyBounce: "#B892C4",
+  // Hemisphere ground light: what every downward and side face is lit by. It
+  // was near-black ink, so the flank of every island went black.
+  ground: "#5A3A35",
   sunLight: "#F19C23", // warm amber directional key
+
+  // The world's own ground. Island decks and cliffs used to be painted
+  // `inkRaised` and `border`, the UI's panel colours, so the islands were the
+  // colour of a card background and read as near-black slabs under any light.
+  terrain: "#9A6E66", // deck: dusty rose that the amber key lifts to sunset sand
+  terrainCliff: "#6E4A48", // flank: a step darker and redder, so the slab has a side
+  mountain: "#7E5A72", // the distant range, dusky mauve so it recedes warm
+  rock: "#5E5060", // scattered deck stones, slate mauve
+  rockLight: "#7C6A74", // the lighter half of them, so the scatter is not one flat tone
+  dryGrass: "#C29A5C", // dry grass tufts, the gold the amber key light picks out
 
   water: "#2E86AB", // ocean-blue dusk sea
   entranceGlow: {

@@ -75,8 +75,8 @@ function Traffic({ separated }: { separated: boolean }) {
 export default function ProductHarbor({ active, onOpen }: Props) {
   return <group scale={0.72} onClick={event => { event.stopPropagation(); onOpen(); }}>
     {/* Faceted coast, stepped decks and two distinct destinations make the route readable. */}
-    <mesh position={[0, -1.65, 0]} scale={[12, 2.4, 7]} receiveShadow><cylinderGeometry args={[1, 0.76, 1, 9]} /><meshStandardMaterial color={T.border} flatShading /></mesh>
-    <mesh position={[0, -0.3, 0]} scale={[11.5, 0.5, 6.6]} receiveShadow><cylinderGeometry args={[1, 1, 1, 9]} /><meshStandardMaterial color={T.inkRaised} flatShading /></mesh>
+    <mesh position={[0, -1.65, 0]} scale={[12, 2.4, 7]} receiveShadow><cylinderGeometry args={[1, 0.76, 1, 9]} /><meshStandardMaterial color={T.terrainCliff} flatShading /></mesh>
+    <mesh position={[0, -0.3, 0]} scale={[11.5, 0.5, 6.6]} receiveShadow><cylinderGeometry args={[1, 1, 1, 9]} /><meshStandardMaterial color={T.terrain} flatShading /></mesh>
     {/* Static blocks share geometry/material; stop matrix uploads after settling. */}
     <Instances limit={128} frames={3}>
       <boxGeometry />

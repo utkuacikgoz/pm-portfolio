@@ -358,5 +358,14 @@ This section is only what is *true now* and what is *left*.
   send anyone; give it a `url` when it ships. A full case study for
   PassATS (content file plus `published: true`) is a separate, larger call, and
   would put an indie product on a rail whose other five rows are employment.
-- Lighting and structure tuning is checkable now (Playwright, **headed** for
-  anything 3D), but nobody has done a pass. Feel still needs Utku's eyes.
+- **Lighting and colour pass: done 2026-11-24**, against a reference Utku supplied
+  (a low-poly desert at sunset). The islands had been painted with the UI's panel
+  tokens and the sea lit by a sage sky light, so the rail read as near-black slabs
+  on teal under an overcast haze. They now have 3D-only terrain tokens, the haze
+  is coral dusk, the sky light is lilac (which is what turned the water blue
+  again), and the decks carry scattered stones and dry grass inside the existing
+  cube `<Instances>`. Rules and tokens live in `docs/design-system.md`; read its
+  "never paint 3D with UI tokens" note before touching world colour. Measured
+  against `main`: same draw calls, +2,100 triangles, frame time within noise.
+  Still needs Utku's eyes on a real GPU, surf mode included, since the distant
+  range's colour changed there too.

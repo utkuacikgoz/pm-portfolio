@@ -90,8 +90,10 @@ export function rng(seed: number): () => number {
   return () => (s = (s * 16807) % 2147483647) / 2147483647;
 }
 
-const TERRAIN_DARK = "#2B2422";
-const TERRAIN_MID = "#473C39";
+// Cube-built terrain (the indie island) shares the slab islands' ground, so
+// the one island built differently does not read as a different material.
+const TERRAIN_DARK = T.terrainCliff;
+const TERRAIN_MID = T.terrain;
 
 // X position per island index. Employment islands are evenly spaced; the indie
 // island sits past a wide water gap (you surf across it).
@@ -343,11 +345,58 @@ export function buildIndieIsland(projects: Project[]): Cube[] {
 }
 
 /** All cubes for all islands, flattened into one list → one InstancedMesh. */
+// The slab islands' deck in world units: the deck cylinder's x/z radii and top
+// (ProductHarbor / MarketplaceIslands) times the 0.72 those island groups render at.
+const DECK_RX = 11.5 * 0.72;
+const DECK_RZ = 6.6 * 0.72;
+const DECK_TOP = (-0.3 + 0.25) * 0.72;
+
+/**
+ * Stones and dry grass on the rim of a slab island.
+ *
+ * The decks were bare planes, and small scattered detail is most of what makes
+ * a low-poly ground read as a place rather than a tabletop. It goes into the
+ * world's single cube field, so it costs instances in a draw call that already
+ * exists rather than a new one: about 35 boxes an island.
+ *
+ * The band is the outer rim, 0.74 to 0.88 of the deck radius: clear of the
+ * structures and the causeway through the middle, and inside the nine-sided
+ * deck's flat edges, which sit at 0.94 of its vertex radius, so nothing hangs
+ * over the side.
+ */
+export function buildDeckScatter(seed: number): Cube[] {
+  const rand = rng(seed);
+  const out: Cube[] = [];
+  const spot = (): [number, number] => {
+    const a = rand() * Math.PI * 2;
+    const r = 0.74 + rand() * 0.14;
+    return [Math.cos(a) * DECK_RX * r, Math.sin(a) * DECK_RZ * r];
+  };
+  for (let k = 0; k < 14; k++) {
+    // Low and wide, sunk a little so they sit in the ground rather than on it.
+    const [x, z] = spot();
+    const s = 0.22 + rand() * 0.3;
+    const h = s * 0.55;
+    out.push({ position: [x, DECK_TOP + h * 0.35, z], scale: [s * (1 + rand() * 0.6), h, s], color: rand() > 0.5 ? T.rock : T.rockLight });
+  }
+  for (let k = 0; k < 7; k++) {
+    // A tuft is three thin blades of slightly different heights in a clump.
+    const [x, z] = spot();
+    for (let b = 0; b < 3; b++) {
+      const h = 0.35 + rand() * 0.35;
+      out.push({ position: [x + (rand() - 0.5) * 0.3, DECK_TOP + h / 2, z + (rand() - 0.5) * 0.3], scale: [0.06, h, 0.06], color: T.dryGrass });
+    }
+  }
+  return out;
+}
+
 export function buildWorld(projects: Project[], illustratedIds: readonly string[] = []): Cube[] {
   const cubes: Cube[] = [];
   projects.forEach((p, i) => {
     const [ox, , oz] = islandPosition(i);
-    const local = illustratedIds.includes(p.id) ? [] : [...buildTerrain(p.accent, i * 7919 + 13), ...buildStructure(p.structure, p.accent)];
+    const local = illustratedIds.includes(p.id)
+      ? buildDeckScatter(i * 7919 + 101)
+      : [...buildTerrain(p.accent, i * 7919 + 13), ...buildStructure(p.structure, p.accent)];
     for (const c of local) {
       cubes.push({
         position: [c.position[0] + ox, c.position[1], c.position[2] + oz],
