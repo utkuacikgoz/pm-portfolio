@@ -75,7 +75,9 @@ where each island = a project, with the narrative + metrics in a fast DOM overla
   (Mestores cart recovery before the platform rewrite, Apollo's locator before
   the department integration, Upshift's small planning process, BiLira
   automating the clear half first), so every example is evidence a reader can go
-  and check. It leads the hero and the resume bio, and the registry `story`
+  and check. It leads the hero, the phone landing and the resume bio, all read
+  from `src/content/positioning.ts` (the phone list had kept the old credential
+  line for a month, because it was a third hand-typed copy), and the registry `story`
   lines were rewritten from gerund category descriptions ("Making compliance
   faster with...") into the decision each project actually took. The site talks
   to **recruiters and the indie funnel at once**, which works only because the
@@ -83,6 +85,15 @@ where each island = a project, with the narrative + metrics in a fast DOM overla
   Keep it that way: the moment the shelf starts selling, the claim splits.
   The live indie count is stated in prose in two places and derived from the
   registry (`LIVE_INDIE_WORD`), never typed in.
+- **The primary ask is a 30 minute call** (Utku, 2026-11-24), at
+  `CONTACT.calendar` (cal.com, 30min). It is the one filled button on the resume,
+  the phone landing and every case study footer; Download CV is secondary. Do not
+  reintroduce the 60 minute link: it was a heavy first ask for a recruiter.
+- **Availability is reachable from every landing** (Utku, 2026-11-24): the hero
+  (one quiet line under ENTER), the top of the phone list, the top of the resume,
+  and the case study footer. It used to live only in that footer, so a recruiter
+  had to finish a study to learn whether Utku was looking. Copy is shared from
+  `src/content/positioning.ts` (`AVAILABILITY`, `BOOK_CALL`, `SHELF_TITLE`).
 
 **Biomes now (visible):** BiLira, Mestores, Apollo, La3eb, Upshift (employment,
   strongest-signal first). **Hidden, ready to flip:** PassATS, Stats XI, Mona — set
@@ -184,9 +195,12 @@ them by `kind: "indie"` plus a `glimpse` line, so they still reach the resume
 shelf and the ocean island:
 **PassATS** (resume checker), **Psst** (tap-a-friend iPhone app), **Rack Rate**
 (AI coding cost comparison), **Little Menace** (gremlin pet iPhone app), all
-live, then **Buyback Signal** (trading-signal bot), in development. Cofoundr
-was dropped 2026-10-06. Shipping one is a `url` on its registry row and nothing
-else: the panel's "Live" pill, the finished pylon and the shelf all read it.
+live. Cofoundr was dropped 2026-10-06 and **Buyback Signal** (trading-signal
+bot) on 2026-11-24, at Utku's call: an "in development" row with nothing to
+click is weak evidence for a claim about shipping, so the shelf now carries
+only things a visitor can open. Do not add a row back until it has a `url`.
+Shipping one is a `url` on its registry row and nothing else: the panel's
+"Live" pill, the finished pylon and the shelf all read it.
 
 **Live:** PassATS at https://passats.pro (2026-08-30); Psst at
 https://www.psstapp.fun (App Store listing) and Rack Rate at
@@ -354,8 +368,9 @@ This section is only what is *true now* and what is *left*.
   the address bar was right, while the router's own state dropped the query on
   the first client-side move. It now tracks all three, and `src/router.test.tsx`
   pins it.
-- Business gaps, needing Utku rather than code: thin about/positioning. Buyback Signal still says "IN DEVELOPMENT" because it has nowhere to
-  send anyone; give it a `url` when it ships. A full case study for
+- Business gaps, needing Utku rather than code: Rack Rate still lives on a raw
+  `vercel.app` URL, which reads as a side project rather than a product; give it a
+  domain. A full case study for
   PassATS (content file plus `published: true`) is a separate, larger call, and
   would put an indie product on a rail whose other five rows are employment.
 - **Lighting and colour pass: done 2026-11-24**, against a reference Utku supplied

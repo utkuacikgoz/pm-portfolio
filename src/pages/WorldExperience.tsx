@@ -16,6 +16,7 @@ import SurfTouchPad from "../ui/SurfTouchPad";
 import SpeedRush from "../ui/SpeedRush";
 import { readAvatar } from "../ui/avatar-store";
 import { CONTACT } from "../content/contact";
+import { BOOK_CALL } from "../content/positioning";
 import { T, TYPE, textAccent } from "../theme";
 import { useKeySequence, KONAMI, HIRE } from "../ui/hooks/useKeySequence";
 import { markEggId } from "../state/progress";
@@ -429,7 +430,12 @@ export default function WorldExperience() {
       )}
       <EscapeHatch raised={heroVisible} />
       <EggToast />
-      <WorldNav projects={projects} active={active} onFocus={setActive} onOpen={open} />
+      {/* The keyboard and screen-reader path through the islands. Not on the
+          flat map: its project cards are real buttons already, so mounting
+          this too made screen readers announce the project list twice. */}
+      {(mode === "world" || surfing) && (
+        <WorldNav projects={projects} active={active} onFocus={setActive} onOpen={open} />
+      )}
 
       {/* Static-until-enter: the heavy WebGL world (and three.js) mounts only once
           you enter (or deep-link a project). The bare landing stays pure DOM. */}
@@ -913,7 +919,7 @@ function RunCompleteCard({ coinTotal, onCases, onDismiss }: { coinTotal: number;
             textDecoration: "none",
           }}
         >
-          Book a 60 min call →
+          {BOOK_CALL} →
         </a>
         <button
           onClick={onCases}

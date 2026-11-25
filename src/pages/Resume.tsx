@@ -3,15 +3,15 @@ import { Link } from "../router";
 import { PUBLISHED_PROJECTS, INDIE_PROJECTS, attributionLine, isLive, LIVE_INDIE_WORD } from "../projects/projects";
 import { useProgress } from "../state/progress";
 import { CONTACT } from "../content/contact";
+import { AVAILABILITY, BOOK_CALL, CLAIM, SHELF_TITLE } from "../content/positioning";
 import { EVENTS, track } from "../analytics/events";
 import { T, TYPE, textAccent } from "../theme";
 
-// "WEBSITE" used to point at utkuacikgoz.com, which is now this same site; the
-// slot is worth more as the booking link.
+// The quiet secondary row. The booking link is not in it: it is the primary
+// ask and gets the one filled button.
 const CONTACTS = [
   { id: "email", label: "EMAIL", href: `mailto:${CONTACT.email}`, color: T.gold },
   { id: "linkedin", label: "LINKEDIN", href: CONTACT.linkedin, color: T.blue },
-  { id: "book_call", label: "BOOK A CALL", href: CONTACT.calendar, color: T.mauve },
 ];
 
 const EMPLOYMENT = PUBLISHED_PROJECTS;
@@ -39,6 +39,9 @@ export default function Resume() {
           position: "fixed",
           top: 20,
           left: 24,
+          display: "inline-flex",
+          alignItems: "center",
+          minHeight: 44,
           padding: "10px 18px",
           border: `2px solid ${T.text}`,
           color: T.text,
@@ -63,7 +66,7 @@ export default function Resume() {
             closing insights, so each example here is evidence the reader can go
             and check rather than a line of positioning. */}
         <p style={{ color: T.text, fontSize: TYPE.lead, marginTop: 14, lineHeight: 1.6, maxWidth: 680 }}>
-          I earn the big change by shipping a small result first. Cart recovery before Mestores rebuilt its
+          {CLAIM} Cart recovery before Mestores rebuilt its
           platform. A locator staff could use before Apollo connected hospital, pharmacy and inventory. The
           clear half of compliance automated before BiLira touched the ambiguous half.
         </p>
@@ -72,12 +75,22 @@ export default function Resume() {
           design function I built. I do the same on my own time: {LIVE_INDIE_WORD} products live. Certified Scrum
           Master (PSM I) and Product Owner (PSPO I).
         </p>
-        <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginTop: 20, alignItems: "center" }}>
+        <p style={{ color: textAccent(T.seafoam), fontSize: TYPE.body, fontWeight: 700, marginTop: 18 }}>{AVAILABILITY}</p>
+        <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginTop: 12, alignItems: "center" }}>
+          <a
+            href={CONTACT.calendar}
+            target="_blank"
+            rel="noopener"
+            onClick={() => track(EVENTS.ctaClicked, { cta: "book_call", location: "resume" })}
+            style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", minHeight: 44, padding: "9px 18px", background: T.text, color: T.ink, fontSize: TYPE.small, fontWeight: 800 }}
+          >
+            {BOOK_CALL.toUpperCase()} →
+          </a>
           <a
             href="/UtkuAcikgoz-CV.pdf"
             download
             onClick={() => track(EVENTS.cvDownloaded, { location: "resume" })}
-            style={{ padding: "9px 18px", background: T.text, color: T.ink, fontSize: TYPE.small, fontWeight: 800 }}
+            style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", minHeight: 44, padding: "8px 16px", border: `1px solid ${T.border}`, color: T.text, fontSize: TYPE.small, fontWeight: 700 }}
           >
             ↓ DOWNLOAD CV
           </a>
@@ -88,12 +101,12 @@ export default function Resume() {
               target={c.href.startsWith("http") ? "_blank" : undefined}
               rel={c.href.startsWith("http") ? "noopener" : undefined}
               onClick={() => track(EVENTS.ctaClicked, { cta: c.id, location: "resume" })}
-              // One primary, three quiet. These carried a 2px border in their own
-              // accent, so four buttons in four colours sat at equal weight and
-              // none of them read as the ask. The border is now the neutral one
-              // and only the label keeps its accent, which leaves the filled CV
-              // button as the single obvious action.
-              style={{ padding: "8px 16px", border: `1px solid ${T.border}`, color: textAccent(c.color), fontSize: TYPE.small, fontWeight: 700 }}
+              // One primary, the rest quiet. These carried a 2px border in their
+              // own accent, so four buttons in four colours sat at equal weight
+              // and none of them read as the ask. The border is now the neutral
+              // one and only the label keeps its accent, which leaves the filled
+              // call button as the single obvious action.
+              style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", minHeight: 44, padding: "8px 16px", border: `1px solid ${T.border}`, color: textAccent(c.color), fontSize: TYPE.small, fontWeight: 700 }}
             >
               {c.label}
             </a>
@@ -117,7 +130,7 @@ export default function Resume() {
       </Section>
 
       {INDIE.length > 0 && (
-        <Section title="BUILDING ON MY OWN TIME">
+        <Section title={SHELF_TITLE}>
           {INDIE.map((p) => {
             const live = isLive(p);
             const body = (

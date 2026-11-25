@@ -24,6 +24,10 @@ export default function EscapeHatch({ raised = false }: { raised?: boolean }) {
         top: 20,
         right: 24,
         zIndex: raised ? 71 : 50,
+        // 44px is the touch-target minimum; it rendered at 41.
+        display: "inline-flex",
+        alignItems: "center",
+        minHeight: 44,
         padding: "10px 18px",
         background: T.text,
         color: T.ink,

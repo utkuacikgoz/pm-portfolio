@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import App from "./App";
 import { BrowserRouter } from "./router";
 import SurfJourneyStatus from "./ui/SurfJourneyStatus";
+import { AVAILABILITY, CLAIM, SHELF_TITLE } from "./content/positioning";
 
 class IntersectionObserverStub implements IntersectionObserver {
   readonly root = null;
@@ -80,9 +81,18 @@ describe("portfolio journey", () => {
     renderApp();
 
     expect(elementByText("h1", "Utku Acikgoz")).toBeInTheDocument();
+    // Phones skip the hero, so this list is the landing page most recruiters
+    // see. It kept the old credential line for a month after the claim shipped.
+    expect(container.textContent).toContain(CLAIM);
+    expect(container.textContent).not.toContain("8+ years and 11+ products shipped. I lead");
     expect(container.textContent).toContain("35% less AML review time");
-    expect(container.textContent).toContain("INDEPENDENT PRODUCTS");
-    expect(elementByText<HTMLAnchorElement>("a", "Book a 60 min call").href).toBe("https://cal.com/utku-acikgoz/60min");
+    expect(container.textContent).toContain(SHELF_TITLE);
+    expect(container.textContent).toContain(AVAILABILITY);
+    expect(container.textContent).not.toMatch(/buyback/i);
+    // The flat map is a phone landing: screen readers must hear the project
+    // list once, from the cards, not again from the world's hidden nav.
+    expect(container.querySelector('nav[aria-label="Career world, projects"]')).not.toBeInTheDocument();
+    expect(elementByText<HTMLAnchorElement>("a", "Book a 30 min call").href).toBe("https://cal.com/utku-acikgoz/30min?overlayCalendar=true");
     for (const [title, href] of [
       ["PassATS", "https://www.passats.pro/"],
       ["Psst", "https://www.psstapp.fun/"],
@@ -127,6 +137,8 @@ describe("portfolio journey", () => {
     renderApp("/resume");
     await flushLazy();
     expect(elementByText("h2", "SELECTED WORK")).toBeInTheDocument();
+    expect(container.textContent).toContain(CLAIM);
+    expect(container.textContent).toContain(AVAILABILITY);
 
     act(() => elementByText<HTMLAnchorElement>("a", "EXPLORE THE WORLD").click());
     expect(window.location.pathname).toBe("/");

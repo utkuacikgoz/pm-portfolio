@@ -93,7 +93,9 @@ export const T = {
  * quietly reacquire a 14.5.
  */
 export const TYPE = {
-  micro: 11, // eyebrows, tags, chart legends
+  // 12, not 11: at 11 the attribution lines and LIVE labels sat below the
+  // legibility floor on a phone, which is where most recruiters read them.
+  micro: 12, // eyebrows, tags, chart legends
   small: 13, // meta lines, chips, secondary buttons
   body: 15, // body copy, primary controls
   lead: 18, // subheads and lead paragraphs

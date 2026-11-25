@@ -4,6 +4,7 @@ import type { Project } from "../projects/projects";
 import { INDIE_PROJECTS, attributionLine, isLive } from "../projects/projects";
 import { useProgress, markEgg } from "../state/progress";
 import { CONTACT } from "../content/contact";
+import { AVAILABILITY, BOOK_CALL, LANDING_LINE, SHELF_TITLE } from "../content/positioning";
 import { EVENTS, track } from "../analytics/events";
 import { T, TYPE, textAccent } from "../theme";
 
@@ -52,10 +53,21 @@ export default function FlatMap({ projects, onOpen, onSurf }: Props) {
           Senior Technical Product Manager
         </p>
         <p style={{ color: T.textSoft, fontSize: TYPE.body, marginTop: 12, lineHeight: 1.7, maxWidth: 560, marginInline: "auto" }}>
-          8+ years and 11+ products shipped. I lead distributed teams building fintech infrastructure,
-          marketplace products and AI features that support customer retention.
+          {LANDING_LINE}
         </p>
-        <p style={{ color: T.textMuted, fontSize: TYPE.small, marginTop: 14 }}>
+        {/* Availability and the ask sit on the first screen. They used to be the
+            last block on the page, about 2,400px down on a phone. */}
+        <p style={{ color: textAccent(T.seafoam), fontSize: TYPE.body, fontWeight: 700, marginTop: 14 }}>{AVAILABILITY}</p>
+        <a
+          href={CONTACT.calendar}
+          target="_blank"
+          rel="noopener"
+          onClick={() => track(EVENTS.ctaClicked, { cta: "book_call", location: "flat_map_top" })}
+          style={{ display: "inline-flex", alignItems: "center", minHeight: 44, marginTop: 12, padding: "12px 22px", background: T.blue, color: T.text, fontSize: TYPE.body, fontWeight: 800 }}
+        >
+          {BOOK_CALL} →
+        </a>
+        <p style={{ color: T.textMuted, fontSize: TYPE.small, marginTop: 18 }}>
           Tap a project to read the case study.
         </p>
         {onSurf && (
@@ -144,7 +156,7 @@ export default function FlatMap({ projects, onOpen, onSurf }: Props) {
       {INDIE_PROJECTS.length > 0 && (
         <>
           <h2 style={{ fontSize: TYPE.body, fontWeight: 900, letterSpacing: 1.5, color: T.textMuted, margin: "40px 0 14px" }}>
-            INDEPENDENT PRODUCTS
+            {SHELF_TITLE}
           </h2>
           <div style={{ display: "grid", gap: 10 }}>
             {INDIE_PROJECTS.map((p) => {
@@ -214,7 +226,7 @@ export default function FlatMap({ projects, onOpen, onSurf }: Props) {
             onClick={() => track(EVENTS.ctaClicked, { cta: "book_call", location: "flat_map" })}
             style={{ padding: "12px 22px", background: T.blue, color: T.text, fontSize: TYPE.body, fontWeight: 800 }}
           >
-            Book a 60 min call →
+            {BOOK_CALL} →
           </a>
           <a
             href="/UtkuAcikgoz-CV.pdf"

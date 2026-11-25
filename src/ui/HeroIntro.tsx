@@ -2,7 +2,9 @@ import { Fragment, useEffect, useRef } from "react";
 import { usePrefersReducedMotion } from "./hooks/useReducedMotion";
 import Rocket from "./Rocket";
 import { T, TYPE } from "../theme";
-import { LIVE_INDIE_WORD } from "../projects/projects";
+import { AVAILABILITY, BOOK_CALL, LANDING_LINE } from "../content/positioning";
+import { CONTACT } from "../content/contact";
+import { EVENTS, track } from "../analytics/events";
 
 // The headline, one array per rendered line. Split into words so each one can be
 // blown out of the nozzle on its own beat instead of the line arriving as a slab.
@@ -170,13 +172,29 @@ export default function HeroIntro({ onBegin }: { onBegin: () => void }) {
           ...rise(0.74),
         }}
       >
-        I earn the big change by shipping a small result first. Fintech infrastructure, marketplaces, and{" "}
-        {LIVE_INDIE_WORD} products of my own.
+        {LANDING_LINE}
       </p>
 
       <ProofRow reduced={reduced} style={rise(0.82)} />
 
       <MagneticCTA reduced={reduced} onClick={onBegin} delay={0.9} />
+
+      {/* Availability on the landing itself, one quiet line under the main
+          action. A recruiter used to have to finish a case study to learn
+          whether Utku was looking. Deliberately a text link, not a second
+          button, so ENTER stays the hero's only call to action. */}
+      <p style={{ marginTop: 22, fontSize: TYPE.small, color: T.textSoft, ...rise(1.05) }}>
+        {AVAILABILITY}{" "}
+        <a
+          href={CONTACT.calendar}
+          target="_blank"
+          rel="noopener"
+          onClick={() => track(EVENTS.ctaClicked, { cta: "book_call", location: "hero" })}
+          style={{ display: "inline-flex", alignItems: "center", minHeight: 44, color: T.text, fontWeight: 800, textDecoration: "underline", textUnderlineOffset: 3 }}
+        >
+          {BOOK_CALL} →
+        </a>
+      </p>
     </div>
   );
 }

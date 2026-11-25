@@ -5,6 +5,7 @@ import type { CaseStudy } from "../content/types";
 import type { Beat } from "../content/types";
 import { Metrics, Decisions, Initiatives, Stakeholders } from "./viz";
 import { CONTACT } from "../content/contact";
+import { BOOK_CALL } from "../content/positioning";
 import { markRead } from "../state/progress";
 import { EVENTS, track } from "../analytics/events";
 import { T, TYPE, textAccent } from "../theme";
@@ -406,7 +407,7 @@ function CTA({ accent, projectId }: { accent: string; projectId: string }) {
           onClick={() => track(EVENTS.ctaClicked, { cta: "book_call", location: "case_study", project_id: projectId })}
           style={{ padding: "12px 22px", background: accent, color: T.ink, fontSize: TYPE.body, fontWeight: 800, letterSpacing: 0.3 }}
         >
-          Book a 60 min call →
+          {BOOK_CALL} →
         </a>
         <a
           href={`mailto:${CONTACT.email}`}
@@ -443,7 +444,9 @@ function StickyHeader({
         position: "sticky",
         top: 0,
         zIndex: 2,
-        padding: "16px clamp(20px, 5vw, 40px) 14px",
+        // No bottom padding when the section bars are present: each bar button
+        // fills that band itself so its hit area is 30px tall, not 4px.
+        padding: `16px clamp(20px, 5vw, 40px) ${labels.length > 1 ? 0 : 14}px`,
         background: "rgba(29,24,22,0.94)",
         backdropFilter: "blur(10px)",
         borderBottom: `1px solid ${T.border}`,
@@ -461,8 +464,10 @@ function StickyHeader({
             background: "transparent",
             border: `2px solid ${accent}`,
             color: textAccent(accent),
-            width: 34,
-            height: 34,
+            // 44px: the platform minimum for a touch target, and on a phone this is
+            // the only way out of the case study.
+            width: 44,
+            height: 44,
             cursor: "pointer",
             fontSize: TYPE.body,
             fontWeight: 700,
@@ -473,15 +478,21 @@ function StickyHeader({
         </button>
       </div>
       {labels.length > 1 && (
-        <nav aria-label="Case study sections" style={{ display: "flex", gap: 6, marginTop: 12 }}>
+        <nav aria-label="Case study sections" style={{ display: "flex", gap: 6 }}>
           {labels.map((label, i) => (
             <button
               key={i}
               aria-current={i === active ? "true" : undefined}
               aria-label={`Jump to ${label}, section ${i + 1} of ${labels.length}`}
               onClick={() => onJump(i)}
-              style={{ flex: 1, height: 4, padding: 0, border: "none", cursor: "pointer", background: i <= active ? accent : T.border }}
-            />
+              // The visible bar is 4px, but the button is the whole 30px band it
+              // sits in (the 12px gap above it and the header's 14px bottom
+              // padding below), so it can actually be hit with a thumb. Same
+              // layout as when the bar itself was the button and was 4px tall.
+              style={{ flex: 1, padding: "12px 0 14px", border: "none", cursor: "pointer", background: "transparent" }}
+            >
+              <span aria-hidden="true" style={{ display: "block", height: 4, background: i <= active ? accent : T.border }} />
+            </button>
           ))}
         </nav>
       )}
