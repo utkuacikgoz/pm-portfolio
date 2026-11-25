@@ -216,16 +216,6 @@ export const PROJECTS: Project[] = [
     url: "https://www.littlemenace.fun",
     glimpse: "An iPhone pet toy: adopt a tiny gremlin, pet it, feed it, let it nap and play three tiny games. Care earns points, neglect costs them.",
   },
-  {
-    id: "signalbot",
-    title: "Buyback Signal",
-    tagline: "trading signal bot",
-    kind: "indie",
-    published: false,
-    accent: T.seafoam,
-    structure: "beacon",
-    glimpse: "A bot that watches the market and flags buyback signals in real time.",
-  },
   // Mona is real but lower-signal; surface it by flipping published:true.
   {
     id: "mona",

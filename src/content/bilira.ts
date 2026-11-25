@@ -41,7 +41,8 @@ export const bilira: CaseStudy = {
       body: [
         "I led the product team for TRYB, BiLira's Turkish Lira stablecoin, across its onchain surface: mint and redeem infrastructure, exchange integrations, DeFi vault partnerships, and institutional onboarding. TRYB stayed fully backed by reserves and redeemable one to one, live for mint and redeem across six chains: Ethereum, Avalanche, Solana, Polygon, BNB Smart Chain and Base.",
         "On the DeFi side I opened up liquidity and distribution: DEX liquidity on Curve, institutional liquidity with B2C2, curated yield vaults with Piku Finance and Morini Capital, and onboarding work with Circle (Arc live, StableFX in discussion). Onchain supply sat around $10M with roughly $2M to $3M in monthly onchain volume.",
-        "The vaults were the point. Morini curated delta neutral strategies on Turkish Lira exposure: USD/TRY arbitrage, a BIST basis trade, and a leveraged TRY carry trade, running native strategy APYs of 8.71%, 19.30% and 45.31%. Combined TRY vault TVL reached $21.85M ($3.51M, $5.24M and $13.10M across the three) inside a $30.02M Piku platform. It held because the guardrails were real: Fireblocks MPC custody under regulated HSM procedures, independent reserve verification at a 100.14% collateral ratio checked every 15 minutes, and zkTLS NAV proofs via vlayer for vault transparency.",
+        "The vaults were the point. Three Turkish Lira strategies curated by Morini, an arbitrage, a basis trade and a carry trade, yielded between 8.71% and 45.31% a year, and together held $21.85M of the $30.02M on the Piku platform.",
+        "It held because the guardrails were real: custody on Fireblocks, reserves independently verified every 15 minutes at a 100.14% collateral ratio, and cryptographic proofs of each vault's value.",
       ],
       insight: "Distribution and usable integrations were central to the stablecoin’s product value.",
     },
